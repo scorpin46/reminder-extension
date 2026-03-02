@@ -20,7 +20,7 @@
       <label class="form-label w-100">
         <span class="form-label__title">{{ form.input.datetime ? textDatetime : `Дата` }}</span>
 
-        <InputDatetime required class="form-control w-100" v-model="form.input.datetime" />
+        <InputDatetime required ref="reminderDateRef" class="form-control w-100" v-model="form.input.datetime" />
       </label>
       <!--        <br>-->
       <!--        <label class="form-label w-100">-->
@@ -45,7 +45,7 @@
   </div>
 </template>
 <script setup>
-import {computed, onMounted, reactive, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, reactive, ref, watch, nextTick} from "vue";
 import {pick} from "es-toolkit";
 import {ReminderService} from "@/modules/reminderService.js";
 import InputDatetime from "@/components/InputDatetime.vue";
@@ -71,6 +71,7 @@ const reminderService = ReminderService.instance();
 // const network = useNetwork(); //использовать если не будет оффлайн анализатора
 
 const reminderTitleRef = ref();
+const reminderDateRef = ref();
 
 const recognitionLocale = computed({
   get: () => {
@@ -100,7 +101,6 @@ const form = reactive({
     }
     
     const id = await reminderService.saveReminder({...this.input});
-    
 
     if (id){
       this.saved = true;
@@ -146,23 +146,24 @@ const textDatetime = computed(() => {
     });
 });
 
-const initForm = () => {
-  form.input.datetime = reminderService.lastRecordingData?.date || null;
-  form.input.title = reminderService.lastRecordingData?.cleanText || '';
+const initForm = async () => {
+  if (!props.editingId) {
+    form.input.datetime = reminderService.lastRecordingData?.date || null;
+    form.input.title = reminderService.lastRecordingData?.cleanText || '';
+  }
 
-  if (form.input.title){
+  await nextTick();
+  if (form.input.title && !form.input.datetime) {
+    // reminderDateRef.value.onFocus() //не вариант тк закрывает видимость
+  } else {
     reminderTitleRef.value.focus();
   }
 }
 
 watch(() => reminderService.lastRecordingData, (value, oldValue) => {
   initForm();
-}, {deep: true})
-
-onMounted(() => {
-  if (!props.editingId){
-    initForm()
-  }
+}, {
+  deep: true,
 })
 
 watch(() => props.editingId, (value, oldValue) => {
@@ -174,7 +175,15 @@ watch(() => props.editingId, (value, oldValue) => {
 })
 
 watch(() => reminderService.recordingError, (value) => {
-  toast.error(value);
+  value && toast.error(value);
+}, {immediate: true})
+
+onMounted(() => {
+  initForm();
+})
+
+onUnmounted(() => {
+  reminderService.resetLastRecordingData();
 })
 
 </script>

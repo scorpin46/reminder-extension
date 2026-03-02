@@ -22,6 +22,7 @@ const reminderService = ReminderService.instance();
 const supportsRecording = ref(reminderService.supportsRecording)
 
 const recordClickHandler = () => {
+  
   reminderService.isRecording
       ? reminderService.recordStop()
       : reminderService.recordStart()

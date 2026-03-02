@@ -80,7 +80,7 @@ export class ReminderRepository {
             if (updates.datetime){
                 updates.datetime = +updates.datetime;
 
-                if (updates.datetime > Date.now()) {
+                if (updates.datetime >= Date.now()) {
                     updates.completed = 0;
                 }
             }
@@ -202,6 +202,10 @@ export class ReminderRepository {
             console.error('Ошибка при удалении БД:', error);
             return false;
         }
+    }
+
+    isEmpty(){
+        return ! this.state.active.length && ! this.state.completed.length;
     }
 }
 

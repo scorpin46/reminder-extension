@@ -2,6 +2,8 @@
   <main :class="{'--recording': reminderService.isRecording}">
     <div class="menu">
       <RecordBtn v-if="activePanel === 'reminders'" class="record-btn--small"/>
+<!--      если нужен переход на страницу создания-->
+<!--      <RecordBtn v-if="activePanel === 'reminders'" @click="activePanel = 'main'" class="record-btn&#45;&#45;small" />-->
 
       <label :class="{'menu__item': true, '--active': activePanel === 'main'}">
         <input type="radio" v-model="activePanel" value="main" name="activePanel" checked hidden>
@@ -50,9 +52,13 @@ import RecordBtn from "@/components/RecordBtn.vue";
 import Settings from "@/components/Settings.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 
+const props = defineProps({
+  activePanel: {
+    type: String,
+  }
+})
 const reminderService = ReminderService.instance();
-
-const activePanel = ref('main');
+const activePanel = ref(props.activePanel ?? 'main');
 const editingId = ref();
 const mainPanelRef = ref();
 const backToPanel = ref();
@@ -105,6 +111,10 @@ watch(() => reminderService.isRecording, (value, oldValue) => {
 })
 
 watch(() => reminderService.repository.state.isLoaded, async () => {
+  if (!props.activePanel){
+    activePanel.value = !reminderService.repository.state.active.length ? 'main' : 'reminders';
+  }
+  
   watch(() => reminderService.repository.state.active.length, async (value, oldValue) => {
     if (value > oldValue) {
       remindersCountUp.value = true;

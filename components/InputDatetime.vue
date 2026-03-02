@@ -1,5 +1,6 @@
 <template>
   <input
+      ref="inputRef"
       type="datetime-local"
       :value="displayValue"
       :min="minDateTime"
@@ -11,7 +12,7 @@
 </template>
 
 <script setup>
-import {computed, nextTick} from 'vue'
+import {computed, nextTick, ref} from 'vue'
 
 const props = defineProps({
   modelValue: Date,
@@ -23,6 +24,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
+const inputRef = ref();
 
 // Текущее время + смещение
 const minDateTime = computed(() => {
@@ -64,31 +66,34 @@ const getTimezoneOffset = () => {
   return `${sign}${hours}:${minutes}`;
 }
 
-const openInputPicker = (elem) => {
+const openInputPicker = () => {
   try {
-    elem.showPicker();
-  } catch (err){}
+    inputRef.value?.showPicker();
+  } catch (err){
+    console.error(err);
+  }
 }
 
-const onFocus = async (event) => {
-  event.target.value = event.target.min;
-  await nextTick();
-  onInput(event);
-  openInputPicker(event.target)
+const onFocus = async () => {
+  if (inputRef.value.value > inputRef.value.min){
+    await nextTick();
+    onInput();
+  }
+
+  openInputPicker()
 }
 
 const onClick = (event) => {
-  openInputPicker(event.target)
+  openInputPicker()
 }
-
 
 const onChange = (event) => {
   emit('change', event)
 }
 
 // При вводе из input → в Date с часовым поясом
-const onInput = (e) => {
-  let inputValue = e.target.value
+const onInput = () => {
+  let inputValue = inputRef.value.value
  
   if (!inputValue) {
     emit('update:modelValue', null)
@@ -104,4 +109,10 @@ const onInput = (e) => {
   
   emit('update:modelValue', dateWithOffset)
 }
+
+defineExpose({
+  onFocus,
+  inputRef,
+})
+
 </script>

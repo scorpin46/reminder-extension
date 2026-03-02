@@ -47,13 +47,14 @@ export default defineConfig({
         forwardErrors: true, // перехватывать unhandled errors
     },
 
+    imports: false,
+
     // vite: (config) => ({
     //     ...config,
     //     build: {
     //         sourcemap: process.env.NODE_ENV === 'development' // или false, если проблемы
     //     }
     // })
-    // imports: false,
 
     // vite: (config) => ({
     //     ...config,

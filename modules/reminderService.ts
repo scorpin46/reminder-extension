@@ -72,7 +72,25 @@ export class ReminderService {
     get supportsRecording() {
         return state.supportsRecording;
     }
-   
+
+    get allowedLocaleLanguages(): object {
+        return {
+            "ru-RU": "Русский",
+            "en-US": "English",
+            "es-ES": "Español",
+            "fr-FR": "Français",
+            "de-DE": "Deutsch",
+            "it-IT": "Italiano",
+            "pt-BR": "Português",
+            "zh-CN": "中文",
+            "ja-JP": "日本語",
+        };
+    }
+
+    resetLastRecordingData(){
+        state.recognitionService?.resetState();
+    }
+
     recordStart() {
         return state.recognitionService?.start();
     }
@@ -145,19 +163,5 @@ export class ReminderService {
 
     reminderTimeUntil(reminderItem: Reminder, now = new Date()) {
         return localTimeUntil(reminderItem.datetime, this.regionLocale, now);
-    }
-
-    get allowedLocaleLanguages(): object {
-        return {
-            "ru-RU": "Русский",
-            "en-US": "English",
-            "es-ES": "Español",
-            "fr-FR": "Français",
-            "de-DE": "Deutsch",
-            "it-IT": "Italiano",
-            "pt-BR": "Português",
-            "zh-CN": "中文",
-            "ja-JP": "日本語",
-        };
     }
 }

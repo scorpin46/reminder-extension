@@ -54,6 +54,32 @@
     //pointer-events: none;
   }
   
+
+  &.dynamic-counter{
+    height: 100%;
+    position: relative;
+
+    [data-count] {
+      &:after {
+        opacity: 0;
+        right: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+    }
+
+    //&:hover [data-count],
+    input:checked + [data-count]
+    {
+      &:after{
+        pointer-events: auto;
+        opacity: 1;
+        position: static;
+        transition: opacity .1s linear;
+      }
+    }
+  }
+  
   &--add {
     margin-right: auto;
     @at-root .tabs:not(.sticky) #{&} {
@@ -116,7 +142,7 @@
     top: -5px;
     border-radius: 100%;
     border: 1px solid;
-
+    
     &:hover{
       background: var(--color-red);
       color: #fff;
@@ -131,21 +157,28 @@
   span {
     line-height: 1;
     font-size: 13px;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     padding: 7px 12px 8px;
     background-color: #fff;
     border-radius: inherit;
     color: rgb(102, 179, 255);
     border: 1px solid rgba(102, 179, 255, 0.2);
     outline: 0;
+    gap: 5px;
     user-select: none;
     box-shadow: none;
     transition: 120ms ease-in;
+    min-height: 35px;
 
     &:hover {
       box-shadow: 0 0 3px;
     }
 
+    svg{
+      margin-bottom: -1px;
+    }
+    
     &[data-count] {
       &.secondary:after{
         background: transparent;
@@ -165,7 +198,6 @@
       
       &:after {
         content: attr(data-count);
-        margin-left: 5px;
         display: inline-flex;
         justify-content: center;
         align-items: center;

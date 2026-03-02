@@ -27,17 +27,26 @@
       </div>
 
 
-      <label class="tab">
+      <label class="tab dynamic-counter">
         <input v-model="selectedFilter" name="selectedFilter" value="active" type="radio" hidden>
-        <span :data-count="reminderService.repository.state.active.length">Актуальные</span>
+        <span :data-count="reminderService.repository.state.active.length" class="secondary">
+            <template v-if="expired.length">❗</template>
+            <template v-else>
+<!--              <IconTimer height="19"/>-->
+            </template>
+          Актуальные
+        </span>
       </label>
       <!--      <label class="tab">-->
       <!--        <input v-model="selectedFilter" value="expired" type="radio" hidden>-->
       <!--        <span :data-count="expiredItems.length" class="danger">Просроченные</span>-->
       <!--      </label>-->
-      <label class="tab">
+      <label class="tab dynamic-counter">
         <input v-model="selectedFilter" name="selectedFilter" value="completed" type="radio" hidden>
-        <span :data-count="reminderService.repository.state.completed.length" class="secondary">Завершенные</span>
+        <span :data-count="reminderService.repository.state.completed.length" class="secondary">
+        <IconChecks v-show="selectedFilter === 'completed'" class="color-green" height="16"/>
+          Завершенные
+        </span>
       </label>
       
       <div class="tabs__right"></div>
@@ -57,8 +66,16 @@
     <div class="reminders">
       <div v-for="(group, dateString) in daysGroupsReminders" :key="dateString">
         <div class="reminders-day">
-          <span>{{ group.label }}</span>
-          <span>{{ dateString }}</span>
+          <template v-if="dateString !== 'expired'">
+            <span>{{ group.label }}</span>
+            <span>{{ dateString }}</span>
+          </template> 
+          <template v-else>
+            <span class="color-red">
+              {{ group.label }} <span> ({{ group.items.length }})</span>
+<!--              {{ group.label }} <span class="danger-label ml-5">{{ group.items.length }}</span>-->
+            </span>
+          </template> 
         </div>
 
         <div v-for="(item, key) in group.items" :key="`${item.id}`"
@@ -100,7 +117,7 @@
 <script setup>
 import {useDate} from "vuetify/framework";
 import {ReminderService} from "@/modules/reminderService.js";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {localDateFormat} from "@/modules/utils/helpers.ts";
 import {useIntervalFn} from "@vueuse/core";
 import IconChecks from "@/components/icons/IconChecks.vue";
@@ -146,11 +163,17 @@ const daysGroupsReminders = computed(() => {
       return true;
     }
 
-    const localDate = item.datetime.toLocaleDateString(reminderService.regionLocale);
+    let groupKey = item.datetime.toLocaleDateString(reminderService.regionLocale);
+    let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true)
+    
+    if (expired.value.includes(item.id)){
+      groupKey = 'expired';
+      label = "Просроченные"
+    }
 
-    groups[localDate] ??= {
+    groups[groupKey] ??= {
       items: [],
-      label: localDateFormat(item.datetime, false, reminderService.regionLocale, true)
+      label: label
     }
 
     const extendedItem = {...item};
@@ -159,7 +182,7 @@ const daysGroupsReminders = computed(() => {
     extendedItem.timeUntil = reminderService.reminderTimeUntil(item, now.value);
     extendedItem.localTime = reminderService.reminderLocalTime(item, now.value)
     
-    groups[localDate].items.push(extendedItem);
+    groups[groupKey].items.push(extendedItem);
   })
   
   return groups;
@@ -195,14 +218,16 @@ const editItem = (item) => {
   emit('editItem', item.id)
 }
 
-
-onMounted(() => {
-  actualizeExpired();
-
-  useIntervalFn(() => {
-    if (!calendarIsOpened.value) {
-      actualizeExpired();
-    }
-  }, 5000)
+useIntervalFn(() => {
+  if (!calendarIsOpened.value) {
+    actualizeExpired();
+  }
+}, 5000, {
+  immediateCallback: true
 })
+
+watch(() => reminderService.repository.state.active, (value, oldValue) => {
+  actualizeExpired();
+})
+
 </script>
