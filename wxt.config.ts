@@ -1,14 +1,12 @@
 import {defineConfig} from 'wxt';
 // import Vue from '@vitejs/plugin-vue';
 // import ReactivityTransform from '@vue-macros/reactivity-transform/vite';
-import consoleForward from 'wxt-module-console-forward';
-
+import 'wxt-module-console-forward';
 
 // See https://wxt.dev/api/config.html
 
 export default defineConfig({
-    manifest: {
-        key: "aGttYmRpaGtjbmRnbWRwamtua2pocGthaGNwZmhnZmM=", //todo id убрать или сделать через Pem?
+    manifest: () => ({
         "name": "__MSG_appName__",
         "version": "1.0.0",
         "description": "__MSG_appDesc__",
@@ -30,13 +28,21 @@ export default defineConfig({
         "action": {
             default_title: '__MSG_appName__',
         },
+        "oauth2": {
+            "client_id": import.meta.env.OAUTH_CLIENT_ID,
+            "scopes": [
+                "https://www.googleapis.com/auth/calendar",
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile"
+            ]
+        },
         "web_accessible_resources": [
             {
                 "matches": ["*://*.google.com/*"],
                 "resources": ["icon/*.png"]
             }
         ]
-    },
+    }),
 
     modules: [
         '@wxt-dev/module-vue',

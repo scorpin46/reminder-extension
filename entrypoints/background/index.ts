@@ -1,10 +1,11 @@
 import {watch} from "vue";
 import {alarmNameToReminderId} from "@/modules/utils/helpers";
-// import {googleAuthManager} from "@/modules/background/googleAuthManager";
 import {browser} from 'wxt/browser';
 import {Browser} from "@wxt-dev/browser";
 import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
+import { defineBackground } from "#imports";
+import {GoogleCalendarService} from "@/modules/googleCalendarService";
 
 export default defineBackground(() => {
     let popupWindowId: number | null = null;
@@ -107,8 +108,7 @@ export default defineBackground(() => {
         }
     });
 
-    browser.notifications.onButtonClicked.addListener(
-        async (notificationId: string, buttonIndex: number) => {
+    browser.notifications.onButtonClicked.addListener(async (notificationId: string, buttonIndex: number) => {
             const reminderId = await reminderService.repository.getIdByNotificationId(
                 notificationId
             );
@@ -119,12 +119,7 @@ export default defineBackground(() => {
             } else if (buttonIndex === 1) {
                 openPostponeWindow(reminderId);
             }
-        }
-    );
-
-    watch(() => reminderService.repository.state.active, (value) => {
-        browser.action.setBadgeText({text: (value.length || "").toString()});
-    }, {immediate: true,});
+        });
 
     browser.action.setBadgeBackgroundColor({color: "#4688F1"});
     browser.action.setBadgeTextColor({color: "white"});
@@ -142,86 +137,13 @@ export default defineBackground(() => {
         }
     });
 
-    // async function checkAuthStatus(): Promise<{
-    //   isAuthed: boolean;
-    //   email: string | null;
-    //   token?: string;
-    // }> {
-    //   return new Promise((resolve) => {
-    //     browser.identity.getAuthToken({ interactive: false }, (token) => {
-    //       if (browser.runtime.lastError || !token) {
-    //         resolve({ isAuthed: false, email: null });
-    //         return;
-    //       }
-    //
-    //       fetch("https://www.googleapis.com/oauth2/v1/userinfo", {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //       })
-    //           .then((res) => res.json())
-    //           .then((user: { email: string }) => {
-    //             resolve({ isAuthed: true, email: user.email, token });
-    //           })
-    //           .catch(() => {
-    //             resolve({ isAuthed: false, email: null });
-    //           });
-    //     });
-    //   });
-    // }
-    //
-    // interface AuthResponse {
-    //   success: boolean;
-    //   error?: browser.runtime.LastError;
-    //   email?: string;
-    // }
-    //
-    // interface CheckAuthResponse {
-    //   isAuthed: boolean;
-    //   email: string | null;
-    //   token?: string;
-    // }
-    //
-    // browser.runtime.onMessage.addListener(
-    //     (
-    //         message: { type: string },
-    //         sender: browser.runtime.MessageSender,
-    //         sendResponse: (response: AuthResponse | CheckAuthResponse) => void
-    //     ) => {
-    //       if (message.type === "loginToGoogle") {
-    //         browser.identity.getAuthToken({ interactive: true }, (token) => {
-    //           if (browser.runtime.lastError) {
-    //             sendResponse({
-    //               success: false,
-    //               error: browser.runtime.lastError,
-    //             });
-    //             return;
-    //           }
-    //
-    //           fetch("https://www.googleapis.com/oauth2/v1/userinfo", {
-    //             headers: { Authorization: `Bearer ${token}` },
-    //           })
-    //               .then((res) => res.json())
-    //               .then((user: { email: string }) => {
-    //                 sendResponse({ success: true, email: user.email });
-    //               });
-    //         });
-    //
-    //         return true;
-    //       } else if (message.type === "logoutToGoogle") {
-    //         browser.identity.getAuthToken({ interactive: false }, (token) => {
-    //           if (token) {
-    //             fetch("https://accounts.google.com/o/oauth2/revoke?token=" + token)
-    //                 .finally(() => {
-    //                   browser.identity.removeCachedAuthToken({ token }, () => {
-    //                     sendResponse({ success: true });
-    //                   });
-    //                 });
-    //           }
-    //         });
-    //         return true;
-    //       } else if (message.type === "checkAuth") {
-    //         checkAuthStatus().then(sendResponse);
-    //         return true;
-    //       }
-    //     }
-    // );
+
+    watch(() => reminderService.repository.state.active.length, (value) => {
+        browser.action.setBadgeText({text: (value || "").toString()});
+    }, {immediate: true});
+
+    const calendar = new GoogleCalendarService();
+
+    calendar.initBackground();
+
 });

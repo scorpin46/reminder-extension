@@ -15,6 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@googleapis/calendar": "^14.2.0",
     "@types/dom-speech-recognition": "^0.0.7",
     "@vue-macros/reactivity-transform": "^3.1.2",
     "@vueuse/core": "^14.2.1",

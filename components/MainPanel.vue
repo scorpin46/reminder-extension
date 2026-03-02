@@ -14,7 +14,7 @@
     <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
       <label class="form-label w-100 reminder-title__label">
         <span class="form-label__title">{{ reminderService.streamRecordingText || `Заголовок`}}</span>
-        <textarea autofocus required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+        <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
       </label>
       <br>
       <label class="form-label w-100">
