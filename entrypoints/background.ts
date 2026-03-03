@@ -142,7 +142,7 @@ export default defineBackground(() => {
         browser.action.setBadgeText({text: (value || "").toString()});
     }, {immediate: true});
 
-    const calendar = new GoogleCalendarService();
+    const calendar = new GoogleCalendarService(reminderService);
 
     calendar.initBackground();
 

@@ -44,7 +44,7 @@ const toUI = (reminder: ReminderInterface): Reminder => ({
 });
 
 export class ReminderRepository {
-    private readonly state = reactive<ReminderState>({
+    public readonly state = reactive<ReminderState>({
         isLoaded: false,
         active: [],
         completed: [],

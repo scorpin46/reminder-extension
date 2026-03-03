@@ -75,6 +75,7 @@ const openInputPicker = () => {
 
 const onFocus = async () => {
   if (inputRef.value.value < inputRef.value.min){
+    inputRef.value.value = inputRef.value.min; 
     onInput();
     await nextTick();
   }
