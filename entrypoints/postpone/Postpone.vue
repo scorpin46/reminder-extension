@@ -1,15 +1,13 @@
 <template>
-  <div>
-    <div class="notranslate">
+  <div class="postpone">
+    <div class="notranslate postpone__title">
       <b>{{ reminderItem.title }}</b>
+<!--      todo детальное описание добавить потом-->
     </div>
-    <br>
     <div>
-      <div v-for="option in reminderOptions" :key="option.minutes">
-        <button type="button" @click="sendNewTime(option.targetDate)">
-          <span>{{ option.label }}</span> -
-          <span>{{ option.labelUntil }}</span>
-        </button>
+      <div v-for="option in reminderOptions" :key="option.minutes" class="postpone__option" @click="sendNewTime(option.targetDate)" role="button">
+        <span>{{ option.label }}</span>
+        <span v-if="option.labelUntil"> - {{ option.labelUntil }}</span>
       </div>
       <br>
       <label class="form-label w-100">
@@ -26,10 +24,10 @@ import {localTimeUntil} from "@/modules/utils/helpers.ts";
 import InputDatetime from "@/components/InputDatetime.vue";
 import {useNow} from "@vueuse/core";
 
-const now = useNow({interval: 60000});
+const now = useNow({interval: 1000});
 const inputDatetime = ref();
 const reminderItem = ref({});
-const minutes = ref([5, 10, 15, 30, 45, 60, 120, 240]);
+const minutes = ref([5, 10, 15, 30, 45, 60, 120, 240, 60 * 24]);
 const reminderService = ReminderService.instance();
 
 const reminderOptions = computed(() => {
@@ -48,10 +46,19 @@ const reminderOptions = computed(() => {
 
     // Форматируем дату в зависимости от diffInDays
     let dateStr;
+    let labelUntil;
+
     if (diffInDays === 0 || diffInDays === 1) {
       const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
       const dayStr = rtf.format(diffInDays === 0 ? 0 : 1, 'day');
       dateStr = dayStr.charAt(0).toUpperCase() + dayStr.slice(1) + ', ' + timeStr;
+      if (targetDate.getDay() === new Date().getDay()){
+        labelUntil = localTimeUntil(
+            targetDate,
+            locale,
+            now.value,
+        );
+      }
     } else {
       dateStr = targetDate.toLocaleString(locale, {
         month: 'long',
@@ -64,11 +71,7 @@ const reminderOptions = computed(() => {
 
     return {
       minutes: min,
-      labelUntil: localTimeUntil(
-          targetDate,
-          locale,
-          now.value,
-      ),
+      labelUntil: labelUntil,
       label: dateStr,
       targetDate: targetDate
     };

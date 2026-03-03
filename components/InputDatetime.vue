@@ -44,7 +44,6 @@ const minDateTime = computed(() => {
 // Для отображения в input
 const displayValue = computed(() => {
   if (!props.modelValue){
-    // return minDateTime.value; //todo возможно поставить удобнее будет?
     return '';
   }
   const date = props.modelValue
@@ -75,9 +74,9 @@ const openInputPicker = () => {
 }
 
 const onFocus = async () => {
-  if (inputRef.value.value > inputRef.value.min){
-    await nextTick();
+  if (inputRef.value.value < inputRef.value.min){
     onInput();
+    await nextTick();
   }
 
   openInputPicker()

@@ -1,0 +1,43 @@
+@use "variables";
+@use "main";
+
+html {
+  all: unset;
+}
+
+body {
+  border-radius: 0;
+  padding: 10px;
+  min-height: 100vh;
+}
+
+.postpone {
+  
+  &__title {
+    font-size: 15px;
+    border-bottom: 1px solid var(--color-light);
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+    line-height: 1.15;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__option {
+    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      //todo стили для темной темы сделать + фон добавить для body
+      background: #bcbcbc;
+    }
+  }
+}

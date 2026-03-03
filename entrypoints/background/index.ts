@@ -49,8 +49,8 @@ export default defineBackground(() => {
 
     const openPostponeWindow = (reminderId: number | string): void => {
         browser.windows.getLastFocused((lastWindow) => {
-            const width = 500;
-            const height = 300;
+            const width = 460;
+            const height = 370;
             const left = lastWindow.left! + lastWindow.width! - width;
             const top = lastWindow.height! - height;
 

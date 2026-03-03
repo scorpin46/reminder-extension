@@ -70,6 +70,10 @@
       color: var(--color-red);
     }
     
+    &.--soon &__day{
+      color: #ff8900;
+    }
+    
     &.--completed{
       background: var(--border-color-light);
       

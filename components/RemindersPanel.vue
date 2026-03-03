@@ -83,6 +83,7 @@
                 'reminders-item': true, 
                 '--expired': expired.includes(item.id),
                 '--completed': item.completed, 
+                '--soon': soon.includes(item.id),
              }"
              :id="`reminder-${item.id}`"
              :title="item.previewTitle"
@@ -201,11 +202,16 @@ const maxFilterDate = computed(() => {
 });
 
 const expired = ref([]);
+const soon = ref([]);
 const now = ref();
 
-const actualizeExpired = () => {
+const actualize = () => {
   now.value = new Date();
   expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
+  soon.value = reminderService.repository.state.active.filter(item => {
+    const diff = item.datetime - now.value;
+    return !item.completed && diff > 0 && diff < 10 * 60 * 1000
+  }).map(item => item.id);
 }
 
 const completeReminder = (item) => {
@@ -220,14 +226,14 @@ const editItem = (item) => {
 
 useIntervalFn(() => {
   if (!calendarIsOpened.value) {
-    actualizeExpired();
+    actualize();
   }
 }, 5000, {
   immediateCallback: true
 })
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
-  actualizeExpired();
+  actualize();
 })
 
 </script>

@@ -13,7 +13,7 @@
 
     <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
       <label class="form-label w-100 reminder-title__label">
-        <span class="form-label__title">{{ reminderService.streamRecordingText || `Заголовок`}}</span>
+        <span class="form-label__title">{{ reminderService.streamRecordingText || `Текст напоминания`}}</span>
         <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
       </label>
       <br>

@@ -183,7 +183,8 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
 }
 
 .form-label {
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
   font-size: 13px;
   color: #666;
   line-height: 1;
