@@ -5,65 +5,27 @@
   --color-light: #999;
   --border-color: #bcbcbc;
   --border-color-light: #e6e6e6;
-
-//todo зачистить лишнее
+  --body-bg: #fff;
   
-  --mio-theme-color-white: #fff;
-  --mio-theme-color-on-background: #1c1b1d;
-  --mio-theme-color-background: #fefbff;
   --mio-theme-color-on-surface: #1c1b1d;
   --mio-theme-color-on-surface-variant: #4d4256;
-  --mio-theme-color-surface-0: #fff;
-  --mio-theme-color-on-surface-2: linear-gradient(0deg, rgb(31 25 35 / 8%), rgb(31 25 35 / 8%)), var(--mio-theme-color-secondary-container);
-  --mio-theme-color-on-surface-4: linear-gradient(0deg, rgb(31 25 35 / 12%), rgb(31 25 35 / 12%)), var(--mio-theme-color-secondary-container);
   --mio-theme-color-on-surface-variant-2: linear-gradient(0deg, rgb(77 66 86 / 8%), rgb(77 66 86 / 8%));
-  --mio-theme-color-on-surface-variant-4: linear-gradient(0deg, rgb(77 66 86 / 12%), rgb(77 66 86 / 12%));
-  --mio-theme-color-surface-variant: #e8e0e8;
-  --mio-theme-color-inverse-surface: #303030;
-  --mio-theme-color-inverse-on-surface: #f5eff1;
-  --mio-theme-color-primary: #6442d6;
-  --mio-theme-color-primary-80: #cbbeff;
-  --mio-theme-color-primary-30: #4b21bd;
-  --mio-theme-color-primary-20: #340098;
-  --mio-theme-color-on-primary: #fff;
-  --mio-theme-color-neutral-10: #1c1b1d;
-  --mio-theme-color-neutral-90: #e6e1e3;
-  --mio-theme-color-primary-container: #9f86ff;
-  --mio-theme-color-on-primary-container: #1e0060;
-  --mio-theme-color-secondary: #5d5d74;
-  --mio-theme-color-on-secondary: #fff;
   --mio-theme-color-secondary-container: #dcdaf5;
-  --mio-theme-color-on-secondary-container: #21182b;
-  --mio-theme-color-tertiary-container: #f1d3f9;
-  --mio-theme-color-on-tertiary-container: #271430;
-  --mio-theme-color-utility-error: #ff6240;
-  --mio-theme-color-utility-error-variant: #ff6240;
-  --mio-theme-color-utility-on-error: #490909;
-  --mio-theme-color-utility-error-container: #f9dedc;
-  --mio-theme-color-utility-outline: #787579;
-  --mio-theme-color-utility-list-hover: rgb(31 25 35 / 8%);
-  --mio-theme-color-utility-list-active: rgb(31 25 35 / 10%);
   --mio-theme-color-surface-1: #f8f1f6;
-  --mio-theme-color-surface-2: #f2ecee;
-  --mio-theme-color-surface-3: #ece7e9;
-  --mio-theme-color-surface-4: #e6e1e3;
-  --mio-theme-color-surface-5: #e6e1e3;
-  --mio-theme-color-extensions-do-container: #34be4d;
-  --mio-theme-color-extensions-on-do-container: #11371d;
-  --mio-theme-color-extensions-dont-container: #ff6240;
-  --mio-theme-color-extensions-on-dont-container: #490909;
-  --mio-theme-color-extensions-caution-container: #ffce22;
-  --mio-theme-color-extensions-on-caution-container: #3a2900;
-  --mio-theme-color-ref-secondary-200: #c6c4de;
-  --mio-theme-color-ref-secondary-300: #aaa9c2;
-  --mio-theme-color-ref-neutral-100: #e6e1e3;
-  --mio-theme-color-ref-neutral-200: #cac5c7;
-  --mio-theme-color-scrim-video-container: rgb(31 31 31 / 64%);
-  --mio-theme-color-scrim-video-control: rgb(255 255 255 / 12%);
-  --mio-theme-color-scrim-video-control-pressed: rgb(255 255 255 / 24%);
-  --mio-theme-color-copy-link-tooltip: #f2f2f2;
   --mio-theme-color-warning-icon: #e37402;
-  --mio-theme-elevation-1: 0px 1px 2px 0px rgb(0 0 0 / 30%), 0px 1px 3px 1px rgb(0 0 0 / 15%);
-  --mio-theme-elevation-2: 0px 1px 2px 0px rgb(0 0 0 / 30%), 0px 2px 6px 2px rgb(0 0 0 / 15%);
-  --mio-theme-elevation-3: 0px 1px 3px 0px rgb(0 0 0 / 30%), 0px 4px 8px 3px rgb(0 0 0 / 15%);
 }
+
+[data-theme="dark"]{
+    --color-default: #333;
+    --color-red: #eb5757;
+    --color-green: #67b279;
+    --color-light: hsl(215 15% 65%);
+    --border-color: #bcbcbc;
+    --border-color-light: #e6e6e6;
+
+    --body-bg: #2b303b;
+    --active-box-bg: #1a1d23;
+}
+
+//@media (prefers-color-scheme: dark){
+//}
