@@ -86,6 +86,10 @@ export default defineBackground(() => {
         }
     });
 
+    const postponeBtn = {title: "🕒 Postpone"};  //todo перевод
+    const completeBtn =  {title: "✅ Mark as Done"};  //todo перевод
+    const alarmButtons = [postponeBtn, completeBtn];
+    
     browser.alarms.onAlarm.addListener(async (alarm: Alarm) => {
         const reminderId = alarmNameToReminderId(alarm.name);
         
@@ -96,11 +100,12 @@ export default defineBackground(() => {
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
-                    title: "🔔 Напоминание",
+                    title: "🔔 Напоминание",  //todo перевод
                     message: reminder.title,
                     contextMessage: reminder.desc,
                     requireInteraction: true,
-                    buttons: [{title: "✅ Mark as Done"}, {title: "🕒 Postpone"}],
+                  
+                    buttons: alarmButtons,
                 });
 
                 await reminderService.repository.update(reminder.id, {notificationId});
@@ -109,17 +114,17 @@ export default defineBackground(() => {
     });
 
     browser.notifications.onButtonClicked.addListener(async (notificationId: string, buttonIndex: number) => {
-            const reminderId = await reminderService.repository.getIdByNotificationId(
-                notificationId
-            );
-            browser.notifications.clear(notificationId);
+        const reminderId = await reminderService.repository.getIdByNotificationId(
+            notificationId
+        );
+        browser.notifications.clear(notificationId);
 
-            if (buttonIndex === 0) {
-                await reminderService.repository.complete(reminderId);
-            } else if (buttonIndex === 1) {
-                openPostponeWindow(reminderId);
-            }
-        });
+        if (alarmButtons[buttonIndex] === completeBtn) {
+            await reminderService.repository.complete(reminderId);
+        } else if (alarmButtons[buttonIndex] === postponeBtn) {
+            openPostponeWindow(reminderId);
+        }
+    });
 
     browser.action.setBadgeBackgroundColor({color: "#4688F1"});
     browser.action.setBadgeTextColor({color: "white"});
@@ -143,7 +148,7 @@ export default defineBackground(() => {
     }, {immediate: true});
 
     const calendar = new GoogleCalendarService(reminderService);
-
+    
     calendar.initBackground();
 
 });

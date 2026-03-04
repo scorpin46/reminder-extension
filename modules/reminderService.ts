@@ -118,16 +118,31 @@ export class ReminderService {
         getStoredLocale().setValue(locale)
     }
 
-    async saveReminder(params: Reminder) {
-        let id = params.id;
+    async saveReminder(params: Reminder): Promise<number>;
+    async saveReminder(id: number, params: Partial<Reminder>): Promise<number>;
+    async saveReminder(idOrParams: number | Reminder, params?: Partial<Reminder>): Promise<number>
+    {
+        let id: number | undefined;
+        let reminderParams: Partial<Reminder>;
+        
+        if (typeof idOrParams === 'number') {
+            id = idOrParams;
+            reminderParams = params!;
+        } else {
+            id = idOrParams.id;
+            reminderParams = idOrParams;
+        }
         
         if (id){
-            await this.repository.update(id, params); //update не возвращает ID !!!
+            await this.repository.update(id, reminderParams); //update не возвращает ID !!!
         } else {
-            id = await this.repository.add(params);
+            id = await this.repository.add(reminderParams);
         }
 
-        await this.scheduleNotification(id, params.datetime as Date);
+        if (reminderParams.datetime){
+            await this.scheduleNotification(id, reminderParams.datetime as Date);
+        }
+        
         state.recognitionService?.resetState();
 
         return id;
@@ -144,9 +159,13 @@ export class ReminderService {
     }
 
     async scheduleNotification(id: number, when: Date|number) {
-        browser.alarms.create(reminderIdToAlarmName(id), {
-            when: +when
-        });
+        try {
+            browser.alarms.create(reminderIdToAlarmName(id), {
+                when: +when
+            });
+        } catch (e) {
+            console.warn("Ошибка создания alarm в браузере", e);
+        }
     }
 
     reminderLocalTime(reminderItem: Reminder) {

@@ -15,11 +15,11 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@googleapis/calendar": "^14.2.0",
     "@types/dom-speech-recognition": "^0.0.7",
     "@vue-macros/reactivity-transform": "^3.1.2",
     "@vueuse/core": "^14.2.1",
     "@wxt-dev/storage": "^1.2.8",
+    "axios": "^1.13.6",
     "chrono-node": "^2.9.0",
     "dexie": "^4.3.0",
     "dexie-observable": "^4.0.1-beta.13",
@@ -29,6 +29,7 @@
     "vuetify": "^3.12.1"
   },
   "devDependencies": {
+    "@googleapis/calendar": "^14.2.0",
     "@wxt-dev/module-vue": "^1.0.3",
     "sass": "^1.97.3",
     "typescript": "^5.9.3",

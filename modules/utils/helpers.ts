@@ -171,3 +171,28 @@ export const alarmNameToReminderId = (alarmName: string) => {
     
     return null;
 }
+
+export const processInBatches = async <T>(
+    items: T[],
+    itemCallback: (item: T) => Promise<any>,
+    batchSize = 5,
+    delayMs = 1000
+): Promise<PromiseSettledResult<any>[]> => {
+    const results: PromiseSettledResult<any>[] = [];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+
+        const batchResults = await Promise.allSettled(
+            batch.map(item => itemCallback(item))
+        );
+
+        results.push(...batchResults);
+
+        if (i + batchSize < items.length) {
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+    }
+
+    return results;
+}

@@ -15,7 +15,7 @@ interface ReminderInterface {
     completed: 0 | 1;
     notificationId: string | null;
     googleEventId: string | null;
-    googleSync: 0 | 1;
+    googleSync: 0 | 1 | null;
     googleSyncDate: number | Date | null;
 }
 
@@ -70,8 +70,11 @@ export class ReminderRepository {
             reminder.createdAt = now;
             reminder.updatedAt = now;
             reminder.completed = reminder.completed ? 1 : 0;
-            reminder.googleSync = reminder.googleSync ? 1 : 0;
             reminder.datetime = +reminder.datetime;
+           
+            if (reminder.googleSync != null){ //!= сравнивает на undefined и на null 
+                reminder.googleSync = reminder.googleSync ? 1 : 0;
+            }
         });
 
         this.db.reminders.hook('updating', (modifications: Partial<ReminderInterface>) => {
@@ -93,8 +96,12 @@ export class ReminderRepository {
                 updates.completed = updates.completed ? 1 : 0;
             }
 
-            if ('googleSync' in updates){
+            if ('googleSync' in updates && updates.googleSync != null){ //!= сравнивает на undefined и на null 
                 updates.googleSync = updates.googleSync ? 1 : 0;
+            }
+
+            if (updates.googleSyncDate != null){
+                updates.googleSyncDate = +updates.googleSyncDate;
             }
 
             if (updates.id){
@@ -181,11 +188,11 @@ export class ReminderRepository {
         return this.db.reminders.add(<ReminderInterface>data);
     }
 
-    async update(id: number, data: Partial<Reminder|ReminderInterface>): Promise<number> {
-        return this.db.reminders.update(+id, <ReminderInterface>data);
+    async update(id: number, data: Partial<Reminder|ReminderInterface>): Promise<boolean> {
+        return !!this.db.reminders.update(+id, <ReminderInterface>data);
     }
     
-    async complete(id: number): Promise<number> {
+    async complete(id: number): Promise<boolean> {
         return await this.update(+id, { completed: 1, datetime: Date.now() });
     }
 
