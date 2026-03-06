@@ -6,10 +6,10 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import { defineBackground } from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
+import {Reminder} from "@/modules/repositories/reminderRepository";
 
 export default defineBackground(() => {
     let popupWindowId: number | null = null;
-    const reminderService = ReminderService.instance();
 
     const openMainWindow = (): void => {
         browser.windows.getLastFocused((lastWindow) => {
@@ -92,17 +92,18 @@ export default defineBackground(() => {
     
     browser.alarms.onAlarm.addListener(async (alarm: Alarm) => {
         const reminderId = alarmNameToReminderId(alarm.name);
+        const reminderService = ReminderService.instance();
         
         if (reminderId) {
             const reminder = await reminderService.repository.getById(reminderId);
 
-            if (reminder && !reminder.completed) {
+            if (reminder?.id && !reminder.completed) {
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
                     title: "🔔 Напоминание",  //todo перевод
                     message: reminder.title,
-                    contextMessage: reminder.desc,
+                    contextMessage: reminder.desc!,
                     requireInteraction: true,
                   
                     buttons: alarmButtons,
@@ -114,15 +115,17 @@ export default defineBackground(() => {
     });
 
     browser.notifications.onButtonClicked.addListener(async (notificationId: string, buttonIndex: number) => {
-        const reminderId = await reminderService.repository.getIdByNotificationId(
-            notificationId
-        );
+        const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
         browser.notifications.clear(notificationId);
+        
+        if (!reminder?.id){
+            return;
+        }
 
         if (alarmButtons[buttonIndex] === completeBtn) {
-            await reminderService.repository.complete(reminderId);
+            await ReminderService.instance().completeReminder(reminder);
         } else if (alarmButtons[buttonIndex] === postponeBtn) {
-            openPostponeWindow(reminderId);
+            openPostponeWindow(reminder.id);
         }
     });
 
@@ -143,12 +146,75 @@ export default defineBackground(() => {
     });
 
 
-    watch(() => reminderService.repository.state.active.length, (value) => {
+    watch(() => ReminderService.instance().repository.state.active.length, (value) => {
         browser.action.setBadgeText({text: (value || "").toString()});
     }, {immediate: true});
 
-    const calendar = new GoogleCalendarService(reminderService);
     
-    calendar.initBackground();
+    browser.alarms.onAlarm.addListener((alarm) => {
+        browser.action.setBadgeText({text: (ReminderService.instance().repository.state.active.length || "").toString()});
+
+        if (alarm.name === GoogleCalendarService.syncAlarmName) {
+            GoogleCalendarService.instance().syncUpdates();
+        }
+    });
+
+    browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        const calendar = GoogleCalendarService.instance();
+        const handler = async () => {
+            try {
+                switch (request.action) {
+                    case 'googleLogin':
+                        return await calendar.login();
+                    case 'googleLogout':
+                        return await calendar.logout();
+                    case 'googleCheckStatus':
+                        if (!calendar.currentUser) {
+                            return { authenticated: false };
+                        }
+
+                        const isValidUser = await calendar.checkUser();
+
+                        return {
+                            authenticated: isValidUser,
+                            user: calendar.currentUser,
+                            message: !isValidUser ? `Пользователь не авторизован или возникли проблемы, попробуйте перезагрузить или повторить позднее` : undefined
+                        }
+                    case 'googleUpdateEvent':
+                        await calendar.updateEventByReminder(
+                            await calendar.reminderService.repository.getById(request.reminderId)
+                        );
+                        return
+                    case 'googleDeleteEvent':
+                        if (request.googleEventId){
+                            await calendar.deleteEvent(request.googleEventId);
+                        }
+                        return;
+                    case 'googleCreateEvent':
+                        await calendar.createEventByReminder(
+                            await calendar.reminderService.repository.getById(request.reminderId)
+                        );
+                        return;
+                    default:
+                        return { success: false, error: 'Unknown action' };
+                }
+            } catch (error: any) {
+                return { success: false, error: error.message };
+            }
+        };
+
+        handler().then(sendResponse);
+        return true; // Keep message channel open
+    });
+
+    // При старте браузера
+    browser.runtime.onStartup?.addListener(() => {
+        GoogleCalendarService.instance().run().catch(console.error);
+    });
+
+    // При установке/обновлении
+    browser.runtime.onInstalled?.addListener(() => {
+        GoogleCalendarService.instance().run().catch(console.error);
+    });
 
 });

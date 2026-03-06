@@ -175,12 +175,12 @@ export class ReminderRepository {
         return reminder?.id ? toUI(reminder): undefined;
     }
 
-    async getIdByNotificationId(notificationId: string): Promise<number | undefined> {
+    async getByNotificationId(notificationId: string): Promise<Reminder | undefined> {
         const reminder = await this.db.reminders
             .where('notificationId')
             .equals(notificationId)
             .first();
-        return reminder?.id;
+        return reminder?.id ? toUI(reminder): undefined;
     }
 
     async add(data: Partial<Reminder|ReminderInterface>): Promise<number> {

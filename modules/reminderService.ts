@@ -16,10 +16,10 @@ const state: {
     recognitionService: undefined,
 });
 
-let instance;
 
 export class ReminderService {
     public readonly repository: ReminderRepository;
+    private static _instance: ReminderService;
     
     private constructor() {
         this.repository = new ReminderRepository();
@@ -28,13 +28,13 @@ export class ReminderService {
     }
 
     static instance() {
-        instance ??= new ReminderService();
+        ReminderService._instance ??= new ReminderService();
         
         if (typeof window !== 'undefined'){
-            state.recognitionService ??= instance.initRecognitionService();
+            state.recognitionService ??= ReminderService._instance.initRecognitionService();
         }
 
-        return instance;
+        return ReminderService._instance;
     }
 
     initRecognitionService() {
@@ -135,12 +135,14 @@ export class ReminderService {
         
         if (id){
             await this.repository.update(id, reminderParams); //update не возвращает ID !!!
+            browser.runtime.sendMessage({ action : 'googleUpdateEvent', reminderId: id});
         } else {
             id = await this.repository.add(reminderParams);
+            browser.runtime.sendMessage({ action : 'googleCreateEvent', reminder: id});
         }
 
         if (reminderParams.datetime){
-            await this.scheduleNotification(id, reminderParams.datetime as Date);
+            await this.scheduleNotification(id, reminderParams.datetime);
         }
         
         state.recognitionService?.resetState();
@@ -148,14 +150,16 @@ export class ReminderService {
         return id;
     }
     
-    async deleteReminder(id: number) {
-        await this.repository.delete(id);
-        browser.alarms.clear(reminderIdToAlarmName(id));
+    async deleteReminder(reminder: Reminder) {
+        await this.repository.delete(reminder.id!);
+        browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
+        browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
-    async completeReminder(id: number) {
-        await this.repository.complete(id);
-        browser.alarms.clear(reminderIdToAlarmName(id));
+    async completeReminder(reminder: Reminder) {
+        await this.repository.complete(reminder.id!);
+        browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
+        browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
     async scheduleNotification(id: number, when: Date|number) {

@@ -33,3 +33,21 @@ export function getStoredGoogleUser() {
         fallback: undefined
     });
 }
+
+export function getStoredAllowGoogleSync() {
+    return storage.defineItem<boolean>('local:allowGoogleSync', {
+        fallback: false
+    });
+}
+
+export function getStoredGoogleIsAuthenticated() {
+    return storage.defineItem<boolean>('session:googleIsAuthenticated', {
+        fallback: false
+    });
+}
+
+export function getStoredGoogleLastSyncTs() {
+    return storage.defineItem<number|undefined>('local:googleLastSyncTs', {
+        fallback: undefined
+    });
+}

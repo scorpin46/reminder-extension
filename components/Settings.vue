@@ -38,37 +38,57 @@
 import IconXmark from "@/components/icons/IconXmark.vue";
 import {useToast} from "vue-toastification";
 import {onMounted, ref} from "vue";
+import {
+  getStoredAllowGoogleSync,
+  getStoredGoogleIsAuthenticated,
+  getStoredGoogleUser
+} from "@/modules/utils/storage.ts";
 
 const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
 const toast = useToast();
-const allowGoogleAuth = ref(true); //брать из локал storage
+const allowGoogleSyncStore = getStoredAllowGoogleSync();
+const googleIsAuthenticatedEmail = ref();
+
+const allowGoogleAuth = ref();
+
+allowGoogleSyncStore.watch((newValue, oldValue) => {
+  allowGoogleAuth.value = newValue;
+})
+
 
 const runGoogleAuth = () => {
   browser.runtime.sendMessage({ action: 'googleLogin' }, (response) => {
     if (response.success) {
-      toast.success(`Вы вошли как: ${response.email}`);
+      allowGoogleSyncStore.setValue(true);
+      toast.success(`Вы вошли как: ${response.user.email}`);
+
+      googleIsAuthenticatedEmail.value = response.user.email;
     } else {
       toast.error(`Не удалось авторизоваться`);
     }
   });
 }
 
-//todo где-то добавить оповещение, если вышли из аккаунта chrome
+// const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+// googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
+//   toast.success("авторизация сломалась") //можно просто ждать sendMessage от bg и выводит ьв таком кейсе в любое время
+// })
 
-const googleIsAuthenticatedEmail = ref('');
 
 const checkGoogleAuth = () => {
   if (allowGoogleAuth.value) {
-    browser.runtime.sendMessage({ action : 'googleCheckStatus' }, (result) => {
-      googleIsAuthenticatedEmail.value = result.authenticated ? result.user.email : '';
+    browser.runtime.sendMessage({ action : 'googleCheckStatus' }, (response) => {
+      console.log(response);
+      googleIsAuthenticatedEmail.value = response.authenticated ? response.user.email : '';
     });   
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  allowGoogleAuth.value = await allowGoogleSyncStore.getValue();
   checkGoogleAuth()
 })
 

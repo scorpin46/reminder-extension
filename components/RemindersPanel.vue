@@ -106,7 +106,7 @@
             <span role="button" v-if="!item.completed" class="reminders-item__complete" title="Завершить (сделать перевод)" @click.stop="completeReminder(item)">
               <IconChecks/>
             </span>
-            <span role="button" v-if="item.completed" class="reminders-item__delete" title="Удалить" @click.stop="reminderService.deleteReminder(item.id)">
+            <span role="button" v-if="item.completed" class="reminders-item__delete" title="Удалить" @click.stop="reminderService.deleteReminder(item)">
               <IconXmark/>
             </span>
           </div>
@@ -215,7 +215,7 @@ const actualize = () => {
 }
 
 const completeReminder = (item) => {
-  reminderService.completeReminder(item.id);
+  reminderService.completeReminder(item);
   now.value = new Date();
 }
 
