@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import Dexie, { liveQuery, Table } from 'dexie';
-import {omit} from "zod/mini";
+import {uniq} from "es-toolkit";
 
 const DB_NAME = 'ReminderDatabase';
 
@@ -112,6 +112,13 @@ export class ReminderRepository {
         });
 
         this.__initReactivity();
+    }
+
+    async pluck<K extends keyof ReminderInterface>(column: K): Promise<ReminderInterface[K][]> {
+        const allReminders = await this.db.reminders.toArray();
+
+        return uniq(allReminders.map(reminder => reminder[column]))
+            .filter(value => value !== null && value !== undefined) as ReminderInterface[K][];
     }
 
     // Теперь мы не используем .filter(), а идем сразу по составному индексу

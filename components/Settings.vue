@@ -72,16 +72,9 @@ const runGoogleAuth = () => {
   });
 }
 
-// const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
-// googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
-//   toast.success("авторизация сломалась") //можно просто ждать sendMessage от bg и выводит ьв таком кейсе в любое время
-// })
-
-
 const checkGoogleAuth = () => {
   if (allowGoogleAuth.value) {
     browser.runtime.sendMessage({ action : 'googleCheckStatus' }, (response) => {
-      console.log(response);
       googleIsAuthenticatedEmail.value = response.authenticated ? response.user.email : '';
     });   
   }
@@ -90,6 +83,10 @@ const checkGoogleAuth = () => {
 onMounted(async () => {
   allowGoogleAuth.value = await allowGoogleSyncStore.getValue();
   checkGoogleAuth()
+})
+
+getStoredGoogleIsAuthenticated().watch((newValue) => {
+  checkGoogleAuth();
 })
 
 </script>

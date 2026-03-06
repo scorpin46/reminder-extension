@@ -6,6 +6,7 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import { defineBackground } from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
+import {getStoredGoogleAuthAlertIdStore} from "@/modules/utils/storage";
 
 export default defineBackground(() => {
     let popupWindowId: number | null = null;
@@ -111,15 +112,20 @@ export default defineBackground(() => {
 
     browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
         const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
-        if (!reminder?.id){
-            return;
-        }
-        
-        if (buttonIndex === 1) {
-            await ReminderService.instance().completeReminder(reminder, false);
-            await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!); //чтобы сработало нужно именно так и здесь
-        } else if (buttonIndex === 0) {
-            openPostponeWindow(reminder.id);
+      
+        if (reminder?.id){
+            if (buttonIndex === 1) {
+                await ReminderService.instance().completeReminder(reminder, false);
+                await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!); //чтобы сработало нужно именно так и здесь
+            } else if (buttonIndex === 0) {
+                openPostponeWindow(reminder.id);
+            }
+        } else {
+            const authAlertId = await getStoredGoogleAuthAlertIdStore().getValue();
+            
+            if (notificationId === authAlertId) {
+                await GoogleCalendarService.instance().login();
+            }
         }
     });
 
@@ -164,6 +170,8 @@ export default defineBackground(() => {
                 switch (request.action) {
                     case 'googleLogin':
                         return await calendar.login();
+                    case 'importFromGoogle':
+                        return await calendar.importFromGoogle();
                     case 'googleLogout':
                         return await calendar.logout();
                     case 'googleCheckStatus':

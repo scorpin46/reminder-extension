@@ -51,3 +51,9 @@ export function getStoredGoogleLastSyncTs() {
         fallback: undefined
     });
 }
+
+export function getStoredGoogleAuthAlertIdStore() {
+    return storage.defineItem<string|undefined>('session:googleAuthAlertId', {
+        fallback: undefined
+    });
+}

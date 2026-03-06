@@ -20,7 +20,7 @@ export default defineConfig({
             "activeTab",
             "alarms",
             "notifications",
-            "identity",
+            "identity",//todo можно убрать?
             "identity.email",
             "offscreen",
             "scripting"

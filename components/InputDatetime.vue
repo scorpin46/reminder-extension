@@ -107,6 +107,8 @@ const onInput = () => {
   const offset = getTimezoneOffset()
   const dateWithOffset = new Date(inputValue + ':00' + offset);
   
+  //todo можно сделать вот как - при выборе времени меньшего , но в том же дне, переводить на следующий день (типо выбрал 00:10, но как тогда выбор полночи при текущем 00:05) 
+  
   emit('update:modelValue', dateWithOffset)
 }
 

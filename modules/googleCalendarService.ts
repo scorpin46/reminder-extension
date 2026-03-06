@@ -1,16 +1,17 @@
 import {browser} from "wxt/browser";
 import {
-    getStoredAllowGoogleSync,
+    getStoredAllowGoogleSync, 
+    getStoredGoogleAuthAlertIdStore,
     getStoredGoogleIsAuthenticated,
-    getStoredGoogleLastSyncTs, 
-    getStoredGoogleUser, 
+    getStoredGoogleLastSyncTs,
+    getStoredGoogleUser,
     GoogleUser
 } from "./utils/storage";
 import {ReminderService} from "./reminderService";
 import type {Reminder} from "./repositories/reminderRepository";
 import type {calendar_v3} from "@googleapis/calendar";
-import {processInBatches} from "./utils/helpers";
 import axios, {AxiosInstance, AxiosError} from 'axios';
+import rateLimit from 'axios-rate-limit';
 
 type CalendarEvent = calendar_v3.Schema$Event;
 type EventList = calendar_v3.Schema$Events;
@@ -30,6 +31,7 @@ export class GoogleCalendarService {
     private allowGoogleSyncStore: ReturnType<typeof getStoredAllowGoogleSync>;
     private googleLastSyncTsStore: ReturnType<typeof getStoredGoogleLastSyncTs>;
     private googleIsAuthenticatedStore: ReturnType<typeof getStoredGoogleIsAuthenticated>;
+    private googleAuthAlertIdStore: ReturnType<typeof getStoredGoogleAuthAlertIdStore>;
     public static syncAlarmName?: string = 'syncUpdates';
     private lastActiveToken?: string | null;
     private axiosInstance: AxiosInstance;
@@ -40,25 +42,51 @@ export class GoogleCalendarService {
         this.allowGoogleSyncStore = getStoredAllowGoogleSync();
         this.googleLastSyncTsStore = getStoredGoogleLastSyncTs();
         this.googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+        this.googleAuthAlertIdStore = getStoredGoogleAuthAlertIdStore();
        
         this.reminderService = ReminderService.instance();
         this.abortController = new AbortController();
 
-        this.googleUserStore.getValue().then((result) => {
+        this.googleUserStore.getValue().then(result => {
             this.currentUser = result;
         })
-        this.googleUserStore.watch((result) => {
-            this.currentUser = result;
+        this.googleUserStore.watch((newValue, oldValue) => {
+            this.currentUser = newValue;
+        })
+        
+        this.googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
+            const user = await this.googleUserStore.getValue();
+
+            if (oldValue && !newValue && user) {
+                const notificationId = await browser.notifications.create({
+                    type: "basic",
+                    iconUrl: browser.runtime.getURL("/icon/128.png"),
+                    title: "🔔 Set a Reminder",  //todo перевод
+                    message: `Google синхронизация c ${user.email} нарушена, авторизуйтесь заново`, //todo или типо того
+                    requireInteraction: false,
+                    priority: 1,
+                    buttons: [{title: "Авторизоваться"}],
+                });
+
+                await this.googleAuthAlertIdStore.setValue(notificationId);
+            } else if (newValue) {
+                await this.googleAuthAlertIdStore.removeValue();
+            }
         })
 
-        // Настройка axios с перехватчиками
-        this.axiosInstance = axios.create({
-            timeout: this.requestTimeout,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            signal: this.abortController.signal
-        });
+        this.axiosInstance = rateLimit(
+            axios.create({
+                timeout: this.requestTimeout,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                signal: this.abortController.signal
+            }),
+            {
+                maxRequests: 5,
+                perMilliseconds: 1000
+            }
+        );
 
         // Перехватчик для добавления токена
         this.axiosInstance.interceptors.request.use(async (config) => {
@@ -150,7 +178,7 @@ export class GoogleCalendarService {
             await this.googleUserStore.setValue(userInfo);
 
             console.log(`✅ Аккаунт закреплен: ${userInfo.email}`);
-            this.startPolling();
+            await this.startPolling();
 
             return { success: true, user: userInfo };
         } catch (error: any) {
@@ -314,17 +342,15 @@ export class GoogleCalendarService {
     }
 
     async createEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
-        if (!reminder) {
-            console.debug('Напоминание не найдено, пропускаем создание события');
-            return;
-        }
-
-        if (!await this.syncAllowed()) return;
-
         try {
+            if (!reminder || !await this.syncAllowed()) {
+                return;
+            }
+            
             if (reminder.googleSync === 0){
                 return;
             }
+            
             const event = await this.createEvent(
                 reminder.title,
                 reminder.desc || '',
@@ -373,8 +399,6 @@ export class GoogleCalendarService {
             const updating: Reminder[] = [];
             const deletingEvents: CalendarEvent["id"][] = [];
 
-            //todo можно отдельно доработать импорт с events для кейса с восстановлением удаленных (все равно они под отдельным флагом)
-
             // Обрабатываем напоминания без блокировки
             await Promise.resolve().then(() => {
                 this.reminderService.repository.state.active.forEach((reminderItem: Reminder) => {
@@ -410,17 +434,17 @@ export class GoogleCalendarService {
                 });
             });
 
-            await processInBatches(creating, (reminderItem: Reminder) =>
-                this.createEventByReminder(reminderItem), 8
-            ).catch(console.error);
+            for (let reminderItem of creating){
+                await this.createEventByReminder(reminderItem)
+            }
 
-            await processInBatches(updating, (reminderItem: Reminder) =>
-                this.updateEventByReminder(reminderItem), 8
-            ).catch(console.error);
+            for (let reminderItem of updating){
+                await this.createEventByReminder(reminderItem)
+            }
 
-            await processInBatches(deletingEvents, (eventId) =>
-                this.deleteEvent(eventId!),
-            ).catch(console.error);
+            for (let eventId of deletingEvents){
+                await this.deleteEvent(eventId!)
+            }
 
             await this.googleLastSyncTsStore.setValue(Date.now());
         } catch (error) {
@@ -473,9 +497,7 @@ export class GoogleCalendarService {
         const tokenUser = await this.fetchUserInfo();
         const isSuccess = tokenUser?.email === this.currentUser.email;
         
-        if (!isSuccess){
-            await this.googleIsAuthenticatedStore.setValue(isSuccess);
-        }
+        await this.googleIsAuthenticatedStore.setValue(isSuccess);
 
         return isSuccess;
     }
@@ -485,6 +507,32 @@ export class GoogleCalendarService {
         
         if (!syncAllow || !this.currentUser) {
             return false;
+        }
+        
+        return true;
+    }
+
+    async importFromGoogle(){
+        if (! await this.syncAllowed() || ! await this.checkUser()) {
+            return
+        }
+      
+        const events = (await this.getEvents())
+            .filter(event => event.status !== 'cancelled' && event.start?.dateTime);
+        
+        for (const event of events) {
+            const isExist = (await ReminderService.instance().getAllGoogleEventsIds()).includes(event.id!)
+            const datetime = new Date(event.start?.dateTime as string);
+            
+            if (!isExist && datetime.getTime() >= Date.now()) {
+                await this.reminderService.saveReminder({
+                    datetime: new Date(event.start?.dateTime as string),
+                    title: event.summary!,
+                    desc: event.description,
+                    googleSyncDate: new Date(event.updated!),
+                    googleEventId: event.id,
+                }, false)
+            }
         }
         
         return true;

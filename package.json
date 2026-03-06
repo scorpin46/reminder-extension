@@ -20,6 +20,7 @@
     "@vueuse/core": "^14.2.1",
     "@wxt-dev/storage": "^1.2.8",
     "axios": "^1.13.6",
+    "axios-rate-limit": "^1.6.3",
     "chrono-node": "^2.9.0",
     "dexie": "^4.3.0",
     "dexie-observable": "^4.0.1-beta.13",

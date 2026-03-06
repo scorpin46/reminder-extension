@@ -24,15 +24,15 @@ export class ReminderService {
     private constructor() {
         this.repository = new ReminderRepository();
         
-        this.loadStoreVars()
+        this.loadStoreVars();
+
+        if (typeof window !== 'undefined'){
+            state.recognitionService = this.initRecognitionService();
+        }
     }
 
     static instance() {
         ReminderService._instance ??= new ReminderService();
-        
-        if (typeof window !== 'undefined'){
-            state.recognitionService ??= ReminderService._instance.initRecognitionService();
-        }
 
         return ReminderService._instance;
     }
@@ -118,10 +118,10 @@ export class ReminderService {
         getStoredLocale().setValue(locale)
     }
 
-    async saveReminder(params: Reminder, sendMessage?: boolean): Promise<number>;
+    async saveReminder(params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
     async saveReminder(id: number, params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
     async saveReminder(
-        idOrParams: number | Reminder,
+        idOrParams: number | Partial<Reminder>,
         paramsOrSendMessage?: Partial<Reminder> | boolean,
         sendMessage: boolean = true
     ): Promise<number>
@@ -154,8 +154,8 @@ export class ReminderService {
             id = await this.repository.add(reminderParams);
         }
         
-        if (reminderParams.datetime){
-            await this.scheduleNotification(id, reminderParams.datetime);
+        if (reminderParams.datetime && !reminderParams.completed){
+            await browser.alarms.create(reminderIdToAlarmName(id), {when: +reminderParams.datetime});
         }
         
         state.recognitionService?.resetState();
@@ -184,14 +184,8 @@ export class ReminderService {
         sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
-    async scheduleNotification(id: number, when: Date|number) {
-        try {
-            browser.alarms.create(reminderIdToAlarmName(id), {
-                when: +when
-            });
-        } catch (e) {
-            console.warn("Ошибка создания alarm в браузере", e);
-        }
+    async getAllGoogleEventsIds(){
+        return await this.repository.pluck('googleEventId');
     }
 
     reminderLocalTime(reminderItem: Reminder) {
