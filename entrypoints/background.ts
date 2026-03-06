@@ -6,7 +6,6 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import { defineBackground } from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
-import {Reminder} from "@/modules/repositories/reminderRepository";
 
 export default defineBackground(() => {
     let popupWindowId: number | null = null;
@@ -66,7 +65,7 @@ export default defineBackground(() => {
         });
     };
 
-    browser.action.onClicked.addListener(() => {
+    browser.action.onClicked?.addListener(() => {
         if (popupWindowId) {
             browser.windows.get(popupWindowId, (window) => {
                 if (!browser.runtime.lastError) {
@@ -80,17 +79,13 @@ export default defineBackground(() => {
         }
     });
 
-    browser.windows.onRemoved.addListener((windowId) => {
+    browser.windows.onRemoved?.addListener((windowId) => {
         if (windowId === popupWindowId) {
             popupWindowId = null;
         }
     });
 
-    const postponeBtn = {title: "🕒 Postpone"};  //todo перевод
-    const completeBtn =  {title: "✅ Mark as Done"};  //todo перевод
-    const alarmButtons = [postponeBtn, completeBtn];
-    
-    browser.alarms.onAlarm.addListener(async (alarm: Alarm) => {
+    browser.alarms.onAlarm?.addListener(async (alarm: Alarm) => {
         const reminderId = alarmNameToReminderId(alarm.name);
         const reminderService = ReminderService.instance();
         
@@ -106,7 +101,7 @@ export default defineBackground(() => {
                     contextMessage: reminder.desc!,
                     requireInteraction: true,
                   
-                    buttons: alarmButtons,
+                    buttons: [{title: "🕒 Postpone"}, {title: "✅ Mark as Done"}],
                 });
 
                 await reminderService.repository.update(reminder.id, {notificationId});
@@ -114,17 +109,16 @@ export default defineBackground(() => {
         }
     });
 
-    browser.notifications.onButtonClicked.addListener(async (notificationId: string, buttonIndex: number) => {
+    browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
         const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
-        browser.notifications.clear(notificationId);
-        
         if (!reminder?.id){
             return;
         }
-
-        if (alarmButtons[buttonIndex] === completeBtn) {
-            await ReminderService.instance().completeReminder(reminder);
-        } else if (alarmButtons[buttonIndex] === postponeBtn) {
+        
+        if (buttonIndex === 1) {
+            await ReminderService.instance().completeReminder(reminder, false);
+            await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!); //чтобы сработало нужно именно так и здесь
+        } else if (buttonIndex === 0) {
             openPostponeWindow(reminder.id);
         }
     });
@@ -132,7 +126,7 @@ export default defineBackground(() => {
     browser.action.setBadgeBackgroundColor({color: "#4688F1"});
     browser.action.setBadgeTextColor({color: "white"});
 
-    browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    browser.tabs.onUpdated?.addListener((tabId, changeInfo, tab) => {
         // Проверяем, относится ли эта вкладка к нашему popup-окну
         if (popupWindowId && tab.windowId === popupWindowId) {
             // Если страница стала about:blank или загружен другой URL
@@ -151,7 +145,7 @@ export default defineBackground(() => {
     }, {immediate: true});
 
     
-    browser.alarms.onAlarm.addListener((alarm) => {
+    browser.alarms.onAlarm?.addListener((alarm) => {
         browser.action.setBadgeText({text: (ReminderService.instance().repository.state.active.length || "").toString()});
 
         if (alarm.name === GoogleCalendarService.syncAlarmName) {
@@ -159,10 +153,14 @@ export default defineBackground(() => {
         }
     });
 
-    browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        const calendar = GoogleCalendarService.instance();
-        const handler = async () => {
+
+    browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
+        console.log('📨 Получено сообщение:', request.action, request);
+
+        const handleMessage = async () => {
             try {
+                const calendar = GoogleCalendarService.instance();
+
                 switch (request.action) {
                     case 'googleLogin':
                         return await calendar.login();
@@ -172,39 +170,61 @@ export default defineBackground(() => {
                         if (!calendar.currentUser) {
                             return { authenticated: false };
                         }
-
                         const isValidUser = await calendar.checkUser();
-
                         return {
                             authenticated: isValidUser,
                             user: calendar.currentUser,
                             message: !isValidUser ? `Пользователь не авторизован или возникли проблемы, попробуйте перезагрузить или повторить позднее` : undefined
-                        }
+                        };
                     case 'googleUpdateEvent':
-                        await calendar.updateEventByReminder(
-                            await calendar.reminderService.repository.getById(request.reminderId)
-                        );
-                        return
-                    case 'googleDeleteEvent':
-                        if (request.googleEventId){
-                            await calendar.deleteEvent(request.googleEventId);
+                        const reminder = await calendar.reminderService.repository.getById(request.reminderId);
+                        if (reminder) {
+                            await calendar.updateEventByReminder(reminder);
                         }
-                        return;
+                        return { success: true }; // Всегда возвращаем ответ
+                    case 'googleDeleteEvent':
+                        console.log('Удаление события:', request.googleEventId);
+                        await calendar.deleteEvent(request.googleEventId);
+                        return { success: true };
                     case 'googleCreateEvent':
-                        await calendar.createEventByReminder(
-                            await calendar.reminderService.repository.getById(request.reminderId)
-                        );
-                        return;
+                        const newReminder = await calendar.reminderService.repository.getById(request.reminderId);
+                        if (newReminder) {
+                            await calendar.createEventByReminder(newReminder);
+                        }
+                        return { success: true };
                     default:
+                        console.warn('Неизвестное действие:', request.action);
                         return { success: false, error: 'Unknown action' };
                 }
             } catch (error: any) {
+                console.error('Ошибка в обработчике сообщений:', error);
                 return { success: false, error: error.message };
             }
         };
 
-        handler().then(sendResponse);
-        return true; // Keep message channel open
+        // В современном API можно просто вернуть Promise
+        // return handleMessage(); // Работает в новых версиях
+
+        // Для обратной совместимости оставляем старый подход, но улучшаем его
+        handleMessage()
+            .then(response => {
+                try {
+                    sendResponse(response);
+                } catch (e) {
+                    // Игнорируем ошибку "канал закрыт"
+                    console.debug('Канал уже закрыт, ответ не отправлен');
+                }
+            })
+            .catch(error => {
+                console.error('Необработанная ошибка:', error);
+                try {
+                    sendResponse({ success: false, error: error.message });
+                } catch (e) {
+                    // Игнорируем
+                }
+            });
+
+        return true; // Важно для асинхронности
     });
 
     // При старте браузера

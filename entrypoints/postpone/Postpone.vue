@@ -82,11 +82,16 @@ onMounted(async () => {
   const url = new URL(location.href);
   const reminderId = url.searchParams.get('id');
   reminderItem.value = await reminderService.repository.getById(reminderId);
+  
+  if (!reminderItem.value){
+    console.error(`Reminder ${reminderId} not found`);
+    window.close();
+  }
 })
 
 const sendNewTime = async (value) => {
   if (value) {
-    await reminderService.saveReminder({...reminderItem.value, datetime: value});
+    await reminderService.saveReminder(reminderItem.value.id, {datetime: value});
     window.close();
   }
 }

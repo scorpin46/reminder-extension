@@ -4,7 +4,7 @@ import {Reminder, ReminderRepository} from "./repositories/reminderRepository.js
 import {RecognitionService} from "./recognitionService.js";
 import {browser} from 'wxt/browser';
 import type {TextParsedData} from "./textParserProvider";
-import {getStoredLocale} from "./utils/storage";
+import {getStoredAllowGoogleSync, getStoredLocale} from "./utils/storage";
 
 const state: {
     locale: string;
@@ -118,48 +118,70 @@ export class ReminderService {
         getStoredLocale().setValue(locale)
     }
 
-    async saveReminder(params: Reminder): Promise<number>;
-    async saveReminder(id: number, params: Partial<Reminder>): Promise<number>;
-    async saveReminder(idOrParams: number | Reminder, params?: Partial<Reminder>): Promise<number>
+    async saveReminder(params: Reminder, sendMessage?: boolean): Promise<number>;
+    async saveReminder(id: number, params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
+    async saveReminder(
+        idOrParams: number | Reminder,
+        paramsOrSendMessage?: Partial<Reminder> | boolean,
+        sendMessage: boolean = true
+    ): Promise<number>
     {
         let id: number | undefined;
         let reminderParams: Partial<Reminder>;
-        
+        let shouldSendMessage: boolean;
+
+        // Определяем, как были переданы параметры
         if (typeof idOrParams === 'number') {
+            // Первый вариант: (id, params, sendMessage?)
             id = idOrParams;
-            reminderParams = params!;
+            reminderParams = paramsOrSendMessage as Partial<Reminder>;
+            shouldSendMessage = sendMessage;
         } else {
+            // Второй вариант: (params, sendMessage?)
             id = idOrParams.id;
             reminderParams = idOrParams;
-        }
-        
-        if (id){
-            await this.repository.update(id, reminderParams); //update не возвращает ID !!!
-            browser.runtime.sendMessage({ action : 'googleUpdateEvent', reminderId: id});
-        } else {
-            id = await this.repository.add(reminderParams);
-            browser.runtime.sendMessage({ action : 'googleCreateEvent', reminder: id});
+            // Проверяем, является ли второй параметр булевым значением
+            shouldSendMessage = typeof paramsOrSendMessage === 'boolean'
+                ? paramsOrSendMessage
+                : sendMessage;
         }
 
+        const isUpdated = !!id;
+
+        if (id){
+            await this.repository.update(id, reminderParams); //update не возвращает ID !!!
+        } else {
+            id = await this.repository.add(reminderParams);
+        }
+        
         if (reminderParams.datetime){
             await this.scheduleNotification(id, reminderParams.datetime);
         }
         
         state.recognitionService?.resetState();
 
+        const allowSync = await getStoredAllowGoogleSync().getValue();
+
+        if (shouldSendMessage && allowSync) {
+            browser.runtime.sendMessage({ 
+                action : isUpdated ? 'googleUpdateEvent' : 'googleCreateEvent',
+                reminderId: id
+            })
+        }
+
         return id;
     }
     
-    async deleteReminder(reminder: Reminder) {
+    async deleteReminder(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
-    async completeReminder(reminder: Reminder) {
+    async completeReminder(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
     async scheduleNotification(id: number, when: Date|number) {

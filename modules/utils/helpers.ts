@@ -196,3 +196,5 @@ export const processInBatches = async <T>(
 
     return results;
 }
+
+export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

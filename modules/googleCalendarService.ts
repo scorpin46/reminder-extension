@@ -24,7 +24,7 @@ export class GoogleCalendarService {
     private readonly appNameForCalendar: string = 'set-a-reminder-ext';
     private notificationShown: boolean = false;
     private abortController: AbortController | null = null;
-    private readonly defaultEndTimeAppendMinutes: number = 10;
+    private readonly defaultEndTimeAppendMs: number = 1000;
     
     private googleUserStore: ReturnType<typeof getStoredGoogleUser>;
     private allowGoogleSyncStore: ReturnType<typeof getStoredAllowGoogleSync>;
@@ -66,9 +66,10 @@ export class GoogleCalendarService {
                 return config;
             }
             
-            const token = this.lastActiveToken || await this.fetchToken(false);
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            this.lastActiveToken ??= await this.fetchToken(false);
+            
+            if (this.lastActiveToken) {
+                config.headers.Authorization = `Bearer ${this.lastActiveToken}`;
             }
             
             return config;
@@ -130,7 +131,6 @@ export class GoogleCalendarService {
 
     async startPolling(): Promise<void> {
         const min = 1;
-        console.log(`Следующая проверка через ${min} мин...`);
 
         browser.alarms.create(GoogleCalendarService.syncAlarmName, {
             periodInMinutes: min,
@@ -208,47 +208,53 @@ export class GoogleCalendarService {
     }
 
     async createEvent(summary: string, description: string, startTime: Date, endTime?: Date): Promise<CalendarEvent | null | undefined> {
-        if (! await this.syncAllowed()) return
+        try {
+            if (! await this.syncAllowed()) return
 
-        endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMinutes * 60 * 1000);
+            endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMs);
 
-        const event = {
-            summary,
-            start: {
-                dateTime: startTime.toISOString(),
-                timeZone: this.timeZone
-            },
-            end: {
-                dateTime: endTime.toISOString(),
-                timeZone: this.timeZone
-            },
-            description: description,
-            transparency: 'transparent',
-            visibility: 'private',
-            extendedProperties: {
-                private: {
-                    appName: this.appNameForCalendar
+            const event = {
+                summary,
+                start: {
+                    dateTime: startTime.toISOString(),
+                    timeZone: this.timeZone
+                },
+                end: {
+                    dateTime: endTime.toISOString(),
+                    timeZone: this.timeZone
+                },
+                description: description,
+                transparency: 'transparent',
+                visibility: 'private',
+                extendedProperties: {
+                    private: {
+                        appName: this.appNameForCalendar
+                    }
+                },
+                reminders: {
+                    useDefault: false,
+                    overrides: [{ method: 'popup', minutes: 0 }]
                 }
-            },
-            reminders: {
-                useDefault: false,
-                overrides: [{ method: 'popup', minutes: 0 }]
-            }
-        };
+            };
 
-        const response = await this.axiosInstance.post(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-            event,
-        )
+            const response = await this.axiosInstance.post(
+                'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                event,
+            )
 
-        return response.data;
+            return response.data;
+        } catch (e) {
+            console.error(e);
+        }
+        
+        return null;
     }
 
     async updateEvent(eventId: string, summary: string, description: string, startTime: Date, endTime?: Date): Promise<CalendarEvent | null | undefined> {
-        if (! await this.syncAllowed()) return
-
         try {
-            endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMinutes * 60 * 1000);
+            if (!eventId || ! await this.syncAllowed()) return
+
+            endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMs);
 
             const event: CalendarEvent = {
                 summary,
@@ -278,30 +284,88 @@ export class GoogleCalendarService {
         }
     }
 
-    async deleteEvent(eventId: string): Promise<void> {
-        if (! await this.syncAllowed()) return
+    async updateEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
+        if (!reminder) {
+            console.debug('Напоминание не найдено, пропускаем обновление события');
+            return;
+        }
 
-        await this.axiosInstance.delete(
-            `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
-        )
-    }
+        if (!await this.syncAllowed()) return;
 
-    async syncUpdates(): Promise<void> {
-        if (! await this.syncAllowed()) return
-
+        if (reminder.googleSync === 0 || !reminder.googleEventId) return;
 
         try {
-            const isValidUser = await this.checkUser();
+            const event = await this.updateEvent(
+                reminder.googleEventId,
+                reminder.title,
+                reminder.desc || '',
+                reminder.datetime
+            );
 
-            if (!isValidUser){
-                //todo если несколько раз так, то отправлять пуш что есть проблемы с гугл аккаунтом и надо перелогиниться или типо того
-                // await this.showNotification(
-                //     `Аккаунт ${this.currentUser.email} вышел из Chrome или был переключен. Синхронизация приостановлена.`
-                // );
+            if (event?.updated) {
+                await this.reminderService.saveReminder(reminder.id!, {
+                    googleSyncDate: new Date(event.updated)
+                }, false);
+            }
+        } catch (error) {
+            console.error('Error updating event from reminder:', error);
+            // Не пробрасываем ошибку дальше, чтобы не ломать основной процесс
+        }
+    }
+
+    async createEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
+        if (!reminder) {
+            console.debug('Напоминание не найдено, пропускаем создание события');
+            return;
+        }
+
+        if (!await this.syncAllowed()) return;
+
+        try {
+            if (reminder.googleSync === 0){
                 return;
             }
-            console.log('syncUpdates running...');
+            const event = await this.createEvent(
+                reminder.title,
+                reminder.desc || '',
+                reminder.datetime
+            );
 
+            if (event?.id) {
+                await this.reminderService.saveReminder(reminder.id!, {
+                    googleSync: 1,
+                    googleEventId: event.id,
+                    googleSyncDate: new Date(event.updated!)
+                }, false);
+            }
+        } catch (error) {
+            console.error('Error creating event from reminder:', error);
+            // Не пробрасываем ошибку дальше
+        }
+    }
+
+    async deleteEvent(eventId?: string): Promise<void> {
+        if (!eventId || !await this.syncAllowed()) return;
+
+        try {
+            await this.axiosInstance.delete(
+                `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+            );
+        } catch (error) {
+            console.log('Error deleting event:', error);
+        }
+    }
+
+
+    async syncUpdates(): Promise<void> {
+        console.log(`syncUpdates checking`);
+
+        try {
+            if (! await this.syncAllowed() || ! await this.checkUser()) {
+                return
+            }
+            
+            console.log('syncUpdates running...');
 
             const events = await this.getEvents();
 
@@ -326,14 +390,14 @@ export class GoogleCalendarService {
                                 this.reminderService.saveReminder(reminderItem.id!, {
                                     googleSync: 0,
                                     googleSyncDate: googleUpdatedAt
-                                }).catch(console.error);
+                                }, false).catch(console.error);
                             } else if (googleUpdatedAt > reminderItem.googleSyncDate) {
                                 this.reminderService.saveReminder(reminderItem.id!, {
                                     datetime: new Date(event.start?.dateTime!),
                                     title: event.summary!,
                                     desc: event.description!,
                                     googleSyncDate: googleUpdatedAt
-                                }).catch(console.error);
+                                }, false).catch(console.error);
                             } else if (googleUpdatedAt < reminderItem.googleSyncDate) {
                                 updating.push(reminderItem);
                             }
@@ -363,55 +427,8 @@ export class GoogleCalendarService {
             console.error('Sync error:', error);
         }
     }
+
     
-    async createEventByReminder(reminder?: Reminder): Promise<void> {
-        if (! reminder || ! await this.syncAllowed()) return
-
-        try {
-            if (reminder.googleSync === 0){
-                return;
-            }
-            const event = await this.createEvent(
-                reminder.title,
-                reminder.desc || '',
-                reminder.datetime
-            );
-
-            if (event?.id) {
-                await this.reminderService.saveReminder(reminder.id!, {
-                    googleSync: 1,
-                    googleEventId: event.id,
-                    googleSyncDate: new Date(event.updated!)
-                });
-            }
-        } catch (error) {
-            console.error('Error creating event from reminder:', error);
-        }
-    }
-
-    async updateEventByReminder(reminder?: Reminder): Promise<void> {
-        if (! reminder || ! await this.syncAllowed()) return
-
-        if (reminder.googleSync === 0 || !reminder.googleEventId) return;
-
-        try {
-            const event = await this.updateEvent(
-                reminder.googleEventId,
-                reminder.title,
-                reminder.desc || '',
-                reminder.datetime
-            );
-
-            if (event?.updated) {
-                await this.reminderService.saveReminder(reminder.id!, {
-                    googleSyncDate: new Date(event.updated)
-                });
-            }
-        } catch (error) {
-            console.error('Error updating event from reminder:', error);
-        }
-    }
-
     async fetchToken(interactive = false): Promise<string | null | undefined> {
         if (!this.currentUser && !interactive) return null;
 
@@ -447,7 +464,7 @@ export class GoogleCalendarService {
     }
     
     async checkUser(){
-        if (!this.currentUser || !this.lastActiveToken){
+        if (!this.currentUser){
             await this.googleIsAuthenticatedStore.setValue(false);
 
             return false;
@@ -461,28 +478,6 @@ export class GoogleCalendarService {
         }
 
         return isSuccess;
-    }
-
-    async showNotification(message: string) {
-        if (this.notificationShown) return;
-
-        this.notificationShown = true;
-
-        try {
-            await browser.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon128.png',
-                title: 'Google Календарь',
-                message: message,
-                priority: 2
-            });
-        } catch (error) {
-            console.error('Ошибка показа уведомления:', error);
-        }
-
-        setTimeout(() => {
-            this.notificationShown = false;
-        }, 5 * 60 * 1000);
     }
 
     async syncAllowed(){
