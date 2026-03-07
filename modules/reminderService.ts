@@ -3,119 +3,22 @@ import {reactive} from "vue";
 import {Reminder, ReminderRepository} from "./repositories/reminderRepository.js";
 import {RecognitionService} from "./recognitionService.js";
 import {browser} from 'wxt/browser';
-import type {TextParsedData} from "./textParserProvider";
-import {getStoredAllowGoogleSync, getStoredLocale} from "./utils/storage";
-
-const state: {
-    locale: string;
-    supportsRecording: boolean;
-    recognitionService?: RecognitionService;
-} = reactive({
-    locale: detectLocale(),
-    supportsRecording: false,
-    recognitionService: undefined,
-});
-
+import {getStoredAllowGoogleSync} from "./utils/storage";
 
 export class ReminderService {
     public readonly repository: ReminderRepository;
     private static _instance: ReminderService;
-    
+
     private constructor() {
         this.repository = new ReminderRepository();
-        
-        this.loadStoreVars();
-
-        if (typeof window !== 'undefined'){
-            state.recognitionService = this.initRecognitionService();
-        }
     }
 
     static instance() {
-        ReminderService._instance ??= new ReminderService();
-
-        return ReminderService._instance;
-    }
-
-    initRecognitionService() {
-        const recognitionInstance = new RecognitionService(state.locale);
-        
-        state.supportsRecording = recognitionInstance.isSupported();
-        
-        return recognitionInstance;
-    }
-
-    get isRecording(): boolean|undefined {
-        return state.recognitionService?.state.isRecording;
-    }
-
-    get streamRecordingText(): string|undefined {
-        return state.recognitionService?.state.streamRecordingText;
-    }
-
-    get recordingError(): string|null|undefined {
-        return state.recognitionService?.state.error;
-    }
-
-    get lastRecordingData(): TextParsedData | null | undefined{
-        return state.recognitionService?.state.parsedData;
+        return ReminderService._instance ??= new ReminderService();
     }
 
     get regionLocale(): string {
-        return state.locale;
-    }
-
-    get shortLocale(): string {
-        return state.locale.split('-')[0];
-    }
-
-    get supportsRecording() {
-        return state.supportsRecording;
-    }
-
-    get allowedLocaleLanguages(): object {
-        return {
-            "ru-RU": "Русский",
-            "en-US": "English",
-            "es-ES": "Español",
-            "fr-FR": "Français",
-            "de-DE": "Deutsch",
-            "it-IT": "Italiano",
-            "pt-BR": "Português",
-            "zh-CN": "中文",
-            "ja-JP": "日本語",
-        };
-    }
-
-    resetLastRecordingData(){
-        state.recognitionService?.resetState();
-    }
-
-    recordStart() {
-        return state.recognitionService?.start();
-    }
-
-    recordStop() {
-        state.recognitionService?.stop();
-    }
-
-    loadStoreVars() {
-        getStoredLocale().getValue().then((value) => {
-            if (value){
-                state.locale = value
-            }
-        })
-    }
-    
-    changeLocale(locale: string) {
-        state.locale = locale;
-        state.recognitionService?.updateLocale(locale);
-
-        if (typeof document !== 'undefined') {
-            document.documentElement.lang = locale;
-        }
-
-        getStoredLocale().setValue(locale)
+        return detectLocale();
     }
 
     async saveReminder(params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
@@ -158,8 +61,6 @@ export class ReminderService {
             await browser.alarms.create(reminderIdToAlarmName(id), {when: +reminderParams.datetime});
         }
         
-        state.recognitionService?.resetState();
-
         const allowSync = await getStoredAllowGoogleSync().getValue();
 
         if (shouldSendMessage && allowSync) {

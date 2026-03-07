@@ -1,4 +1,5 @@
 import {storage} from '@wxt-dev/storage';
+import {detectLocale} from "./helpers";
 
 export interface GoogleUser {
     email: string;
@@ -8,25 +9,11 @@ export interface GoogleUser {
 
 
 export function getStoredLocale() {
-    return storage.defineItem<string | undefined>(
+    return storage.defineItem<string>(
         'local:locale',
-        {fallback: undefined}
+        {fallback: detectLocale()}
     );
 }
-
-// export function getStoredGoogleToken() {
-//     return storage.defineItem<string | undefined>(
-//         'local:googleLastSyncToken',
-//         {fallback: undefined}
-//     );
-// }
-//
-// export function getStoredGoogleSyncTime() {
-//     return storage.defineItem<number | undefined>(
-//         'local:googleLastSyncTime',
-//         {fallback: undefined}
-//     );
-// }
 
 export function getStoredGoogleUser() {
     return storage.defineItem<GoogleUser|undefined>('local:googleUser', {

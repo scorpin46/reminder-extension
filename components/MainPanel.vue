@@ -2,18 +2,18 @@
   <div class="panel">
     <label class="language-selector form-label w-100">
       <span class="form-label__title">Recognition language</span>
-      <select id="languageSelect" v-model="recognitionLocale">
-        <option :value="locale" v-for="(lang, locale) in reminderService.allowedLocaleLanguages">{{ lang }}</option>
+      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
+        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
       </select>
     </label>
 
     <div class="text-center">
-      <RecordBtn class="my-20"/>
+      <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
     </div>
 
     <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
       <label class="form-label w-100 reminder-title__label">
-        <span class="form-label__title">{{ reminderService.streamRecordingText || `Текст напоминания`}}</span>
+        <span class="form-label__title">{{ recognitionService.state.streamRecordingText || `Текст напоминания`}}</span>
         <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
       </label>
       <br>
@@ -30,13 +30,13 @@
       <br>
       <br>
       <div class="reminder-buttons">
-        <button type="submit" class="reminder-save" :disabled="reminderService.isRecording || form.isEmpty()">
+        <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
           <IconCheck />
         </button>
         <button v-if="!!editingId" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
           <IconCancel />
         </button>
-        <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="reminderService.isRecording || form.isEmpty()" title="Clear fields">
+        <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="recognitionService.state.isRecording || form.isEmpty()" title="Clear fields">
           <IconXmark />
         </button>
       </div>
@@ -54,6 +54,7 @@ import IconCheck from "@/components/icons/IconCheck.vue";
 import IconCancel from "@/components/icons/IconRevert.vue";
 import {useToast} from "vue-toastification";
 import RecordBtn from "@/components/RecordBtn.vue";
+import {RecognitionService} from "@/modules/recognitionService.ts";
 
 const props = defineProps({
   editingId: {
@@ -67,25 +68,13 @@ const props = defineProps({
 const emit = defineEmits(["toPanel", "resetForm"]);
 const toast = useToast();
 const reminderService = ReminderService.instance();
+const recognitionService = RecognitionService.instance();
 
 // const network = useNetwork(); //использовать если не будет оффлайн анализатора
 
 const reminderTitleRef = ref();
 const reminderDateRef = ref();
-
-const recognitionLocale = computed({
-  get: () => {
-    if (reminderService.allowedLocaleLanguages[reminderService.regionLocale]){
-      return reminderService.regionLocale;
-    }
-
-    return Object.keys(reminderService.allowedLocaleLanguages).find(regLocale => regLocale.split('-')[0] === reminderService.regionLocale);
-  },
-  set: (newValue) => {
-    reminderService.changeLocale(newValue, true)
-  },
-});
-
+const recognitionLocale = ref();
 const formRef = ref();
 
 const form = reactive({
@@ -101,7 +90,8 @@ const form = reactive({
     }
     
     const id = await reminderService.saveReminder({...this.input});
-
+    recognitionService.resetState();
+    
     if (id){
       this.saved = true;
       
@@ -148,8 +138,8 @@ const textDatetime = computed(() => {
 
 const initForm = async () => {
   if (!props.editingId) {
-    form.input.datetime = reminderService.lastRecordingData?.date || null;
-    form.input.title = reminderService.lastRecordingData?.cleanText || '';
+    form.input.datetime = recognitionService.state.parsedData?.date || null;
+    form.input.title = recognitionService.state.parsedData?.cleanText || '';
   }
 
   await nextTick();
@@ -160,7 +150,7 @@ const initForm = async () => {
   }
 }
 
-watch(() => reminderService.lastRecordingData, (value, oldValue) => {
+watch(() => recognitionService.state.parsedData, (value, oldValue) => {
   initForm();
 }, {
   deep: true,
@@ -174,16 +164,25 @@ watch(() => props.editingId, (value, oldValue) => {
   }
 })
 
-watch(() => reminderService.recordingError, (value) => {
+watch(() => recognitionService.state.error, (value) => {
   value && toast.error(value);
 }, {immediate: true})
 
-onMounted(() => {
+onMounted(async () => {
   initForm();
+
+  const locale = await recognitionService.localeStore.getValue();
+
+  recognitionLocale.value = recognitionService.allowedLocaleLanguages[locale] ? locale : Object.keys(recognitionService.allowedLocaleLanguages).find(regLocale => regLocale.split('-')[0] === locale);
+  recognitionLocale.value ??= 'en-US';
+
+  watch(() => recognitionLocale.value, (value) => {
+    recognitionService.changeLocale(value);
+  })
 })
 
 onUnmounted(() => {
-  reminderService.resetLastRecordingData();
+  recognitionService.resetState()
 })
 
 </script>

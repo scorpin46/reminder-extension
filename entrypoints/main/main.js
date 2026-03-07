@@ -7,9 +7,10 @@ import {aliases, mdi} from 'vuetify/iconsets/mdi-svg' // для оптимизи
 import "vue-toastification/dist/index.css";
 import 'vuetify/styles'
 import '@/assets/scss/styles.scss'
+import {detectLocale} from "@/modules/utils/helpers.ts";
 
-const locales = [navigator.language] || navigator.languages;
-const locale = locales[0] || 'en';
+const locale = detectLocale();
+document.documentElement.lang = locale;
 
 const vuetify = createVuetify({
     locale: { 

@@ -1,5 +1,5 @@
 <template>
-  <main :class="{'--recording': reminderService.isRecording}">
+  <main :class="{'--recording': recognitionService.state.isRecording}">
     <div class="menu">
       <RecordBtn v-if="activePanel === 'reminders'" class="record-btn--small"/>
 <!--      если нужен переход на страницу создания-->
@@ -51,6 +51,7 @@ import {nextTick, ref, watch} from "vue";
 import RecordBtn from "@/components/RecordBtn.vue";
 import Settings from "@/components/Settings.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
+import {RecognitionService} from "@/modules/recognitionService.ts";
 
 const props = defineProps({
   activePanel: {
@@ -58,6 +59,7 @@ const props = defineProps({
   }
 })
 const reminderService = ReminderService.instance();
+const recognitionService = RecognitionService.instance();
 const activePanel = ref(props.activePanel ?? 'main');
 const editingId = ref();
 const mainPanelRef = ref();
@@ -101,7 +103,7 @@ watch(() => activePanel.value, async (value, oldValue) => {
   flush: 'pre',
 })
 
-watch(() => reminderService.isRecording, (value, oldValue) => {
+watch(() => recognitionService.isRecording, (value, oldValue) => {
   if (!value && oldValue) {
     activePanel.value = 'main';
     backToPanel.value = 'reminders';
@@ -124,6 +126,6 @@ watch(() => reminderService.repository.state.isLoaded, async () => {
       }, 3000);
     }
   })
-}, {once: true})
+}, {once: true});
 
 </script>
