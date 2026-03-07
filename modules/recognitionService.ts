@@ -14,7 +14,7 @@ export class RecognitionService {
         parsedData: TextParsedData | null;
         error: string|null;
     }>;
-    
+
     private textParser?: TextParserProvider;
     private currentAudioStream?: MediaStream;
     public localeStore: ReturnType<typeof getStoredLocale>;
@@ -45,7 +45,7 @@ export class RecognitionService {
         if (!speechRecognition) {
             return null;
         }
-        
+
         const locale = await this.localeStore.getValue();
 
         this.textParser = new TextParserProvider(locale);
@@ -54,27 +54,26 @@ export class RecognitionService {
 
         recognition.continuous = false;
         recognition.interimResults = true;
-        recognition.maxAlternatives = 3;
+        recognition.maxAlternatives = 1;
         recognition.lang = locale;
-        
+
         recognition.onstart = (event: object) => {
             console.log('onstart');
 
             this.state.parsedData = null;
-            this.state.streamRecordingText = '';
+            this.state.streamRecordingText = ''; // Сбрасываем при старте
 
             setTimeout(() => {
                 this.state.isRecording = true;
             }, 200)
         }
-        
+
         recognition.onend = (event: object) => {
             console.log('onend');
 
             this.state.isRecording = false;
-            this.state.streamRecordingText = '';
         }
-        
+
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.log('onerror');
             this.state.streamRecordingText = '';
@@ -98,65 +97,53 @@ export class RecognitionService {
 
             recognition.abort();
         }
-        
+
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log('onresult');
-
-            let lastTranscript = '';
-            let maxConfidence = 0;
-
+            let recordingText: string = '';
+            
+            // Проходим по всем новым результатам
             for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const inFinal = event.results[i].isFinal;
-                lastTranscript = event.results[i][0].transcript;
+                const result = event.results[i];
+                const transcript = result[0].transcript;
 
-                if (inFinal) {
-                    maxConfidence = Math.max(maxConfidence, event.results[i][0].confidence);
+                if (result.isFinal) {
+                    // Финальный результат - заменяем весь текст
+                    // (или можно добавить, если хочешь накапливать предложения)
+                    this.state.streamRecordingText = transcript;
 
-                    if (lastTranscript) {
-                        const parsedData = this.textParser!.parse(lastTranscript);
-
+                    if (transcript) {
+                        const parsedData = this.textParser!.parse(transcript);
                         this.state.parsedData = parsedData;
                         this.state.error = parsedData.error ?? this.state.error;
-                    } else {
-                        this.state.error = "Текст не распознан"
+                        
+                        // setTimeout(() => {
+                            this.state.streamRecordingText = '';
+                        // }, 1000)
                     }
+                } else {
+                    recordingText += transcript;
                 }
-
-                this.state.streamRecordingText = lastTranscript;
             }
+
+            this.state.streamRecordingText = recordingText;
         }
 
-        recognition.onaudioend = () => {console.log('onaudioend')
+        // Остальные обработчики можно оставить как есть
+        recognition.onaudioend = () => {
+            console.log('onaudioend');
             this.state.isRecording = false;
         }
+
         recognition.onaudiostart = () => {console.log('onaudiostart')}
-        recognition.onend = () => {console.log('onend')}
         recognition.onnomatch = () => {console.log('onnomatch')}
         recognition.onsoundend = () => {console.log('onsoundend')}
         recognition.onsoundstart = () => {console.log('onsoundstart')}
         recognition.onspeechend = () => {
-            console.log('onspeechend')
-           
+            console.log('onspeechend');
         }
         recognition.onspeechstart = () => {console.log('onspeechstart')}
 
-        /**
-         * soundstart
-         * Срабатывает при обнаружении любого звука — будь то узнаваемая речь или нет.
-         *
-         * soundend
-         * Срабатывает, когда перестаёт обнаруживаться какой-либо звук — будь то узнаваемая речь или нет.
-         *
-         * speechstart
-         * Срабатывает при обнаружении звука, который служба распознавания речи распознает как речь.
-         *
-         * speechend
-         * Срабатывает, когда перестаёт обнаруживаться речь, распознаваемая службой распознавания речи.
-         *
-         * start
-         * Срабатывает, когда служба распознавания речи начинает прослушивать аудиосигнал для распознавания.
-         */
-        
         this.recognition = recognition;
     }
 
@@ -164,22 +151,35 @@ export class RecognitionService {
         this.state.error = null;
         this.recognition?.abort();
 
+        // Сбрасываем текст при новом старте
+        this.state.streamRecordingText = '';
+
         this.currentAudioStream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                autoGainControl: true
+                autoGainControl: true,
+                sampleRate: {
+                    ideal: 16000,
+                },
+                channelCount: {
+                    ideal: 1,
+                    exact: 1
+                },
+                sampleSize: {
+                    ideal: 16
+                },
             }
         });
 
         this.recognition?.start();
-        
+
         return this.currentAudioStream;
     }
 
     stop() {
         this.recognition?.stop();
-        
+
         if (this.state.isRecording){
             this.recognition?.abort()
         }

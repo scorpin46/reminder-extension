@@ -159,7 +159,6 @@ export default defineBackground(() => {
         }
     });
 
-
     browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
         console.log('📨 Получено сообщение:', request.action, request);
 
