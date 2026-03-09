@@ -189,23 +189,6 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
     margin-top: 5px;
   }
 
-  &[data-title]:not([data-title=""]){
-    &:before{
-      content: attr(data-title);
-      display: block;
-      flex: 0 0 100%;
-      width: 100%;
-    }
-  }
-
-  &[data-footer]:not([data-footer=""]){
-    &:after{
-      content: attr(data-footer);
-      display: block;
-      flex: 0 0 100%;
-      width: 100%;
-    }
-  }
 }
 
 .record-btn {
@@ -311,7 +294,7 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
     @at-root .--recording #{&}{
       &:after {
         position: absolute;
-        top: 30px;
+        bottom: 20px;
         color: var(--color-default);
         opacity: .8;
         line-height: 0;

@@ -23,7 +23,6 @@ export class GoogleCalendarService {
     public currentUser?: GoogleUser | null = null;
     private readonly requestTimeout: number = 5000;
     private readonly appNameForCalendar: string = 'set-a-reminder-ext';
-    private notificationShown: boolean = false;
     private abortController: AbortController | null = null;
     private readonly defaultEndTimeAppendMs: number = 1000;
     
@@ -63,8 +62,7 @@ export class GoogleCalendarService {
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
                     title: "🔔 Set a Reminder",  //todo перевод
                     message: `Google синхронизация c ${user.email} нарушена, авторизуйтесь заново`, //todo или типо того
-                    requireInteraction: false,
-                    priority: 1,
+                    requireInteraction: true,
                     buttons: [{title: "Авторизоваться"}],
                 });
 
@@ -197,7 +195,6 @@ export class GoogleCalendarService {
 
     async logout(): Promise<{ success: boolean }> {
         try {
-            this.notificationShown = false;
             this.abortController?.abort();
             this.abortController = new AbortController();
             browser.alarms.clear(GoogleCalendarService.syncAlarmName);
@@ -493,7 +490,8 @@ export class GoogleCalendarService {
 
             return false;
         }
-        
+
+        this.lastActiveToken ??= await this.fetchToken(false); //для страховки
         const tokenUser = await this.fetchUserInfo();
         const isSuccess = tokenUser?.email === this.currentUser.email;
         

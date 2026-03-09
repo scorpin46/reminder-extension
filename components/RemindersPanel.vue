@@ -204,13 +204,14 @@ const maxFilterDate = computed(() => {
 const expired = ref([]);
 const soon = ref([]);
 const now = ref();
+const SOON_MINUTES = 10;
 
 const actualize = () => {
   now.value = new Date();
   expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
   soon.value = reminderService.repository.state.active.filter(item => {
     const diff = item.datetime - now.value;
-    return !item.completed && diff > 0 && diff < 10 * 60 * 1000
+    return !item.completed && diff > 0 && diff < SOON_MINUTES * 60 * 1000
   }).map(item => item.id);
 }
 

@@ -72,6 +72,9 @@ export class RecognitionService {
             console.log('onend');
 
             this.state.isRecording = false;
+            this.currentAudioStream?.getTracks().forEach(track => {
+                track.stop(); //освобождение микрофона
+            });
         }
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
