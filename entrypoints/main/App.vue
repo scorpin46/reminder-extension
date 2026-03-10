@@ -9,16 +9,16 @@
         <input type="radio" v-model="activePanel" value="main" name="activePanel" checked hidden>
 
         <template v-if="!editingId">
-          <span>Add Reminder</span>
+          <span>{{ browser.i18n.getMessage('addReminder') }}</span>
         </template>
-        <span v-else>Editing a reminder...</span>
+        <span v-else>{{ browser.i18n.getMessage('editingReminder') }}</span>
       </label>
       <label
           :class="{'menu__item': true, '--active': activePanel === 'reminders', '--fade': remindersCountUp}"
           :data-count="reminderService.repository.state.active.length"
       >
         <input type="radio" v-model="activePanel" value="reminders" name="activePanel" hidden>
-        <span>Reminders</span>
+        <span>{{ browser.i18n.getMessage('reminders') }}</span>
       </label>
     </div>
     <div class="container">
@@ -39,7 +39,7 @@
   <footer>
     <button class="settings-btn" @click="showSettings = true">
       <IconSettings/>
-      <span>Настройки</span>
+      <span>{{ browser.i18n.getMessage('settings') }}</span>
     </button>
   </footer>
 </template>
@@ -103,7 +103,7 @@ watch(() => activePanel.value, async (value, oldValue) => {
   flush: 'pre',
 })
 
-watch(() => recognitionService.isRecording, (value, oldValue) => {
+watch(() => recognitionService.state.isRecording, (value, oldValue) => {
   if (!value && oldValue) {
     activePanel.value = 'main';
     backToPanel.value = 'reminders';
@@ -114,7 +114,7 @@ watch(() => recognitionService.isRecording, (value, oldValue) => {
 
 watch(() => reminderService.repository.state.isLoaded, async () => {
   if (!props.activePanel){
-    activePanel.value = !reminderService.repository.state.active.length ? 'main' : 'reminders';
+    // activePanel.value = !reminderService.repository.state.active.length ? 'main' : 'reminders'; //если нужно всегда открывать вторую вкладку
   }
   
   watch(() => reminderService.repository.state.active.length, async (value, oldValue) => {

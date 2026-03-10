@@ -9,18 +9,19 @@
           role="button"
           class="tab tab--calendar"
           @click="calendarIsOpened = ! calendarIsOpened"
-          title="Фильтр по дате"
+          :title="browser.i18n.getMessage('filterByDate')"
           :data-selected="filterDate?.toLocaleDateString(reminderService.regionLocale)"
+          v-if="filterDate || allowedDates.length > 0 && Object.keys(daysGroupsReminders).length > 1"
         >
 <!--          <svg class="v-icon__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"></path></svg>-->
           <IconCalendar/>
         </span>
         <span
           role="button"
-          v-show="hasFilterDate"
+          v-show="!!filterDate"
           class="tab tab--clear-filter"
           @click="filterDate = null"
-          title="Убрать Фильтр"
+          :title="browser.i18n.getMessage('resetFilter')"
         >
           <IconXmark/>
         </span>
@@ -34,33 +35,35 @@
             <template v-else>
 <!--              <IconTimer height="19"/>-->
             </template>
-          Актуальные
+          {{ browser.i18n.getMessage('actualTab') }}
         </span>
       </label>
-      <!--      <label class="tab">-->
-      <!--        <input v-model="selectedFilter" value="expired" type="radio" hidden>-->
-      <!--        <span :data-count="expiredItems.length" class="danger">Просроченные</span>-->
-      <!--      </label>-->
       <label class="tab dynamic-counter">
         <input v-model="selectedFilter" name="selectedFilter" value="completed" type="radio" hidden>
         <span :data-count="reminderService.repository.state.completed.length" class="secondary">
-        <IconChecks v-show="selectedFilter === 'completed'" class="color-green" height="16"/>
-          Завершенные
+          <IconChecks v-show="selectedFilter === 'completed'" class="color-green" height="16"/>
+          {{ browser.i18n.getMessage('completedTab') }}
         </span>
       </label>
       
       <div class="tabs__right"></div>
     </div>
 
-    <div v-if="hasFilterDate && ! Object.keys(daysGroupsReminders).length">
-<!--      Ничего не найдено-->
-<!--      по выбранной дате ({{ localDateFormat(filterDate, false, reminderService.regionLocale) }}) напоминаний не найдено-->
-
-      Ничего не найдено по запросу "filterSearch" 
-<!--      todo и сделать календарь внутри поисковой строки чтоб он вставлял дату в поле и по нему искалось, когда regex совпадает, т.е. это просто подсказка для input-->
+    <div v-if="filterSearch && ! Object.keys(daysGroupsReminders).length">
+      <b>{{ browser.i18n.getMessage('noResults') }}</b>
+      <div>
+        {{ browser.i18n.getMessage('changeQuery') }} "{{ filterSearch }}"
+      </div>
       
-<!--      todo и все-таки узнать реально ли как-то блокировать даты в классическом input date ,пускай и по клику-->
-      <button>Очистить</button>
+      <div>
+        <button type="button">{{ browser.i18n.getMessage('reset') }}</button>
+      </div>
+<!--      todo и сделать календарь внутри поисковой строки чтоб он вставлял дату в поле и по нему искалось, когда regex совпадает, т.е. это просто подсказка для input-->
+    </div>
+    
+    <div v-else-if="!reminderService.repository.state.active.length">
+<!--      todo Добавить перевод и текст стилизовать -->
+      Иконка + нет активных напоминаний + кнопка создать
     </div>
 
     <div class="reminders">
@@ -100,13 +103,13 @@
           </div>
 
           <div class="reminders-item__actions" @click="editItem(item)">
-            <span role="button" class="reminders-item__edit" title="Редактировать (сделать перевод)" @click.stop="editItem(item)">
+            <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="editItem(item)">
               <IconEdit/>
             </span>
-            <span role="button" v-if="!item.completed" class="reminders-item__complete" title="Завершить (сделать перевод)" @click.stop="completeReminder(item)">
+            <span role="button" v-if="!item.completed" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="completeReminder(item)">
               <IconChecks/>
             </span>
-            <span role="button" v-if="item.completed" class="reminders-item__delete" title="Удалить" @click.stop="reminderService.deleteReminder(item)">
+            <span role="button" v-if="item.completed" class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.deleteReminder(item)">
               <IconXmark/>
             </span>
           </div>
@@ -154,7 +157,7 @@ const reminders = computed(() => {
   return result;
 });
 
-const hasFilterDate = computed(() => !!filterDate.value);
+const filterSearch = ref('');
 
 const daysGroupsReminders = computed(() => {
   const groups = {};
@@ -163,13 +166,17 @@ const daysGroupsReminders = computed(() => {
     if (filterDate.value && ! dateAdapter.isSameDay(item.datetime, filterDate.value)){
       return true;
     }
+    
+    if (!filterDate.value && filterSearch.value && ! `${item.title} ${item.desc}`.includes(filterSearch.value)){
+      return true;
+    }
 
     let groupKey = item.datetime.toLocaleDateString(reminderService.regionLocale);
     let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true)
     
     if (expired.value.includes(item.id)){
       groupKey = 'expired';
-      label = "Просроченные"
+      label = browser.i18n.getMessage('missed')
     }
 
     groups[groupKey] ??= {
@@ -235,6 +242,19 @@ useIntervalFn(() => {
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
+  
+  // if (!value.length){
+  //   selectedFilter.value = 'completed'; //если не осталось актуальных, перекидывай на завершенные
+  // }
+})
+
+watch(() => filterDate.value, (value, oldValue) => {
+  filterSearch.value = value;
+})
+
+watch(() => selectedFilter.value, (value, oldValue) => {
+  filterDate.value = null;
+  filterSearch.value = null;
 })
 
 </script>

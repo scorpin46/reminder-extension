@@ -1,11 +1,11 @@
 <template>
   <div class="panel">
-    <label class="language-selector form-label w-100">
-      <span class="form-label__title">Recognition language</span>
-      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
-        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
-      </select>
-    </label>
+<!--    <label class="language-selector form-label w-100" v-if="isDev">-->
+<!--      <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>-->
+<!--      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">-->
+<!--        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>-->
+<!--      </select>-->
+<!--    </label>-->
 
     <div class="text-center">
       <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
@@ -13,19 +13,19 @@
 
     <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
       <label class="form-label w-100 reminder-title__label">
-        <span class="form-label__title">{{ recognitionService.state.streamRecordingText || `Текст напоминания`}}</span>
+        <span class="form-label__title">{{ recognitionService.state.streamRecordingText || browser.i18n.getMessage('reminderTitle')}}</span>
         <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
       </label>
       <br>
       <label class="form-label w-100">
-        <span class="form-label__title">{{ form.input.datetime ? textDatetime : `Дата` }}</span>
+        <span class="form-label__title">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
         <InputDatetime required ref="reminderDateRef" class="form-control w-100" v-model="form.input.datetime" />
       </label>
       <!--        <br>-->
       <!--        <label class="form-label w-100">-->
-      <!--            <div>Подробности:</div>-->
-      <!--            <textarea class="form-control w-100" id="reminderDetailsInput" rows="1"></textarea>-->
+      <!--            <div>{{ browser.i18n.getMessage('reminderDetails') }}</div>-->
+      <!--            <textarea class="form-control w-100" rows="2"></textarea>-->
       <!--        </label>-->
       <br>
       <br>
@@ -65,12 +65,16 @@ const props = defineProps({
   },
 });
 
+let isDev = false;
+
+try {
+  isDev = import.meta.env.DEV;
+} catch (e){}
+
 const emit = defineEmits(["toPanel", "resetForm"]);
 const toast = useToast();
 const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
-
-// const network = useNetwork(); //использовать если не будет оффлайн анализатора
 
 const reminderTitleRef = ref();
 const reminderDateRef = ref();

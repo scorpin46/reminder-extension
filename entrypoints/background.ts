@@ -49,8 +49,8 @@ export default defineBackground(() => {
 
     const openPostponeWindow = (reminderId: number | string): void => {
         browser.windows.getLastFocused((lastWindow) => {
-            const width = 460;
-            const height = 370;
+            const width = 370;
+            const height = 460;
             const left = lastWindow.left! + lastWindow.width! - width;
             const top = lastWindow.height! - height;
 
@@ -97,7 +97,7 @@ export default defineBackground(() => {
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
-                    title: "🔔 Напоминание",  //todo перевод
+                    title: '🔔 ' + browser.i18n.getMessage('reminder'),
                     message: reminder.title,
                     contextMessage: reminder.desc!,
                     requireInteraction: true,

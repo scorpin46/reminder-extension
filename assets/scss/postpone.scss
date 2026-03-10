@@ -23,6 +23,23 @@ body {
     min-height: 40px;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  &__desc{
+    flex: 0 0 100%;
+    text-align: left;
+    margin: 10px 0 0;
+    font-size: .9em;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    
+    &:empty{
+      display: none;
+    }
   }
 
   &__option {

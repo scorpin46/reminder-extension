@@ -1,0 +1,87 @@
+{
+  "appName": {
+    "message": "Установить напоминание"
+  },
+  "appDesc": {
+    "message": "Приложение для ежедневных напоминаний. Легко и быстро создавайте напоминания голосом или текстом. Синхронизируйте с Google Calendar."
+  },
+  "mainTitle": {
+    "message": "Установить напоминание"
+  },  
+  "postponeTitle": {
+    "message": "Отложить напоминание"
+  },  
+  "addReminder": {
+    "message": "Создать напоминание"
+  },  
+  "editingReminder": {
+    "message": "Редактирование напоминания..."
+  },
+  "reminders": {
+    "message": "Напоминания"
+  },
+  "settings": {
+    "message": "Настройки"
+  },
+  "customDate": {
+    "message": "Указать свою дату и время"
+  },
+  "recognitionLanguage": {
+    "message": "Язык голосового ввода"
+  },
+  "reminderTitle": {
+    "message": "Заголовок"
+  },
+  "reminderDate": {
+    "message": "Дата и время"
+  },
+  "reminderDetails": {
+    "message": "Детали"
+  },
+  "noMicrophoneAccess": {
+    "message": "Нет доступа к микрофону"
+  },
+  "unsupportedSpeech": {
+    "message": "Ваш браузер не поддерживает распознавание речи"
+  },
+  "filterByDate": {
+    "message": "Фильтр по дате"
+  },
+  "resetFilter": {
+    "message": "Сбросить фильтр"
+  },
+  "actualTab": {
+    "message": "Актуальные"
+  },
+  "completedTab": {
+    "message": "Завершенные"
+  },
+  "edit": {
+    "message": "Редактировать"
+  },
+  "complete": {
+    "message": "Завершить"
+  },
+  "delete": {
+    "message": "Удалить"
+  },
+  "noResults": {
+    "message": "Ничего не найдено"
+  },
+  "changeQuery": {
+    "message": "Измените запрос"
+  },
+  "reset": {
+    "message": "Сбросить"
+  },
+  "missed": {
+    "message": "Просроченные"
+  },
+  "reminder": {
+    "message": "Напоминание"
+  },
+  "close": {
+    "message": "Закрыть"
+  }
+}
+

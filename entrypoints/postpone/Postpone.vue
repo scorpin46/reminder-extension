@@ -2,16 +2,15 @@
   <div class="postpone">
     <div class="notranslate postpone__title">
       <b>{{ reminderItem.title }}</b>
-<!--      todo детальное описание добавить потом-->
+      <div class="postpone__desc" :title="reminderItem.desc">{{ reminderItem.desc }}</div>
     </div>
     <div>
       <div v-for="option in reminderOptions" :key="option.minutes" class="postpone__option" @click="sendNewTime(option.targetDate)" role="button">
         <span>{{ option.label }}</span>
         <span v-if="option.labelUntil"> - {{ option.labelUntil }}</span>
       </div>
-      <br>
-      <label class="form-label w-100">
-        <span class="form-label__title">Choose Date & Time</span>
+      <label class="form-label w-100 mt-10 px-5">
+        <span class="form-label__title">{{ browser.i18n.getMessage('customDate') }}</span>
         <InputDatetime v-model="inputDatetime" @change="sendNewTime(inputDatetime)" class="form-control" />
       </label>
     </div>

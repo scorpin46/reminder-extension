@@ -1,8 +1,8 @@
 <template>
   <div class="settings">
     <div class="settings__header">
-      <div class="settings__title">Настройки</div>
-      <span class="settings__close" role="button" @click="emit('close')" title="Закрыть">
+      <div class="settings__title">{{ browser.i18n.getMessage('settings') }}</div>
+      <span class="settings__close" role="button" @click="emit('close')" :title="browser.i18n.getMessage('close')">
         <IconXmark height="24"/>
       </span>
     </div>

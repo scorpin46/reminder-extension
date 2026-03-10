@@ -4,7 +4,7 @@
       type="button" 
       @click="recordClickHandler" 
       :disabled="!supportsRecording" 
-      :title="!supportsRecording ? 'Ваш браузер не поддерживает распознавание речи' : null"
+      :title="!supportsRecording ? browser.i18n.getMessage('unsupportedSpeech') : null"
   >
     <IconMic />
   </button>
@@ -29,14 +29,14 @@ const recordClickHandler = () => {
       : recognitionService.start()
           .catch((err) => {
             console.error(err);
-            toast.error("Нет доступа к микрофону");
+            toast.error(browser.i18n.getMessage('noMicrophoneAccess'));
           })
 }
 
 
 onMounted(async () => {
   if (!supportsRecording.value) {
-    toast.error("Ваш браузер не поддерживает распознавание речи");
+    toast.error(browser.i18n.getMessage('unsupportedSpeech'));
   }
 });
 

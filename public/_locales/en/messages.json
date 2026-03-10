@@ -4,6 +4,84 @@
   },
   "appDesc": {
     "message": "With Set a Reminder, you can add tasks by voice or text. A daily reminder app for tasks, meetings, habits, calls. Quick and easy!"
+  },
+  "mainTitle": {
+    "message": "Set a Reminder"
+  },
+  "postponeTitle": {
+    "message": "Postpone the reminder"
+  },
+  "addReminder": {
+    "message": "Add Reminder"
+  },
+  "editingReminder": {
+    "message": "Editing a reminder..."
+  },
+  "reminders": {
+    "message": "Reminders"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "customDate": {
+    "message": "Custom date and time"
+  },
+  "recognitionLanguage": {
+    "message": "Recognition language"
+  },
+  "reminderTitle": {
+    "message": "Title"
+  },
+  "reminderDate": {
+    "message": "Date and time"
+  },
+  "reminderDetails": {
+    "message": "Details"
+  },
+  "noMicrophoneAccess": {
+    "message": "No microphone access"
+  },
+  "unsupportedSpeech": {
+    "message": "Your browser does not support speech recognition"
+  },
+  "filterByDate": {
+    "message": "Filter by date"
+  },
+  "resetFilter": {
+    "message": "Reset filter"
+  },
+  "actualTab": {
+    "message": "Active"
+  },
+  "completedTab": {
+    "message": "Completed"
+  },
+  "edit": {
+    "message": "Edit"
+  },
+  "complete": {
+    "message": "Complete"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "noResults": {
+    "message": "No results found"
+  },
+  "changeQuery": {
+    "message": "No results found"
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "missed": {
+    "message": "Missed"
+  },
+  "reminder": {
+    "message": "Reminder"
+  },
+  "close": {
+    "message": "Close"
   }
 }
 
