@@ -12,10 +12,10 @@
 
 <script setup>
 import IconMic from "@/components/icons/IconMic.vue";
-import {ReminderService} from "@/modules/reminderService.js";
 import {useToast} from "vue-toastification";
 import {onMounted, ref} from "vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
+import {browser} from 'wxt/browser';
 
 const toast = useToast();
 const recognitionService = RecognitionService.instance();

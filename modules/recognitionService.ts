@@ -2,6 +2,7 @@ import {Reactive, reactive} from "vue";
 import {TextParserProvider} from "./textParserProvider";
 import type {TextParsedData} from "./textParserProvider";
 import {getStoredLocale} from "./utils/storage";
+import {browser} from 'wxt/browser';
 
 export class RecognitionService {
     private recognition?: SpeechRecognition;
@@ -85,13 +86,13 @@ export class RecognitionService {
             let customError: string = event.error;
 
             if (event.error === 'no-speech') {
-                customError = 'Не обнаружена речь. Попробуйте еще раз.';
+                customError = browser.i18n.getMessage('errorNoSpeech');
             } else if (event.error === 'audio-capture') {
-                customError = 'Микрофон не найден. Проверьте подключение.';
+                customError = browser.i18n.getMessage('errorAudioCapture');
             } else if (event.error === 'not-allowed') {
-                customError = 'Доступ к микрофону запрещен.';
+                customError = browser.i18n.getMessage('errorNotAllowed');
             } else if (event.error === 'language-not-supported') {
-                customError = `Язык (${recognition.lang}) не поддерживается, пробуем запасной...`;
+                customError = browser.i18n.getMessage('errorLangIsNotSupport');
             } else if (event.error === 'aborted') {
                 customError = '';
             }

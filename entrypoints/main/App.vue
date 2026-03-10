@@ -52,6 +52,7 @@ import RecordBtn from "@/components/RecordBtn.vue";
 import Settings from "@/components/Settings.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
+import {browser} from 'wxt/browser';
 
 const props = defineProps({
   activePanel: {

@@ -4,7 +4,7 @@ import {detectLocale} from "./helpers";
 export interface GoogleUser {
     email: string;
     name?: string;
-    id: string; // Google ID для точной идентификации
+    id: string;
 }
 
 

@@ -20,7 +20,7 @@
           role="button"
           v-show="!!filterDate"
           class="tab tab--clear-filter"
-          @click="filterDate = null"
+          @click="resetFilter"
           :title="browser.i18n.getMessage('resetFilter')"
         >
           <IconXmark/>
@@ -131,6 +131,7 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import IconCalendar from "@/components/icons/IconCalendar.vue";
 import {max, min} from "es-toolkit/compat";
 import DatePicker from "@/components/Datepicker.vue";
+import {browser} from 'wxt/browser';
 
 const reminderService = ReminderService.instance();
 
@@ -225,6 +226,11 @@ const actualize = () => {
 const completeReminder = (item) => {
   reminderService.completeReminder(item);
   now.value = new Date();
+}
+
+const resetFilter = () => {
+  filterDate.value = null;
+  // searchInputRef.value.focus(); //todo когда будет поле
 }
 
 

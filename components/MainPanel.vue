@@ -55,6 +55,7 @@ import IconCancel from "@/components/icons/IconRevert.vue";
 import {useToast} from "vue-toastification";
 import RecordBtn from "@/components/RecordBtn.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
+import {browser} from 'wxt/browser';
 
 const props = defineProps({
   editingId: {

@@ -13,7 +13,6 @@ document.title = browser.i18n.getMessage('mainTitle');
 
 const locale = detectLocale();
 document.documentElement.lang = locale;
-//todo возможно язык лучше не задавать чтобы подсказки на перевод страницы были (при условии отсутствия языка)
 
 const vuetify = createVuetify({
     locale: { 

@@ -69,7 +69,7 @@
     "message": "No results found"
   },
   "changeQuery": {
-    "message": "No results found"
+    "message": "Try a different search"
   },
   "reset": {
     "message": "Reset"
@@ -82,6 +82,36 @@
   },
   "close": {
     "message": "Close"
+  },
+  "syncFailed": {
+    "message": "Google Calendar sync failed for $EMAIL$. Please sign in again.",
+    "placeholders": {
+      "email": {
+        "content": "$1",
+        "example": "example@gmail.com"
+      }
+    }
+  },
+  "signIn": {
+    "message": "Sign in"
+  },
+  "errorNoSpeech": {
+    "message": "No speech detected. Try again."
+  },
+  "errorAudioCapture": {
+    "message": "Microphone not found. Check the connection."
+  },
+  "errorNotAllowed": {
+    "message": "Microphone access is denied."
+  },
+  "errorLangIsNotSupport": {
+    "message": "Language is temporarily not supported"
+  },
+  "errorAuth": {
+    "message": "Authentication failed. Please try again."
+  },
+  "errorNetwork": {
+    "message": "Network error. Please check your internet connection."
   }
 }
 

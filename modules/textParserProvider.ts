@@ -1,5 +1,4 @@
 import * as chrono from "chrono-node";
-import {ReminderRepository} from "@/modules/repositories/reminderRepository";
 
 export type TextParsedData = {
     sourceText: string;
@@ -37,7 +36,7 @@ export class TextParserProvider
                 sourceText: text,
                 cleanText: '',
                 date: null,
-                error: 'Ошибка парсинга даты',
+                error: null,
             };
         }
     }

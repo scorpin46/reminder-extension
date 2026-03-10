@@ -60,10 +60,10 @@ export class GoogleCalendarService {
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
-                    title: "🔔 Set a Reminder",  //todo перевод
-                    message: `Google синхронизация c ${user.email} нарушена, авторизуйтесь заново`, //todo или типо того
+                    title: "🔔 " + browser.i18n.getMessage('appName'),  //todo подойдет ли название (учитывая другие языки и глагольную подачу)
+                    message: browser.i18n.getMessage('syncFailed'), 
                     requireInteraction: true,
-                    buttons: [{title: "Авторизоваться"}],
+                    buttons: [{title: browser.i18n.getMessage('signIn')}],
                 });
 
                 await this.googleAuthAlertIdStore.setValue(notificationId);
@@ -184,9 +184,9 @@ export class GoogleCalendarService {
 
             let errorMessage = error.message;
             if (error.message.includes('network')) {
-                errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                errorMessage = browser.i18n.getMessage('errorNetwork');
             } else if (error.message.includes('auth')) {
-                errorMessage = 'Ошибка авторизации. Попробуйте снова.';
+                errorMessage = browser.i18n.getMessage('errorAuth');
             }
 
             return { success: false, error: errorMessage };
@@ -311,7 +311,6 @@ export class GoogleCalendarService {
 
     async updateEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
         if (!reminder) {
-            console.debug('Напоминание не найдено, пропускаем обновление события');
             return;
         }
 

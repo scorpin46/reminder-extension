@@ -43,6 +43,7 @@ import {
   getStoredGoogleIsAuthenticated,
   getStoredGoogleUser
 } from "@/modules/utils/storage.ts";
+import {browser} from 'wxt/browser';
 
 const props = defineProps({
 });

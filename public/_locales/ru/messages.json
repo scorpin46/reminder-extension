@@ -82,6 +82,36 @@
   },
   "close": {
     "message": "Закрыть"
+  },
+  "syncFailed": {
+    "message": "Сбой синхронизации с Google Calendar для $EMAIL$. Пожалуйста, авторизуйтесь снова.",
+    "placeholders": {
+      "email": {
+        "content": "$1",
+        "example": "example@gmail.com"
+      }
+    }
+  },
+  "signIn": {
+    "message": "Авторизоваться"
+  },
+  "errorNoSpeech": {
+    "message": "Не обнаружена речь. Попробуйте еще раз."
+  },
+  "errorAudioCapture": {
+    "message": "Микрофон не найден. Проверьте подключение."
+  },
+  "errorNotAllowed": {
+    "message": "Доступ к микрофону запрещен."
+  },
+  "errorLangIsNotSupport": {
+    "message": "Язык временно не поддерживается"
+  },
+  "errorAuth": {
+    "message": "Ошибка авторизации. Попробуйте снова."
+  },
+  "errorNetwork": {
+    "message": "Ошибка сети. Проверьте подключение к интернету."
   }
 }
 
