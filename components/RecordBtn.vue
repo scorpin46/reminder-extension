@@ -29,7 +29,12 @@ const recordClickHandler = () => {
       : recognitionService.start()
           .catch((err) => {
             console.error(err);
-            toast.error(browser.i18n.getMessage('noMicrophoneAccess'));
+
+            if (err.message.includes('Permission denied')){
+              toast.error(browser.i18n.getMessage('noMicrophoneAccess'));
+            } else if (err.message.includes('recognition has already started')) {
+              recognitionService.start();
+            }
           })
 }
 

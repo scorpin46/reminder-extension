@@ -1,14 +1,15 @@
 <template>
   <div class="panel">
-<!--    <label class="language-selector form-label w-100" v-if="isDev">-->
-<!--      <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>-->
-<!--      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">-->
-<!--        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>-->
-<!--      </select>-->
-<!--    </label>-->
+    <label class="language-selector form-label w-100" v-if="isDev">
+      <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>
+      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
+        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
+      </select>
+    </label>
 
     <div class="text-center">
       <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
+<!--      todo для поддерживаемых языков chrono и microsoft добавить пример фразы с датой и временем-->
     </div>
 
     <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
@@ -151,7 +152,7 @@ const initForm = async () => {
   if (form.input.title && !form.input.datetime) {
     // reminderDateRef.value.onFocus() //не вариант тк закрывает видимость
   } else {
-    reminderTitleRef.value.focus();
+    reminderTitleRef.value?.focus();
   }
 }
 

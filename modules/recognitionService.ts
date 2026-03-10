@@ -64,9 +64,7 @@ export class RecognitionService {
             this.state.parsedData = null;
             this.state.streamRecordingText = ''; // Сбрасываем при старте
 
-            setTimeout(() => {
-                this.state.isRecording = true;
-            }, 200)
+            this.state.isRecording = true;
         }
 
         recognition.onend = (event: object) => {
@@ -153,10 +151,10 @@ export class RecognitionService {
 
     async start() {
         this.state.error = null;
-        this.recognition?.abort();
-
-        // Сбрасываем текст при новом старте
+        this.stop();
+        
         this.state.streamRecordingText = '';
+        this.state.isRecording = true;
 
         this.currentAudioStream = await navigator.mediaDevices.getUserMedia({
             audio: {
