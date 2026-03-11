@@ -2,21 +2,6 @@
 
 import {browser} from 'wxt/browser';
 
-export async function initDexieWithObservable() {
-    if (typeof self === 'undefined') {
-        (globalThis as any).self = globalThis;
-    }
-    if (typeof window === 'undefined') {
-        (globalThis as any).window = globalThis;
-    }
-
-    // Динамический импорт
-    const Dexie = (await import('dexie')).default;
-    await import('dexie-observable');
-
-    return new Dexie('MyDatabase');
-}
-
 export const localTimeUntil = (dateObj: Date, locale: Intl.LocalesArgument, now = new Date()) => {
     const diffInMs = dateObj.getTime() - now.getTime();
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });

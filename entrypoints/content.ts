@@ -7,7 +7,9 @@ export default defineContentScript({
     // '*://*.google.com/maps/*',  // пример исключения
   ],
   runAt: 'document_start',
-
+  matchAboutBlank: true,
+  world: 'ISOLATED',
+  
   async main() {
     FloatingFab.run();
   },
