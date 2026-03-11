@@ -1,6 +1,14 @@
+import { defineContentScript } from '#imports';
+import {FloatingFab} from "@/components/fab";
+
 export default defineContentScript({
-  matches: ['*://*.google.com/*'],
-  main() {
-    console.log('Hello content.');
+  matches: ['<all_urls>'],
+  excludeMatches: [
+    // '*://*.google.com/maps/*',  // пример исключения
+  ],
+  runAt: 'document_start',
+
+  async main() {
+    FloatingFab.run();
   },
 });
