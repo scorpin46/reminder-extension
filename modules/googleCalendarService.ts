@@ -18,43 +18,46 @@ type EventList = calendar_v3.Schema$Events;
 type EventsRequest = calendar_v3.Params$Resource$Events$List;
 
 export class GoogleCalendarService {
-    private static _instance: GoogleCalendarService;
+    static #instance: GoogleCalendarService;
 
-    public currentUser?: GoogleUser | null = null;
-    private readonly requestTimeout: number = 5000;
-    private readonly appNameForCalendar: string = 'set-a-reminder-ext';
-    private abortController: AbortController | null = null;
-    private readonly defaultEndTimeAppendMs: number = 1000;
+    readonly #requestTimeout: number = 5000;
+    readonly #appNameForCalendar: string = 'set-a-reminder-ext';
+    readonly #defaultEndTimeAppendMs: number = 1000;
+
+    readonly #googleUserStore: ReturnType<typeof getStoredGoogleUser>;
+    readonly #allowGoogleSyncStore: ReturnType<typeof getStoredAllowGoogleSync>;
+    readonly #googleLastSyncTsStore: ReturnType<typeof getStoredGoogleLastSyncTs>;
+    readonly #googleIsAuthenticatedStore: ReturnType<typeof getStoredGoogleIsAuthenticated>;
+    readonly #googleAuthAlertIdStore: ReturnType<typeof getStoredGoogleAuthAlertIdStore>;
+
+    #abortController: AbortController | null = null;
+    #lastActiveToken?: string | null;
+    #axiosInstance: AxiosInstance;
     
-    private googleUserStore: ReturnType<typeof getStoredGoogleUser>;
-    private allowGoogleSyncStore: ReturnType<typeof getStoredAllowGoogleSync>;
-    private googleLastSyncTsStore: ReturnType<typeof getStoredGoogleLastSyncTs>;
-    private googleIsAuthenticatedStore: ReturnType<typeof getStoredGoogleIsAuthenticated>;
-    private googleAuthAlertIdStore: ReturnType<typeof getStoredGoogleAuthAlertIdStore>;
-    public static syncAlarmName?: string = 'syncUpdates';
-    private lastActiveToken?: string | null;
-    private axiosInstance: AxiosInstance;
-    public reminderService: ReminderService;
+    currentUser?: GoogleUser | null = null;
+    remServ: ReminderService;
+    
+    static syncAlarmName?: string = 'syncUpdates';
     
     private constructor() {
-        this.googleUserStore = getStoredGoogleUser();
-        this.allowGoogleSyncStore = getStoredAllowGoogleSync();
-        this.googleLastSyncTsStore = getStoredGoogleLastSyncTs();
-        this.googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
-        this.googleAuthAlertIdStore = getStoredGoogleAuthAlertIdStore();
+        this.#googleUserStore = getStoredGoogleUser();
+        this.#allowGoogleSyncStore = getStoredAllowGoogleSync();
+        this.#googleLastSyncTsStore = getStoredGoogleLastSyncTs();
+        this.#googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+        this.#googleAuthAlertIdStore = getStoredGoogleAuthAlertIdStore();
        
-        this.reminderService = ReminderService.instance();
-        this.abortController = new AbortController();
+        this.remServ = ReminderService.instance();
+        this.#abortController = new AbortController();
 
-        this.googleUserStore.getValue().then(result => {
+        this.#googleUserStore.getValue().then(result => {
             this.currentUser = result;
         })
-        this.googleUserStore.watch((newValue, oldValue) => {
+        this.#googleUserStore.watch((newValue, oldValue) => {
             this.currentUser = newValue;
         })
         
-        this.googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
-            const user = await this.googleUserStore.getValue();
+        this.#googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
+            const user = await this.#googleUserStore.getValue();
 
             if (oldValue && !newValue && user) {
                 const notificationId = await browser.notifications.create({
@@ -66,19 +69,19 @@ export class GoogleCalendarService {
                     buttons: [{title: browser.i18n.getMessage('signIn')}],
                 });
 
-                await this.googleAuthAlertIdStore.setValue(notificationId);
+                await this.#googleAuthAlertIdStore.setValue(notificationId);
             } else if (newValue) {
-                await this.googleAuthAlertIdStore.removeValue();
+                await this.#googleAuthAlertIdStore.removeValue();
             }
         })
 
-        this.axiosInstance = rateLimit(
+        this.#axiosInstance = rateLimit(
             axios.create({
-                timeout: this.requestTimeout,
+                timeout: this.#requestTimeout,
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                signal: this.abortController.signal
+                signal: this.#abortController.signal
             }),
             {
                 maxRequests: 5,
@@ -87,29 +90,29 @@ export class GoogleCalendarService {
         );
 
         // Перехватчик для добавления токена
-        this.axiosInstance.interceptors.request.use(async (config) => {
+        this.#axiosInstance.interceptors.request.use(async (config) => {
             if (!this.currentUser){
                 return config;
             }
             
-            this.lastActiveToken ??= await this.fetchToken(false);
+            this.#lastActiveToken ??= await this.fetchToken(false);
             
-            if (this.lastActiveToken) {
-                config.headers.Authorization = `Bearer ${this.lastActiveToken}`;
+            if (this.#lastActiveToken) {
+                config.headers.Authorization = `Bearer ${this.#lastActiveToken}`;
             }
             
             return config;
         });
 
         // Перехватчик для обработки ошибок
-        this.axiosInstance.interceptors.response.use(
+        this.#axiosInstance.interceptors.response.use(
             response => response,
             this.handleAxiosError.bind(this)
         );
     }
     
     static instance(){
-        return GoogleCalendarService._instance ??= new GoogleCalendarService();
+        return GoogleCalendarService.#instance ??= new GoogleCalendarService();
     }
 
     private get timeZone() {
@@ -135,7 +138,7 @@ export class GoogleCalendarService {
 
             if (status === 401) {
                 await this.fetchToken(false).then(token => {
-                    this.lastActiveToken = token;
+                    this.#lastActiveToken = token;
                 })
             } else if (status === 429) {
                 console.error('⚠️ Превышен лимит запросов');
@@ -165,7 +168,7 @@ export class GoogleCalendarService {
 
     async login(): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
         try {
-            this.lastActiveToken = await this.fetchToken(true);
+            this.#lastActiveToken = await this.fetchToken(true);
 
             const userInfo = await this.fetchUserInfo();
             
@@ -173,7 +176,7 @@ export class GoogleCalendarService {
                 throw new Error('Failed to get user info');
             }
 
-            await this.googleUserStore.setValue(userInfo);
+            await this.#googleUserStore.setValue(userInfo);
 
             console.log(`✅ Аккаунт закреплен: ${userInfo.email}`);
             await this.startPolling();
@@ -195,10 +198,10 @@ export class GoogleCalendarService {
 
     async logout(): Promise<{ success: boolean }> {
         try {
-            this.abortController?.abort();
-            this.abortController = new AbortController();
+            this.#abortController?.abort();
+            this.#abortController = new AbortController();
             browser.alarms.clear(GoogleCalendarService.syncAlarmName);
-            await this.googleUserStore.removeValue();
+            await this.#googleUserStore.removeValue();
 
             await new Promise<void>((resolve) => {
                 browser.identity.clearAllCachedAuthTokens(resolve);
@@ -208,7 +211,7 @@ export class GoogleCalendarService {
             console.error('Error during logout:', e);
         }
 
-        this.lastActiveToken = undefined;
+        this.#lastActiveToken = undefined;
 
         console.log('👋 Выход выполнен');
 
@@ -222,10 +225,10 @@ export class GoogleCalendarService {
             orderBy: 'startTime',
             singleEvents: 'true',
             showDeleted: 'true',
-            privateExtendedProperty: `appName=${this.appNameForCalendar}`
+            privateExtendedProperty: `appName=${this.#appNameForCalendar}`
         });
 
-        const response = await this.axiosInstance.get(
+        const response = await this.#axiosInstance.get(
             `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
         )
 
@@ -236,7 +239,7 @@ export class GoogleCalendarService {
         try {
             if (! await this.syncAllowed()) return
 
-            endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMs);
+            endTime ??= new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
             const event = {
                 summary,
@@ -253,7 +256,7 @@ export class GoogleCalendarService {
                 visibility: 'private',
                 extendedProperties: {
                     private: {
-                        appName: this.appNameForCalendar
+                        appName: this.#appNameForCalendar
                     }
                 },
                 reminders: {
@@ -262,7 +265,7 @@ export class GoogleCalendarService {
                 }
             };
 
-            const response = await this.axiosInstance.post(
+            const response = await this.#axiosInstance.post(
                 'https://www.googleapis.com/calendar/v3/calendars/primary/events',
                 event,
             )
@@ -279,7 +282,7 @@ export class GoogleCalendarService {
         try {
             if (!eventId || ! await this.syncAllowed()) return
 
-            endTime ??= new Date(startTime.getTime() + this.defaultEndTimeAppendMs);
+            endTime ??= new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
             const event: CalendarEvent = {
                 summary,
@@ -297,7 +300,7 @@ export class GoogleCalendarService {
                 // visibility: 'private',
             };
 
-            const response = await this.axiosInstance.put(
+            const response = await this.#axiosInstance.put(
                 `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
                 event,
             )
@@ -327,7 +330,7 @@ export class GoogleCalendarService {
             );
 
             if (event?.updated) {
-                await this.reminderService.saveReminder(reminder.id!, {
+                await this.remServ.saveReminder(reminder.id!, {
                     googleSyncDate: new Date(event.updated)
                 }, false);
             }
@@ -354,7 +357,7 @@ export class GoogleCalendarService {
             );
 
             if (event?.id) {
-                await this.reminderService.saveReminder(reminder.id!, {
+                await this.remServ.saveReminder(reminder.id!, {
                     googleSync: 1,
                     googleEventId: event.id,
                     googleSyncDate: new Date(event.updated!)
@@ -370,7 +373,7 @@ export class GoogleCalendarService {
         if (!eventId || !await this.syncAllowed()) return;
 
         try {
-            await this.axiosInstance.delete(
+            await this.#axiosInstance.delete(
                 `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
             );
         } catch (error) {
@@ -397,7 +400,7 @@ export class GoogleCalendarService {
 
             // Обрабатываем напоминания без блокировки
             await Promise.resolve().then(() => {
-                this.reminderService.repository.state.active.forEach((reminderItem: Reminder) => {
+                this.remServ.repository.state.active.forEach((reminderItem: Reminder) => {
                     const event = reminderItem.googleEventId
                         ? events.find(ev => ev.id === reminderItem.googleEventId)
                         : null;
@@ -407,12 +410,12 @@ export class GoogleCalendarService {
                             const googleUpdatedAt = new Date(event.updated!);
 
                             if (event.status === 'cancelled') {
-                                this.reminderService.saveReminder(reminderItem.id!, {
+                                this.remServ.saveReminder(reminderItem.id!, {
                                     googleSync: 0,
                                     googleSyncDate: googleUpdatedAt
                                 }, false).catch(console.error);
                             } else if (googleUpdatedAt > reminderItem.googleSyncDate) {
-                                this.reminderService.saveReminder(reminderItem.id!, {
+                                this.remServ.saveReminder(reminderItem.id!, {
                                     datetime: new Date(event.start?.dateTime!),
                                     title: event.summary!,
                                     desc: event.description!,
@@ -442,7 +445,7 @@ export class GoogleCalendarService {
                 await this.deleteEvent(eventId!)
             }
 
-            await this.googleLastSyncTsStore.setValue(Date.now());
+            await this.#googleLastSyncTsStore.setValue(Date.now());
         } catch (error) {
             console.error('Sync error:', error);
         }
@@ -470,7 +473,7 @@ export class GoogleCalendarService {
 
     async fetchUserInfo(): Promise<GoogleUser | null> {
         try {
-            const response = await this.axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo')
+            const response = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo')
 
             return {
                 email: response.data.email,
@@ -485,22 +488,22 @@ export class GoogleCalendarService {
     
     async checkUser(){
         if (!this.currentUser){
-            await this.googleIsAuthenticatedStore.setValue(false);
+            await this.#googleIsAuthenticatedStore.setValue(false);
 
             return false;
         }
 
-        this.lastActiveToken ??= await this.fetchToken(false); //для страховки
+        this.#lastActiveToken ??= await this.fetchToken(false); //для страховки
         const tokenUser = await this.fetchUserInfo();
         const isSuccess = tokenUser?.email === this.currentUser.email;
         
-        await this.googleIsAuthenticatedStore.setValue(isSuccess);
+        await this.#googleIsAuthenticatedStore.setValue(isSuccess);
 
         return isSuccess;
     }
 
     async syncAllowed(){
-        const syncAllow = await this.allowGoogleSyncStore.getValue();
+        const syncAllow = await this.#allowGoogleSyncStore.getValue();
         
         if (!syncAllow || !this.currentUser) {
             return false;
@@ -522,7 +525,7 @@ export class GoogleCalendarService {
             const datetime = new Date(event.start?.dateTime as string);
             
             if (!isExist && datetime.getTime() >= Date.now()) {
-                await this.reminderService.saveReminder({
+                await this.remServ.saveReminder({
                     datetime: new Date(event.start?.dateTime as string),
                     title: event.summary!,
                     desc: event.description,

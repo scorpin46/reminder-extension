@@ -44,28 +44,28 @@ const toUI = (reminder: ReminderInterface): Reminder => ({
 });
 
 export class ReminderRepository {
-    public readonly state = reactive<ReminderState>({
+    readonly state = reactive<ReminderState>({
         isLoaded: false,
         active: [],
         completed: [],
     });
 
     /* @ts-ignore */
-    private readonly db: (Dexie & { reminders: Table<ReminderInterface, number>; });
+    private readonly _db: (Dexie & { reminders: Table<ReminderInterface, number>; });
 
     constructor() {
-        this.db = new Dexie(DB_NAME, {}) as typeof this.db;
+        this._db = new Dexie(DB_NAME, {}) as typeof this._db;
 
-        this.db.version(3).stores({
+        this._db.version(3).stores({
             reminders: '++id, title, desc, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, [completed+datetime]'
         });
 
         // Хуки
-        this.db.reminders.hook('reading', (reminder: ReminderInterface) => {
+        this._db.reminders.hook('reading', (reminder: ReminderInterface) => {
             return reminder ? toUI(reminder) : reminder
         });
 
-        this.db.reminders.hook('creating', (_primKey: number, reminder: ReminderInterface) => {
+        this._db.reminders.hook('creating', (primKey: number, reminder: ReminderInterface) => {
             const now = Date.now();
             reminder.createdAt = now;
             reminder.updatedAt = now;
@@ -77,7 +77,7 @@ export class ReminderRepository {
             }
         });
 
-        this.db.reminders.hook('updating', (modifications: Partial<ReminderInterface>) => {
+        this._db.reminders.hook('updating', (modifications: Partial<ReminderInterface>) => {
             const updates = { ...modifications, updatedAt: Date.now() };
 
             if (updates.datetime){
@@ -111,40 +111,40 @@ export class ReminderRepository {
             return updates;
         });
 
-        this.__initReactivity();
+        this.#initReactivity();
     }
 
     async pluck<K extends keyof ReminderInterface>(column: K): Promise<ReminderInterface[K][]> {
-        const allReminders = await this.db.reminders.toArray();
+        const allReminders = await this._db.reminders.toArray();
 
         return uniq(allReminders.map(reminder => reminder[column]))
             .filter(value => value !== null && value !== undefined) as ReminderInterface[K][];
     }
 
     // Теперь мы не используем .filter(), а идем сразу по составному индексу
-    private async __getActive(): Promise<Reminder[]> {
-        return this.db.reminders
+    async #getActive(): Promise<Reminder[]> {
+        return this._db.reminders
             .where('[completed+datetime]')
             .between([0, Dexie.minKey], [0, Dexie.maxKey])
             .toArray() as unknown as Promise<Reminder[]>;
     }
 
-    private async __getCompleted(): Promise<Reminder[]> {
-        return this.db.reminders
+    async #getCompleted(): Promise<Reminder[]> {
+        return this._db.reminders
             .where('[completed+datetime]')
             .between([1, Dexie.minKey], [1, Dexie.maxKey])
             .reverse() // Последние завершенные будут сверху
             .toArray() as unknown as Promise<Reminder[]>;
     }
     
-    private __initReactivity(): void {
+    #initReactivity(): void {
         liveQuery(async () => {
-            const active = await this.__getActive();
-            const completed = await this.__getCompleted();
+            const active = await this.#getActive();
+            const completed = await this.#getCompleted();
 
             return {
-                active: this.__ensureSorted(active, 'datetime', 'asc'),
-                completed: this.__ensureSorted(completed, 'datetime', 'desc')
+                active: this.#ensureSorted(active, 'datetime', 'asc'),
+                completed: this.#ensureSorted(completed, 'datetime', 'desc')
             };
         }).subscribe({
             next: ({ active, completed }) => {
@@ -156,7 +156,7 @@ export class ReminderRepository {
         });
     }
 
-    private __ensureSorted<T extends Reminder>(
+    #ensureSorted<T extends Reminder>(
         data: T[],
         field: keyof T,
         direction: 'asc' | 'desc'
@@ -177,13 +177,13 @@ export class ReminderRepository {
 
     // Публичные методы
     async getById(id: number): Promise<Reminder | undefined> {
-        const reminder = await this.db.reminders.get(+id);
+        const reminder = await this._db.reminders.get(+id);
         
         return reminder?.id ? toUI(reminder): undefined;
     }
 
     async getByNotificationId(notificationId: string): Promise<Reminder | undefined> {
-        const reminder = await this.db.reminders
+        const reminder = await this._db.reminders
             .where('notificationId')
             .equals(notificationId)
             .first();
@@ -192,11 +192,11 @@ export class ReminderRepository {
 
     async add(data: Partial<Reminder|ReminderInterface>): Promise<number> {
         delete data.id;
-        return this.db.reminders.add(<ReminderInterface>data);
+        return this._db.reminders.add(<ReminderInterface>data);
     }
 
     async update(id: number, data: Partial<Reminder|ReminderInterface>): Promise<boolean> {
-        return !!this.db.reminders.update(+id, <ReminderInterface>data);
+        return !!this._db.reminders.update(+id, <ReminderInterface>data);
     }
     
     async complete(id: number): Promise<boolean> {
@@ -204,12 +204,12 @@ export class ReminderRepository {
     }
 
     async delete(id: number): Promise<void> {
-        await this.db.reminders.delete(+id);
+        await this._db.reminders.delete(+id);
     }
 
-    async removeDatabase(): Promise<boolean> {
+    async #removeDatabase(): Promise<boolean> {
         try {
-            this.db.close();
+            this._db.close();
             await Dexie.delete(DB_NAME);
             return true;
         } catch (error) {

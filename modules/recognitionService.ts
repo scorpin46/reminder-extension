@@ -5,10 +5,13 @@ import {getStoredLocale} from "./utils/storage";
 import {browser} from 'wxt/browser';
 
 export class RecognitionService {
-    private recognition?: SpeechRecognition;
-    private static _instance: RecognitionService;
+    #recognition?: SpeechRecognition;
+    #textParser?: TextParserProvider;
+    #currentAudioStream?: MediaStream;
 
-    public readonly state: Reactive<{
+    static #instance: RecognitionService;
+
+    readonly state: Reactive<{
         isRecording: boolean;
         streamRecordingText: string;
         recordedText: string;
@@ -16,11 +19,9 @@ export class RecognitionService {
         error: string|null;
     }>;
 
-    private textParser?: TextParserProvider;
-    private currentAudioStream?: MediaStream;
-    public localeStore: ReturnType<typeof getStoredLocale>;
+    readonly localeStore: ReturnType<typeof getStoredLocale>;
 
-    constructor() {
+    private constructor() {
         this.localeStore = getStoredLocale();
 
         this.state = reactive({
@@ -35,9 +36,9 @@ export class RecognitionService {
     }
 
     static instance() {
-        RecognitionService._instance ??= new RecognitionService();
+        RecognitionService.#instance ??= new RecognitionService();
 
-        return RecognitionService._instance;
+        return RecognitionService.#instance;
     }
 
     async initRecognition() {
@@ -49,7 +50,7 @@ export class RecognitionService {
 
         const locale = await this.localeStore.getValue();
 
-        this.textParser = new TextParserProvider(locale);
+        this.#textParser = new TextParserProvider(locale);
 
         const recognition = new speechRecognition();
 
@@ -71,7 +72,7 @@ export class RecognitionService {
             console.log('onend');
 
             this.state.isRecording = false;
-            this.currentAudioStream?.getTracks().forEach(track => {
+            this.#currentAudioStream?.getTracks().forEach(track => {
                 track.stop(); //освобождение микрофона
             });
         }
@@ -115,7 +116,7 @@ export class RecognitionService {
                     this.state.streamRecordingText = transcript;
 
                     if (transcript) {
-                        const parsedData = this.textParser!.parse(transcript);
+                        const parsedData = this.#textParser!.parse(transcript);
                         this.state.parsedData = parsedData;
                         this.state.error = parsedData.error ?? this.state.error;
                         
@@ -146,7 +147,7 @@ export class RecognitionService {
         }
         recognition.onspeechstart = () => {console.log('onspeechstart')}
 
-        this.recognition = recognition;
+        this.#recognition = recognition;
     }
 
     async start() {
@@ -156,7 +157,7 @@ export class RecognitionService {
         this.state.streamRecordingText = '';
         this.state.isRecording = true;
 
-        this.currentAudioStream = await navigator.mediaDevices.getUserMedia({
+        this.#currentAudioStream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
@@ -174,16 +175,16 @@ export class RecognitionService {
             }
         });
 
-        this.recognition?.start();
+        this.#recognition?.start();
 
-        return this.currentAudioStream;
+        return this.#currentAudioStream;
     }
 
     stop() {
-        this.recognition?.stop();
+        this.#recognition?.stop();
 
         if (this.state.isRecording){
-            this.recognition?.abort()
+            this.#recognition?.abort()
         }
     }
 

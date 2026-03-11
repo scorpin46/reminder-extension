@@ -1,6 +1,4 @@
 import {defineConfig} from 'wxt';
-// import Vue from '@vitejs/plugin-vue';
-// import ReactivityTransform from '@vue-macros/reactivity-transform/vite';
 import 'wxt-module-console-forward';
 
 // See https://wxt.dev/api/config.html
@@ -20,7 +18,7 @@ export default defineConfig({
             "activeTab",
             "alarms",
             "notifications",
-            "identity",//todo можно убрать?
+            "identity",
             "identity.email",
             "offscreen",
             "scripting"
@@ -43,38 +41,73 @@ export default defineConfig({
             }
         ]
     }),
-
     modules: [
         '@wxt-dev/module-vue',
-        // '@wxt-dev/i18n/module',
     ],
-
+    modulesDir: "wxt-modules",
     consoleForward: {
         levels: ['log', 'warn', 'error', 'info', 'debug'],
-        forwardErrors: true, // перехватывать unhandled errors
+        forwardErrors: true,
     },
 
     imports: false,
 
-    // vite: (config) => ({
-    //     ...config,
-    //     build: {
-    //         sourcemap: process.env.NODE_ENV === 'development' // или false, если проблемы
-    //     }
-    // })
+    hooks: {
+        'vite:build:extendConfig': (entrypoints, config) => {
+            const isProd = process.env.NODE_ENV === 'production' || process.env.MODE === 'production';
+            if (!isProd) return;
+            config.build ??= {};
+            config.build.rollupOptions ??= {};
 
-    // vite: (config) => ({
-    //     ...config,
-    //     plugins: [
-    //         // Сначала плагин трансформации, затем Vue
-    //         ReactivityTransform(),
-    //         Vue({
-    //             // Включаем поддержку макросов в SFC
-    //             script: {
-    //                 propsDestructure: true,
-    //                 defineModel: true,
-    //             },
-    //         }),
-    //     ],
-    // }),
+            // Устанавливаем имена чанков
+            config.build.rollupOptions.output = {
+                ...(typeof config.build.rollupOptions.output === 'object' ? config.build.rollupOptions.output : {}),
+                chunkFileNames: 'chunks/chunk-[hash].js',
+
+                entryFileNames: (chunkInfo) => {
+                    if (chunkInfo.name === 'background') {
+                        return 'background.js';
+                    }
+                    if (chunkInfo.name?.includes('content')) {
+                        return 'content-scripts/[name].js';
+                    }
+
+                    return 'chunks/chunk-[hash].js';
+                },
+            };
+
+            config.build.chunkSizeWarningLimit = 2000;
+            config.build.minify = 'terser';
+            // config.build.sourcemap = true; //для отладки локально
+            config.build.terserOptions = {
+                ecma: 2020,
+
+                // === СЖАТИЕ (compress) ===
+                compress: {
+                    toplevel: true,
+                    drop_console: true,
+                    drop_debugger: true,
+                    module: true,
+                    passes: 2,
+                    pure_funcs: [
+                        'console.log',
+                        'console.info',
+                        'console.debug',
+                        'console.warn',
+                        'console.error'
+                    ],
+                    pure_getters: 'strict',
+                },
+                format: {
+                    comments: false, // Удаляем комментарии
+                },
+            };
+            
+            
+            config.optimizeDeps ??= {};
+            config.optimizeDeps.exclude = ['node_modules/**/*'];
+            
+        }
+    },
+    
 });

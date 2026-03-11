@@ -155,12 +155,14 @@ const TRIGGER_PATTERNS = {
 };
 
 export class TextParserProvider {
-    constructor(private readonly locale: string) {
-        this.locale = locale;
+    readonly #locale: string
+    
+    constructor(locale: string) {
+        this.#locale = locale;
     }
 
     get shortLocale() {
-        return this.locale.split('-')[0].toLowerCase();
+        return this.#locale.split('-')[0].toLowerCase();
     }
 
     parse(text: string): TextParsedData {
@@ -173,7 +175,7 @@ export class TextParserProvider {
             };
         }
 
-        let result = this.tryChronoParse(text) ?? this.tryMicrosoftParse(text);
+        let result = this.#tryChronoParse(text) ?? this.#tryMicrosoftParse(text);
 
         if (result?.date && result.date.getTime() < Date.now()) {
             result = null; //защита от прошлых дат и "вчера" и прочих слов
@@ -181,13 +183,13 @@ export class TextParserProvider {
         
         return result ?? {
             sourceText: text,
-            cleanText: this.cleanText(text, '', this.shortLocale),
+            cleanText: this.#cleanText(text, '', this.shortLocale),
             date: null,
             error: null,
         };
     }
 
-    private tryChronoParse(text: string): TextParsedData | null {
+    #tryChronoParse(text: string): TextParsedData | null {
         try {
             const localeChrono = chrono[this.shortLocale as keyof typeof chrono];
 
@@ -201,7 +203,7 @@ export class TextParserProvider {
                 if (date && !isNaN(date.getTime())) {
                     return {
                         sourceText: text,
-                        cleanText: this.cleanText(text, result.text || '', this.shortLocale),
+                        cleanText: this.#cleanText(text, result.text || '', this.shortLocale),
                         date: date,
                         error: null,
                         parserSource: 'chrono',
@@ -216,7 +218,7 @@ export class TextParserProvider {
         }
     }
 
-    private tryMicrosoftParse(text: string): TextParsedData | null {
+    #tryMicrosoftParse(text: string): TextParsedData | null {
         try {
             const msCulture = msLocaleMap[this.shortLocale];
 
@@ -224,15 +226,15 @@ export class TextParserProvider {
 
             if (msResults?.length > 0) {
                 for (const msResult of msResults) {
-                    if (!this.isDateTimeType(msResult.typeName)) continue;
+                    if (!this.#isDateTimeType(msResult.typeName)) continue;
 
                     if (msResult.resolution?.values) {
                         for (const value of msResult.resolution.values) {
-                            const date = this.extractDateFromMsValue(value);
+                            const date = this.#extractDateFromMsValue(value);
                             if (date) {
                                 return {
                                     sourceText: text,
-                                    cleanText: this.cleanText(text, msResult.text || '', this.shortLocale),
+                                    cleanText: this.#cleanText(text, msResult.text || '', this.shortLocale),
                                     date: date,
                                     error: null,
                                     parserSource: 'microsoft',
@@ -250,18 +252,18 @@ export class TextParserProvider {
         }
     }
 
-    private isDateTimeType(typeName: string): boolean {
+    #isDateTimeType(typeName: string): boolean {
         return typeName?.includes('datetime') || typeName?.includes('date') || typeName?.includes('time');
     }
 
-    private extractDateFromMsValue(value: any): Date | null {
+    #extractDateFromMsValue(value: any): Date | null {
         const dateStr = value?.value || value?.start;
         if (!dateStr) return null;
         const date = new Date(dateStr);
         return !isNaN(date.getTime()) ? date : null;
     }
 
-    private cleanText(fullText: string, dateText: string, locale: string): string {
+    #cleanText(fullText: string, dateText: string, locale: string): string {
         let cleaned = fullText;
 
         // Удаляем распознанную дату
@@ -272,7 +274,7 @@ export class TextParserProvider {
         }
 
         // Удаляем триггеры на основе языка
-        const triggerPattern = this.getTriggerPattern(locale);
+        const triggerPattern = this.#getTriggerPattern(locale);
         if (triggerPattern) {
             const triggerRegex = new RegExp(`^(${triggerPattern})\\s+`, 'gi');
             cleaned = cleaned.replace(triggerRegex, '');
@@ -286,7 +288,7 @@ export class TextParserProvider {
         return cleaned || fullText;
     }
 
-    private getTriggerPattern(locale: string): string | null {
+    #getTriggerPattern(locale: string): string | null {
         const map: Record<string, keyof typeof TRIGGER_PATTERNS> = {
             'ru': 'russian',
             'en': 'english',

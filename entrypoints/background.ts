@@ -188,7 +188,7 @@ export default defineBackground({
                                 message: !isValidUser ? `Пользователь не авторизован или возникли проблемы, попробуйте перезагрузить или повторить позднее` : undefined
                             };
                         case 'googleUpdateEvent':
-                            const reminder = await calendar.reminderService.repository.getById(request.reminderId);
+                            const reminder = await calendar.remServ.repository.getById(request.reminderId);
                             if (reminder) {
                                 await calendar.updateEventByReminder(reminder);
                             }
@@ -198,7 +198,7 @@ export default defineBackground({
                             await calendar.deleteEvent(request.googleEventId);
                             return { success: true };
                         case 'googleCreateEvent':
-                            const newReminder = await calendar.reminderService.repository.getById(request.reminderId);
+                            const newReminder = await calendar.remServ.repository.getById(request.reminderId);
                             if (newReminder) {
                                 await calendar.createEventByReminder(newReminder);
                             }

@@ -6,15 +6,15 @@ import {browser} from 'wxt/browser';
 import {getStoredAllowGoogleSync} from "./utils/storage";
 
 export class ReminderService {
-    public readonly repository: ReminderRepository;
-    private static _instance: ReminderService;
+    readonly repository: ReminderRepository;
+    static #instance: ReminderService;
 
     private constructor() {
         this.repository = new ReminderRepository();
     }
 
     static instance() {
-        return ReminderService._instance ??= new ReminderService();
+        return ReminderService.#instance ??= new ReminderService();
     }
 
     get regionLocale(): string {
