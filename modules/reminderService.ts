@@ -21,9 +21,9 @@ export class ReminderService {
         return detectLocale();
     }
 
-    async saveReminder(params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
-    async saveReminder(id: number, params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
-    async saveReminder(
+    async save(params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
+    async save(id: number, params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
+    async save(
         idOrParams: number | Partial<Reminder>,
         paramsOrSendMessage?: Partial<Reminder> | boolean,
         sendMessage: boolean = true
@@ -73,13 +73,13 @@ export class ReminderService {
         return id;
     }
     
-    async deleteReminder(reminder: Reminder, sendMessage: boolean = true) {
+    async delete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
         sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
     }
 
-    async completeReminder(reminder: Reminder, sendMessage: boolean = true) {
+    async complete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
         sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
@@ -89,19 +89,19 @@ export class ReminderService {
         return await this.repository.pluck('googleEventId');
     }
 
-    reminderLocalTime(reminderItem: Reminder) {
+    getLocalTime(reminderItem: Reminder) {
         return new Date(reminderItem.datetime).toLocaleTimeString(this.regionLocale, {
             hour: '2-digit',
             minute: '2-digit'
         });
     }
 
-    reminderPreviewTitle(reminderItem: Reminder) {
+    getPreviewTitle(reminderItem: Reminder) {
         const dateFormatted = localDateFormat(reminderItem.datetime, true, this.regionLocale);
         return `${dateFormatted}\n${reminderItem.title}`;
     }
 
-    reminderTimeUntil(reminderItem: Reminder, now = new Date()) {
+    getTimeUntil(reminderItem: Reminder, now = new Date()) {
         return localTimeUntil(reminderItem.datetime, this.regionLocale, now);
     }
 }

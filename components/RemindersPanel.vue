@@ -58,7 +58,6 @@
       <div>
         <button type="button">{{ browser.i18n.getMessage('reset') }}</button>
       </div>
-<!--      todo и сделать календарь внутри поисковой строки чтоб он вставлял дату в поле и по нему искалось, когда regex совпадает, т.е. это просто подсказка для input-->
     </div>
     
     <div v-else-if="!reminderService.repository.state.active.length">
@@ -106,10 +105,10 @@
             <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="editItem(item)">
               <IconEdit/>
             </span>
-            <span role="button" v-if="!item.completed" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="completeReminder(item)">
+            <span role="button" v-if="!item.completed" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
               <IconChecks/>
             </span>
-            <span role="button" v-if="item.completed" class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.deleteReminder(item)">
+            <span role="button" v-if="item.completed" class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.delete(item)">
               <IconXmark/>
             </span>
           </div>
@@ -187,9 +186,9 @@ const daysGroupsReminders = computed(() => {
 
     const extendedItem = {...item};
 
-    extendedItem.previewTitle = reminderService.reminderPreviewTitle(item, now.value);
-    extendedItem.timeUntil = reminderService.reminderTimeUntil(item, now.value);
-    extendedItem.localTime = reminderService.reminderLocalTime(item, now.value)
+    extendedItem.previewTitle = reminderService.getPreviewTitle(item, now.value);
+    extendedItem.timeUntil = reminderService.getTimeUntil(item, now.value);
+    extendedItem.localTime = reminderService.getLocalTime(item, now.value)
     
     groups[groupKey].items.push(extendedItem);
   })
@@ -223,8 +222,8 @@ const actualize = () => {
   }).map(item => item.id);
 }
 
-const completeReminder = (item) => {
-  reminderService.completeReminder(item);
+const complete = (item) => {
+  reminderService.complete(item);
   now.value = new Date();
 }
 

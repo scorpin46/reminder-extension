@@ -35,8 +35,11 @@
   "reminderDate": {
     "message": "Date and time"
   },
-  "reminderDetails": {
+  "reminderDesc": {
     "message": "Details"
+  },
+  "reminderAdvanced": {
+    "message": "Advanced"
   },
   "noMicrophoneAccess": {
     "message": "No microphone access"
@@ -112,6 +115,15 @@
   },
   "errorNetwork": {
     "message": "Network error. Please check your internet connection."
+  },
+  "contextmenu_setReminder": {
+    "message": "Set a Reminder"
+  },
+  "contextmenu_addLinkForReminder": {
+    "message": "Add link for reminder"
+  },
+  "contextmenu_setSelectionReminder": {
+    "message": "Add as Reminder: \"%s\""
   }
 }
 

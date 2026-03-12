@@ -10,7 +10,7 @@
   },  
   "postponeTitle": {
     "message": "Отложить напоминание"
-  },  
+  },
   "addReminder": {
     "message": "Создать напоминание"
   },  
@@ -35,8 +35,11 @@
   "reminderDate": {
     "message": "Дата и время"
   },
-  "reminderDetails": {
+  "reminderDesc": {
     "message": "Детали"
+  },
+  "reminderAdvanced": {
+    "message": "Дополнительно"
   },
   "noMicrophoneAccess": {
     "message": "Нет доступа к микрофону"
@@ -112,6 +115,15 @@
   },
   "errorNetwork": {
     "message": "Ошибка сети. Проверьте подключение к интернету."
+  },
+  "contextmenu_setReminder": {
+    "message": "Создать новое напоминание"
+  },
+  "contextmenu_addLinkForReminder": {
+    "message": "Добавить ссылку для напоминания"
+  },
+  "contextmenu_setSelectionReminder": {
+    "message": "Добавить как напоминание: \"%s\""
   }
 }
 

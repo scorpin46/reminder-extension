@@ -17,6 +17,7 @@ interface ReminderInterface {
     googleEventId: string | null;
     googleSync: 0 | 1 | null;
     googleSyncDate: number | Date | null;
+    url?: string | null;
 }
 
 type Reminder = {

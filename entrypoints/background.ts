@@ -12,7 +12,6 @@ export default defineBackground({
     type: 'module',
     
     main: () => {
-
         let popupWindowId: number | null = null;
 
         const openMainWindow = (): void => {
@@ -119,7 +118,7 @@ export default defineBackground({
 
             if (reminder?.id){
                 if (buttonIndex === 1) {
-                    await ReminderService.instance().completeReminder(reminder, false);
+                    await ReminderService.instance().complete(reminder, false);
                     await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!); //чтобы сработало нужно именно так и здесь
                 } else if (buttonIndex === 0) {
                     openPostponeWindow(reminder.id);
@@ -159,7 +158,7 @@ export default defineBackground({
             browser.action.setBadgeText({text: (ReminderService.instance().repository.state.active.length || "").toString()});
 
             if (alarm.name === GoogleCalendarService.syncAlarmName) {
-                GoogleCalendarService.instance().syncUpdates();
+                GoogleCalendarService.instance().run(null);
             }
         });
 
@@ -245,7 +244,38 @@ export default defineBackground({
 
         // При установке/обновлении
         browser.runtime.onInstalled?.addListener(() => {
+            browser.contextMenus.create({
+                id: "set-a-reminder-selection",
+                title: browser.i18n.getMessage("contextmenu_setSelectionReminder"),
+                contexts: ["selection"]
+            });
+            browser.contextMenus.create({
+                id: "set-a-reminder-context",
+                title: browser.i18n.getMessage("contextmenu_addLinkForReminder"),
+                contexts: ["link", "image", "video", "audio"]
+            });
+            browser.contextMenus.create({
+                id: "set-a-reminder",
+                title: browser.i18n.getMessage("contextmenu_setReminder"),
+                contexts: ["page", "frame", "editable"]
+            });
+            
             GoogleCalendarService.instance().run().catch(console.error);
+        });
+        
+        browser.contextMenus.onClicked.addListener((info, tab) => {
+            if (info.menuItemId.toString().startsWith('set-a-reminder')) {
+                const selectionText = info.selectionText?.trim() || '';
+                const url = info.srcUrl ?? info.linkUrl;
+                
+                console.log(info.srcUrl, info.linkUrl);
+                
+                if (url){
+                    //todo вызывать и вставлять ссылку
+                } else if (selectionText.length){
+                    //todo вызывать окно и вставлять название
+                }
+            }
         });
     }
 });

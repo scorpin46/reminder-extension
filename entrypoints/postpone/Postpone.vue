@@ -90,7 +90,7 @@ onMounted(async () => {
 
 const sendNewTime = async (value) => {
   if (value) {
-    await reminderService.saveReminder(reminderItem.value.id, {datetime: value});
+    await reminderService.save(reminderItem.value.id, {datetime: value});
     window.close();
   }
 }

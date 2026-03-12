@@ -17,6 +17,19 @@
         <span class="form-label__title">{{ recognitionService.state.streamRecordingText || browser.i18n.getMessage('reminderTitle')}}</span>
         <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
       </label>
+      <div class="w-100">
+        <button v-if="!showExtraFields" @click="showExtraFields = true">+ {{ browser.i18n.getMessage('reminderAdvanced') }}</button>
+        <div v-if="showExtraFields" ref="reminderDetailsRef">
+          <label class="form-label w-100 reminder-title__label">
+            <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
+            <textarea class="form-control w-100" v-model.trim="form.input.desc" rows="3"></textarea>
+          </label>
+          <label class="form-label w-100 reminder-title__label">
+            <span class="form-label__title">URL</span>
+            <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
+          </label>
+        </div>
+      </div>
       <br>
       <label class="form-label w-100">
         <span class="form-label__title">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
@@ -65,6 +78,10 @@ const props = defineProps({
   backToPanel: {
     type: String,
   },
+  initialFormInputData: {
+    type: Object,
+    default: () => ({})
+  },
 });
 
 let isDev = false;
@@ -79,15 +96,18 @@ const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
 
 const reminderTitleRef = ref();
+const reminderDetailsRef = ref();
 const reminderDateRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
+const showExtraFields = ref(false);
 
 const form = reactive({
   saved: false,
   input: {
     id: null,
-    title: '',
+    title: props.initialFormInputData.title || '',
+    url: props.initialFormInputData.url,
     datetime: null,
   },
   save: async function () {
@@ -95,7 +115,7 @@ const form = reactive({
       return
     }
     
-    const id = await reminderService.saveReminder({...this.input});
+    const id = await reminderService.save({...this.input});
     recognitionService.resetState();
     
     if (id){
@@ -106,6 +126,9 @@ const form = reactive({
       }, props.editingId ? 0 : 800)
     }
   },
+  hasExtraFields: function(){
+    return this.input.url || this.input.desc; 
+  },
   load: async function(reminderId){
     const editingReminder = await reminderService.repository.getById(reminderId);
     Object.assign(this.input, pick(editingReminder, Object.keys(form.input)))
@@ -115,6 +138,7 @@ const form = reactive({
     this.input.id = null;
     this.input.title = '';
     this.input.datetime = null;
+    this.input.url = null;
 
     if (props.backToPanel){
       emit('toPanel', props.backToPanel);
@@ -174,6 +198,27 @@ watch(() => recognitionService.state.error, (value) => {
   value && toast.error(value);
 }, {immediate: true})
 
+
+watch(() => showExtraFields.value, async (value) => {
+  await nextTick();
+  
+  if (value && reminderDetailsRef.value) {
+    const fields = reminderDetailsRef.value.querySelectorAll('input,textarea');
+    let focusingEl;
+
+    fields.forEach(field => {
+      if (field.value?.length) {
+        focusingEl = field;
+        return false;
+      }
+    })
+
+    focusingEl ??= fields[0];
+
+    focusingEl?.focus();
+  }
+})
+
 onMounted(async () => {
   initForm();
 
@@ -184,7 +229,11 @@ onMounted(async () => {
 
   watch(() => recognitionLocale.value, (value) => {
     recognitionService.changeLocale(value);
-  })
+  });
+  
+  if (!props.editingId && form.hasExtraFields()){
+    showExtraFields.value = true
+  }
 })
 
 onUnmounted(() => {

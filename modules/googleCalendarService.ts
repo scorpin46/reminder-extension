@@ -1,6 +1,6 @@
 import {browser} from "wxt/browser";
 import {
-    getStoredAllowGoogleSync, 
+    getStoredAllowGoogleSync,
     getStoredGoogleAuthAlertIdStore,
     getStoredGoogleIsAuthenticated,
     getStoredGoogleLastSyncTs,
@@ -33,19 +33,19 @@ export class GoogleCalendarService {
     #abortController: AbortController | null = null;
     #lastActiveToken?: string | null;
     #axiosInstance: AxiosInstance;
-    
+
     currentUser?: GoogleUser | null = null;
     remServ: ReminderService;
-    
+
     static syncAlarmName?: string = 'syncUpdates';
-    
+
     private constructor() {
         this.#googleUserStore = getStoredGoogleUser();
         this.#allowGoogleSyncStore = getStoredAllowGoogleSync();
         this.#googleLastSyncTsStore = getStoredGoogleLastSyncTs();
         this.#googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
         this.#googleAuthAlertIdStore = getStoredGoogleAuthAlertIdStore();
-       
+
         this.remServ = ReminderService.instance();
         this.#abortController = new AbortController();
 
@@ -55,7 +55,7 @@ export class GoogleCalendarService {
         this.#googleUserStore.watch((newValue, oldValue) => {
             this.currentUser = newValue;
         })
-        
+
         this.#googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
             const user = await this.#googleUserStore.getValue();
 
@@ -64,7 +64,7 @@ export class GoogleCalendarService {
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
                     title: "🔔 " + browser.i18n.getMessage('appName'),  //todo подойдет ли название (учитывая другие языки и глагольную подачу)
-                    message: browser.i18n.getMessage('syncFailed'), 
+                    message: browser.i18n.getMessage('syncFailed'),
                     requireInteraction: true,
                     buttons: [{title: browser.i18n.getMessage('signIn')}],
                 });
@@ -91,16 +91,16 @@ export class GoogleCalendarService {
 
         // Перехватчик для добавления токена
         this.#axiosInstance.interceptors.request.use(async (config) => {
-            if (!this.currentUser){
+            if (!this.currentUser) {
                 return config;
             }
-            
+
             this.#lastActiveToken ??= await this.fetchToken(false);
-            
+
             if (this.#lastActiveToken) {
                 config.headers.Authorization = `Bearer ${this.#lastActiveToken}`;
             }
-            
+
             return config;
         });
 
@@ -110,8 +110,8 @@ export class GoogleCalendarService {
             this.handleAxiosError.bind(this)
         );
     }
-    
-    static instance(){
+
+    static instance() {
         return GoogleCalendarService.#instance ??= new GoogleCalendarService();
     }
 
@@ -151,19 +151,14 @@ export class GoogleCalendarService {
         throw error;
     }
 
-    async run(): Promise<void> {
-        console.log('🚀 Запуск GoogleCalendarService');
-
-        this.startPolling();
-        this.syncUpdates(); //для первого быстрого запуска (мб убрать?)
-    }
-
-    async startPolling(): Promise<void> {
-        const min = 1;
-
-        browser.alarms.create(GoogleCalendarService.syncAlarmName, {
-            periodInMinutes: min,
-        });
+    async run(periodMin: number|null = 1): Promise<void> {
+        if (periodMin){
+            browser.alarms.create(GoogleCalendarService.syncAlarmName, {
+                periodInMinutes: periodMin,
+            });
+        } else {
+            this.#syncUpdates();
+        }
     }
 
     async login(): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
@@ -171,7 +166,7 @@ export class GoogleCalendarService {
             this.#lastActiveToken = await this.fetchToken(true);
 
             const userInfo = await this.fetchUserInfo();
-            
+
             if (!userInfo) {
                 throw new Error('Failed to get user info');
             }
@@ -179,9 +174,9 @@ export class GoogleCalendarService {
             await this.#googleUserStore.setValue(userInfo);
 
             console.log(`✅ Аккаунт закреплен: ${userInfo.email}`);
-            await this.startPolling();
+            await this.run();
 
-            return { success: true, user: userInfo };
+            return {success: true, user: userInfo};
         } catch (error: any) {
             console.error('Ошибка входа:', error);
 
@@ -192,7 +187,7 @@ export class GoogleCalendarService {
                 errorMessage = browser.i18n.getMessage('errorAuth');
             }
 
-            return { success: false, error: errorMessage };
+            return {success: false, error: errorMessage};
         }
     }
 
@@ -215,7 +210,7 @@ export class GoogleCalendarService {
 
         console.log('👋 Выход выполнен');
 
-        return { success: true };
+        return {success: true};
     }
 
     async getEvents(maxResults: number = 2500): Promise<CalendarEvent[]> {
@@ -235,11 +230,11 @@ export class GoogleCalendarService {
         return response.data.items || [];
     }
 
-    async createEvent(summary: string, description: string, startTime: Date, endTime?: Date): Promise<CalendarEvent | null | undefined> {
+    async createEvent(summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
-            if (! await this.syncAllowed()) return
+            if (!await this.syncAllowed()) return
 
-            endTime ??= new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
+            let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
             const event = {
                 summary,
@@ -261,7 +256,7 @@ export class GoogleCalendarService {
                 },
                 reminders: {
                     useDefault: false,
-                    overrides: [{ method: 'popup', minutes: 0 }]
+                    overrides: [{method: 'popup', minutes: 0}]
                 }
             };
 
@@ -274,15 +269,15 @@ export class GoogleCalendarService {
         } catch (e) {
             console.error(e);
         }
-        
+
         return null;
     }
 
-    async updateEvent(eventId: string, summary: string, description: string, startTime: Date, endTime?: Date): Promise<CalendarEvent | null | undefined> {
+    async updateEvent(eventId: string, summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
-            if (!eventId || ! await this.syncAllowed()) return
+            if (!eventId || !await this.syncAllowed()) return
 
-            endTime ??= new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
+            let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
             const event: CalendarEvent = {
                 summary,
@@ -312,6 +307,34 @@ export class GoogleCalendarService {
         }
     }
 
+    #prepareEventDescription(reminder: Reminder): string {
+        let description = reminder.desc || '';
+
+        if (reminder.url) {
+            description += `\n\n[${reminder.url}]`
+        }
+
+        return description.trim();
+    }
+
+
+    #googleEventToReminderFields(event: CalendarEvent): Partial<Reminder> {
+        let description = (event.description || '').trim();
+        const matches = description.match(/\[(https?:\/\/.+)]$/i) || [];
+        const url = matches[1];
+        
+        if (url) {
+            description = description.replace(matches[0]!, '');
+        }
+
+        return {
+            datetime: new Date(event.start?.dateTime!),
+            title: event.summary!,
+            desc: description,
+            url: url,
+        }
+    }
+
     async updateEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
         if (!reminder) {
             return;
@@ -325,12 +348,12 @@ export class GoogleCalendarService {
             const event = await this.updateEvent(
                 reminder.googleEventId,
                 reminder.title,
-                reminder.desc || '',
+                this.#prepareEventDescription(reminder),
                 reminder.datetime
             );
 
             if (event?.updated) {
-                await this.remServ.saveReminder(reminder.id!, {
+                await this.remServ.save(reminder.id!, {
                     googleSyncDate: new Date(event.updated)
                 }, false);
             }
@@ -345,19 +368,19 @@ export class GoogleCalendarService {
             if (!reminder || !await this.syncAllowed()) {
                 return;
             }
-            
-            if (reminder.googleSync === 0){
+
+            if (reminder.googleSync === 0) {
                 return;
             }
-            
+
             const event = await this.createEvent(
                 reminder.title,
-                reminder.desc || '',
+                this.#prepareEventDescription(reminder),
                 reminder.datetime
             );
 
             if (event?.id) {
-                await this.remServ.saveReminder(reminder.id!, {
+                await this.remServ.save(reminder.id!, {
                     googleSync: 1,
                     googleEventId: event.id,
                     googleSyncDate: new Date(event.updated!)
@@ -382,14 +405,14 @@ export class GoogleCalendarService {
     }
 
 
-    async syncUpdates(): Promise<void> {
+    async #syncUpdates(): Promise<void> {
         console.log(`syncUpdates checking`);
 
         try {
-            if (! await this.syncAllowed() || ! await this.checkUser()) {
+            if (!await this.syncAllowed() || !await this.checkUser()) {
                 return
             }
-            
+
             console.log('syncUpdates running...');
 
             const events = await this.getEvents();
@@ -410,15 +433,13 @@ export class GoogleCalendarService {
                             const googleUpdatedAt = new Date(event.updated!);
 
                             if (event.status === 'cancelled') {
-                                this.remServ.saveReminder(reminderItem.id!, {
+                                this.remServ.save(reminderItem.id!, {
                                     googleSync: 0,
                                     googleSyncDate: googleUpdatedAt
                                 }, false).catch(console.error);
                             } else if (googleUpdatedAt > reminderItem.googleSyncDate) {
-                                this.remServ.saveReminder(reminderItem.id!, {
-                                    datetime: new Date(event.start?.dateTime!),
-                                    title: event.summary!,
-                                    desc: event.description!,
+                                this.remServ.save(reminderItem.id!, {
+                                    ...this.#googleEventToReminderFields(event),
                                     googleSyncDate: googleUpdatedAt
                                 }, false).catch(console.error);
                             } else if (googleUpdatedAt < reminderItem.googleSyncDate) {
@@ -433,15 +454,15 @@ export class GoogleCalendarService {
                 });
             });
 
-            for (let reminderItem of creating){
+            for (let reminderItem of creating) {
                 await this.createEventByReminder(reminderItem)
             }
 
-            for (let reminderItem of updating){
+            for (let reminderItem of updating) {
                 await this.createEventByReminder(reminderItem)
             }
 
-            for (let eventId of deletingEvents){
+            for (let eventId of deletingEvents) {
                 await this.deleteEvent(eventId!)
             }
 
@@ -451,14 +472,14 @@ export class GoogleCalendarService {
         }
     }
 
-    
+
     async fetchToken(interactive = false): Promise<string | null | undefined> {
         if (!this.currentUser && !interactive) return null;
 
         return new Promise((resolve) => {
             browser.identity.getAuthToken({
                 interactive,
-                account: { id: this.currentUser!.id }
+                account: {id: this.currentUser!.id}
             }, (token: any) => {
 
                 if (browser.runtime.lastError) {
@@ -485,9 +506,9 @@ export class GoogleCalendarService {
             return null;
         }
     }
-    
-    async checkUser(){
-        if (!this.currentUser){
+
+    async checkUser() {
+        if (!this.currentUser) {
             await this.#googleIsAuthenticatedStore.setValue(false);
 
             return false;
@@ -496,36 +517,36 @@ export class GoogleCalendarService {
         this.#lastActiveToken ??= await this.fetchToken(false); //для страховки
         const tokenUser = await this.fetchUserInfo();
         const isSuccess = tokenUser?.email === this.currentUser.email;
-        
+
         await this.#googleIsAuthenticatedStore.setValue(isSuccess);
 
         return isSuccess;
     }
 
-    async syncAllowed(){
+    async syncAllowed() {
         const syncAllow = await this.#allowGoogleSyncStore.getValue();
-        
+
         if (!syncAllow || !this.currentUser) {
             return false;
         }
-        
+
         return true;
     }
 
-    async importFromGoogle(){
-        if (! await this.syncAllowed() || ! await this.checkUser()) {
+    async importFromGoogle() {
+        if (!await this.syncAllowed() || !await this.checkUser()) {
             return
         }
-      
+
         const events = (await this.getEvents())
             .filter(event => event.status !== 'cancelled' && event.start?.dateTime);
-        
+
         for (const event of events) {
             const isExist = (await ReminderService.instance().getAllGoogleEventsIds()).includes(event.id!)
             const datetime = new Date(event.start?.dateTime as string);
-            
+
             if (!isExist && datetime.getTime() >= Date.now()) {
-                await this.remServ.saveReminder({
+                await this.remServ.save({
                     datetime: new Date(event.start?.dateTime as string),
                     title: event.summary!,
                     desc: event.description,
@@ -534,7 +555,7 @@ export class GoogleCalendarService {
                 }, false)
             }
         }
-        
+
         return true;
     }
 }

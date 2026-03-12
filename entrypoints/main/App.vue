@@ -27,6 +27,7 @@
           v-if="activePanel === 'main'"
           :editingId="editingId"
           :backToPanel="backToPanel"
+          :initialFormInputData="initialFormInputData"
           @toPanel="panel => activePanel = panel"
           @resetForm="editingId = null"
       />
@@ -57,7 +58,10 @@ import {browser} from 'wxt/browser';
 const props = defineProps({
   activePanel: {
     type: String,
-  }
+  },
+  initialFormInputData: {
+    type: Object,
+  },
 })
 const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
