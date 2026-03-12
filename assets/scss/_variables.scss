@@ -1,29 +1,30 @@
 :root{
-  --color-default: #333;
+  --color-input: #333;
+  --color-primary: #ff5c21;
+  --color-secondary: #c9a89d;
+  
   --color-red: #eb5757;
   --color-green: #67b279;
   --color-light: #999;
   --border-color: #bcbcbc;
   --border-color-light: #e6e6e6;
-  --body-bg: #fff;
+
+  --foreground: #fefefe;
+  --bg-header: #e7d5cf;
+  --bg-content: #f5f2ef;
+  --bg-menu: #eee4de;
   
-  --mio-theme-color-on-surface: #1c1b1d;
-  --mio-theme-color-on-surface-variant: #4d4256;
-  --mio-theme-color-on-surface-variant-2: linear-gradient(0deg, rgb(77 66 86 / 8%), rgb(77 66 86 / 8%));
-  --mio-theme-color-secondary-container: #dcdaf5;
-  --mio-theme-color-surface-1: #f8f1f6;
-  --mio-theme-color-warning-icon: #e37402;
 }
 
 [data-theme="dark"]{
-    --color-default: #333;
+    --color-input: #333;
     --color-red: #eb5757;
     --color-green: #67b279;
     --color-light: hsl(215 15% 65%);
     --border-color: #bcbcbc;
     --border-color-light: #e6e6e6;
 
-    --body-bg: #2b303b;
+    --bg-content: #2b303b;
     --active-box-bg: #1a1d23;
 }
 

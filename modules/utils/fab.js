@@ -1346,6 +1346,8 @@ export class FloatingFab {
                 return false;
             }
 
+            //todo доработать все эти события
+            
             // Переинициализация
             if (message.type === "REINIT_FAB") {
                 (async () => {

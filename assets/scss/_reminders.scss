@@ -152,7 +152,7 @@
     }
     
     &__actions{
-      color: var(--color-default);
+      color: var(--color-input);
       transition: inherit;
       backdrop-filter: blur(1px);
       opacity: 0;
@@ -178,7 +178,7 @@
         background: #fff;
         transition: transform var(--transition-fn) .15s;
         //box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
-        box-shadow: 0 0 3px var(--color-default);
+        box-shadow: 0 0 3px var(--color-input);
         aspect-ratio: 1;
         height: 34px;
 

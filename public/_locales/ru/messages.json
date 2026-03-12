@@ -139,6 +139,9 @@
   },
   "contextmenu_setSelectionReminder": {
     "message": "Добавить как напоминание: \"%s\""
+  },
+  "search": {
+    "message": "Поиск"
   }
 }
 

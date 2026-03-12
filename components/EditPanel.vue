@@ -47,7 +47,7 @@
         <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
           <IconCheck />
         </button>
-        <button v-if="!!editingId" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
+        <button v-if="!form.isCreating()" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
           <IconCancel />
         </button>
         <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="recognitionService.state.isRecording || form.isEmpty()" title="Clear fields">
@@ -72,25 +72,18 @@ import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 
 const props = defineProps({
-  editingId: {
-    type: [Number, String],
-  },
   backToPanel: {
     type: String,
   },
-  initialFormInputData: {
+  editingInitialFormData: {
     type: Object,
     default: () => ({})
   },
 });
 
-let isDev = false;
+const isDev = import.meta.env.DEV;
 
-try {
-  isDev = import.meta.env.DEV;
-} catch (e){}
-
-const emit = defineEmits(["toPanel", "resetForm"]);
+const emit = defineEmits(["close"]);
 const toast = useToast();
 const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
@@ -102,14 +95,17 @@ const recognitionLocale = ref();
 const formRef = ref();
 const showExtraFields = ref(false);
 
+const formInputInitData = {
+  id: null,
+  title: '',
+  url: null,
+  datetime: null,
+  desc: null,
+};
+
 const form = reactive({
   saved: false,
-  input: {
-    id: null,
-    title: '',
-    url: null,
-    datetime: null,
-  },
+  input: formInputInitData,
   save: async function () {
     if (! formRef.value.reportValidity()){
       return
@@ -123,31 +119,23 @@ const form = reactive({
       
       setTimeout(() => {
         this.reset();
-      }, props.editingId ? 0 : 800)
+      }, 200)
     }
   },
   hasExtraFields: function(){
-    return this.input.url || this.input.desc; 
-  },
-  load: async function(reminderId){
-    const editingReminder = await reminderService.repository.getById(reminderId);
-    Object.assign(this.input, pick(editingReminder, Object.keys(form.input)))
+    return Object.keys(this.input).some(key => ! ['id', 'title', 'datetime'].includes(key) && this.input[key]);
   },
   reset: function ()  {
     this.saved = false;
-    this.input.id = null;
-    this.input.title = '';
-    this.input.datetime = null;
-    this.input.url = null;
+    this.input = formInputInitData;
 
-    if (props.backToPanel){
-      emit('toPanel', props.backToPanel);
-    }
-
-    emit('resetForm');
+    emit('close');
   },
   isEmpty: function() {
     return ! Object.values(this.input).some(val => val?.length)
+  },
+  isCreating: function() {
+    return !this.input.id;
   }
 })
 
@@ -166,38 +154,6 @@ const textDatetime = computed(() => {
     });
 });
 
-const initForm = async () => {
-  if (!props.editingId) {
-    form.input.datetime = recognitionService.state.parsedData?.date || null;
-    form.input.title = recognitionService.state.parsedData?.cleanText || '';
- }
-
-  await nextTick();
-  if (form.input.title && !form.input.datetime) {
-    // reminderDateRef.value.onFocus() //не вариант тк закрывает видимость
-  } else {
-    reminderTitleRef.value?.focus();
-  }
-}
-
-watch(() => recognitionService.state.parsedData, (value, oldValue) => {
-  initForm();
-}, {
-  deep: true,
-})
-
-watch(() => props.editingId, (value, oldValue) => {
-  if (value){
-    form.load(value);
-  } else if (oldValue) {
-    form.reset();
-  }
-})
-
-watch(() => recognitionService.state.error, (value) => {
-  value && toast.error(value);
-}, {immediate: true})
-
 
 watch(() => showExtraFields.value, async (value) => {
   await nextTick();
@@ -214,28 +170,40 @@ watch(() => showExtraFields.value, async (value) => {
     })
 
     focusingEl ??= fields[0];
-
     focusingEl?.focus();
   }
 })
 
 onMounted(async () => {
-  initForm();
-
-  form.input.title = form.input.title || props.initialFormInputData.title || '';
-  form.input.url = form.input.url || props.initialFormInputData.url || '';
-
+  Object.assign(form.input, props.editingInitialFormData);
+  reminderTitleRef.value?.focus();
   
   const locale = await recognitionService.localeStore.getValue();
 
-  recognitionLocale.value = recognitionService.allowedLocaleLanguages[locale] ? locale : Object.keys(recognitionService.allowedLocaleLanguages).find(regLocale => regLocale.split('-')[0] === locale);
+  recognitionLocale.value = recognitionService.allowedLocaleLanguages[locale] 
+      ? locale 
+      : Object.keys(recognitionService.allowedLocaleLanguages).find(regLocale => regLocale.split('-')[0] === locale);
   recognitionLocale.value ??= 'en-US';
 
   watch(() => recognitionLocale.value, (value) => {
     recognitionService.changeLocale(value);
   });
-  
-  if (!props.editingId && form.hasExtraFields()){
+
+  watch(() => recognitionService.state.parsedData, (value, oldValue) => {
+    form.input.datetime = value?.date || form.input.datetime;
+    form.input.title = value?.cleanText || form.input.title;
+    reminderTitleRef.value?.focus();
+
+  }, {
+    deep: true,
+    immediate: true,
+  })
+
+  watch(() => recognitionService.state.error, (value) => {
+    value && toast.error(value);
+  }, {immediate: true})
+
+  if (form.isCreating() && form.hasExtraFields()){
     showExtraFields.value = true
   }
 })
