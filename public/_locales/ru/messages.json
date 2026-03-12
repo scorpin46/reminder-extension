@@ -116,11 +116,26 @@
   "errorNetwork": {
     "message": "Ошибка сети. Проверьте подключение к интернету."
   },
+  "errorWrongGoogleCalendarConnection": {
+    "message": "Нестабильное интернет-соединение или Google Calendar недоступен"
+  },
   "contextmenu_setReminder": {
     "message": "Создать новое напоминание"
   },
-  "contextmenu_addLinkForReminder": {
-    "message": "Добавить ссылку для напоминания"
+  "contextmenu_reminderSite": {
+    "message": "Открыть сайт по расписанию"
+  },
+  "contextmenu_setLinkReminder": {
+    "message": "Открыть ссылку по расписанию"
+  },
+  "contextmenu_setImgReminder": {
+    "message": "Открыть изображение по расписанию"
+  },
+  "contextmenu_setVideoReminder": {
+    "message": "Открыть видео по расписанию"
+  },
+  "contextmenu_setAudioReminder": {
+    "message": "Открыть аудио по расписанию"
   },
   "contextmenu_setSelectionReminder": {
     "message": "Добавить как напоминание: \"%s\""

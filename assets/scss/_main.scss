@@ -185,6 +185,10 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   font-size: 13px;
   color: #666;
   line-height: 1;
+  
+  span{
+    user-select: none;
+  }
 
   input,textarea,select{
     margin-top: 5px;

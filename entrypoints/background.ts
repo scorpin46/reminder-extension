@@ -3,61 +3,121 @@ import {alarmNameToReminderId} from "@/modules/utils/helpers";
 import {browser} from 'wxt/browser';
 import {Browser} from "@wxt-dev/browser";
 import {ReminderService} from "@/modules/reminderService.js";
+
 type Alarm = Browser.alarms.Alarm;
-import { defineBackground } from "#imports";
+import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
 import {getStoredGoogleAuthAlertIdStore} from "@/modules/utils/storage";
 
 export default defineBackground({
     type: 'module',
-    
+
     main: () => {
         let popupWindowId: number | null = null;
+        let isWindowOpening = false;
+        let boundsChangeListener: ((windowInfo: Browser.windows.Window) => void) | null = null;
 
-        const openMainWindow = (): void => {
-            browser.windows.getLastFocused((lastWindow) => {
+        // Функция для фокусировки существующего окна и обновления параметров
+        const focusExistingWindow = async (urlParams: Record<string, any>) => {
+            if (!popupWindowId) return;
+
+            try {
+                const window = await browser.windows.get(popupWindowId, {populate: true});
+
+                const tab = window.tabs?.[0];
+                if (!tab?.url) return;
+
+                // Обновляем URL с новыми параметрами
+                const url = new URL(tab.url);
+                url.search = new URLSearchParams(urlParams).toString();
+
+                await browser.tabs.update(tab.id, {url: url.toString()});
+                await browser.windows.update(popupWindowId, {focused: true});
+            } catch (error) {
+                console.error('Error focusing existing window:', error);
+                popupWindowId = null;
+                await createNewWindow(urlParams);
+            }
+        };
+
+        // Функция создания нового окна
+        const createNewWindow = async (urlParams: Record<string, any>) => {
+            isWindowOpening = true;
+
+            try {
+                const lastWindow = await browser.windows.getLastFocused();
+
                 const width = 500;
                 const CHROME_UI_OFFSET = 95;
                 const height = lastWindow.height! - CHROME_UI_OFFSET;
                 const left = lastWindow.left! + lastWindow.width! - width;
                 const top = CHROME_UI_OFFSET;
-                const maxWidth = 700;
 
-                browser.windows.create(
-                    {
-                        url: browser.runtime.getURL("/main.html"),
-                        type: "popup",
-                        width: width,
-                        height: height,
-                        left: left,
-                        top: top,
-                        focused: true,
-                    },
-                    (window) => {
-                        popupWindowId = window?.id!;
+                const window = await browser.windows.create({
+                    url: browser.runtime.getURL("/main.html") + '?' + new URLSearchParams(urlParams).toString(),
+                    type: "popup",
+                    width: width,
+                    height: height,
+                    left: left,
+                    top: top,
+                    focused: true,
+                });
 
-                        browser.windows.onBoundsChanged.addListener(function onMaximize(
-                            windowInfo
-                        ) {
-                            if (windowInfo.id !== popupWindowId) return;
+                popupWindowId = window?.id!;
 
-                            browser.windows.get(popupWindowId!, (currentWindow) => {
-                                if (!currentWindow) return;
-                            });
-                        });
-                    }
-                );
-            });
+                // Удаляем старый слушатель, если он есть
+                if (boundsChangeListener) {
+                    browser.windows.onBoundsChanged.removeListener(boundsChangeListener);
+                }
+
+                // Добавляем обработчик изменения размеров
+                boundsChangeListener = (windowInfo: Browser.windows.Window) => {
+                    if (windowInfo.id !== popupWindowId) return;
+                    // Логика обработки изменения размеров
+                };
+
+                browser.windows.onBoundsChanged.addListener(boundsChangeListener);
+            } catch (error) {
+                console.error('Failed to create window:', error);
+            } finally {
+                isWindowOpening = false;
+            }
         };
 
-        const openPostponeWindow = (reminderId: number | string): void => {
-            browser.windows.getLastFocused((lastWindow) => {
+        const openMainWindow = async (urlParams = {}): Promise<void> => {
+            // Предотвращаем параллельное открытие окон
+            if (isWindowOpening) {
+                if (popupWindowId) {
+                    await focusExistingWindow(urlParams);
+                }
+                return;
+            }
+
+            // Проверяем, существует ли окно и активно ли оно
+            if (popupWindowId) {
+                try {
+                    await browser.windows.get(popupWindowId, {populate: true});
+                    // Окно существует — обновляем URL и фокусируем
+                    await focusExistingWindow(urlParams);
+                } catch (error) {
+                    // Окно не существует (было закрыто) — создаём новое
+                    await createNewWindow(urlParams);
+                }
+            } else {
+                // ID окна не установлен — создаём новое
+                await createNewWindow(urlParams);
+            }
+        };
+
+        const openPostponeWindow = async (reminderId: number | string): Promise<void> => {
+            try {
+                const lastWindow = await browser.windows.getLastFocused();
                 const width = 370;
                 const height = 460;
                 const left = lastWindow.left! + lastWindow.width! - width;
                 const top = lastWindow.height! - height;
 
-                browser.windows.create({
+                await browser.windows.create({
                     url: browser.runtime.getURL(`/postpone.html`) + `?id=${reminderId}`,
                     type: "popup",
                     width: width,
@@ -66,26 +126,25 @@ export default defineBackground({
                     top: top,
                     focused: true,
                 });
-            });
+            } catch (error) {
+                console.error('Failed to open postpone window:', error);
+            }
         };
 
+        // Обработчики событий с использованием Promise API
         browser.action.onClicked?.addListener(() => {
-            if (popupWindowId) {
-                browser.windows.get(popupWindowId, (window) => {
-                    if (!browser.runtime.lastError) {
-                        browser.windows.update(popupWindowId!, {focused: true});
-                    } else {
-                        openMainWindow();
-                    }
-                });
-            } else {
-                openMainWindow();
-            }
+            openMainWindow();
         });
 
+        // Очищаем ID окна при его закрытии
         browser.windows.onRemoved?.addListener((windowId) => {
             if (windowId === popupWindowId) {
                 popupWindowId = null;
+                // Удаляем слушатель изменений размеров
+                if (boundsChangeListener) {
+                    browser.windows.onBoundsChanged.removeListener(boundsChangeListener);
+                    boundsChangeListener = null;
+                }
             }
         });
 
@@ -104,7 +163,6 @@ export default defineBackground({
                         message: reminder.title,
                         contextMessage: reminder.desc!,
                         requireInteraction: true,
-
                         buttons: [{title: "🕒 Postpone"}, {title: "✅ Mark as Done"}],
                     });
 
@@ -116,18 +174,18 @@ export default defineBackground({
         browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
             const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
 
-            if (reminder?.id){
+            if (reminder?.id) {
                 if (buttonIndex === 1) {
                     await ReminderService.instance().complete(reminder, false);
-                    await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!); //чтобы сработало нужно именно так и здесь
+                    GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
                 } else if (buttonIndex === 0) {
-                    openPostponeWindow(reminder.id);
+                    await openPostponeWindow(reminder.id);
                 }
             } else {
                 const authAlertId = await getStoredGoogleAuthAlertIdStore().getValue();
 
                 if (notificationId === authAlertId) {
-                    await GoogleCalendarService.instance().login();
+                    GoogleCalendarService.instance().login();
                 }
             }
         });
@@ -135,27 +193,35 @@ export default defineBackground({
         browser.action.setBadgeBackgroundColor({color: "#4688F1"});
         browser.action.setBadgeTextColor({color: "white"});
 
-        browser.tabs.onUpdated?.addListener((tabId, changeInfo, tab) => {
+        browser.tabs.onUpdated?.addListener(async (tabId, changeInfo, tab) => {
             // Проверяем, относится ли эта вкладка к нашему popup-окну
             if (popupWindowId && tab.windowId === popupWindowId) {
                 // Если страница стала about:blank или загружен другой URL
                 if (changeInfo.url === 'about:blank' ||
                     (changeInfo.url && !changeInfo.url.startsWith(browser.runtime.getURL('')))) {
 
-                    browser.windows.remove(popupWindowId);
-                    popupWindowId = null;
+                    try {
+                        browser.windows.remove(popupWindowId);
+                        popupWindowId = null;
+                    } catch (error) {
+                        console.error('Error removing window:', error);
+                    }
                 }
             }
         });
 
-
-        watch(() => ReminderService.instance().repository.state.active.length, (value) => {
-            browser.action.setBadgeText({text: (value || "").toString()});
+        watch(() => ReminderService.instance().repository.state.active.length, async (value) => {
+            try {
+                browser.action.setBadgeText({text: (value || "").toString()});
+            } catch (error) {
+                console.error('Error updating badge text:', error);
+            }
         }, {immediate: true});
 
-
         browser.alarms.onAlarm?.addListener((alarm) => {
-            browser.action.setBadgeText({text: (ReminderService.instance().repository.state.active.length || "").toString()});
+            browser.action.setBadgeText({
+                text: (ReminderService.instance().repository.state.active.length || "").toString()
+            });
 
             if (alarm.name === GoogleCalendarService.syncAlarmName) {
                 GoogleCalendarService.instance().run(null);
@@ -163,65 +229,78 @@ export default defineBackground({
         });
 
         browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
-            console.log('📨 Получено сообщение:', request.action, request);
+            const isValidRequest = request.action?.startsWith('SAR__');
 
             const handleMessage = async () => {
                 try {
-                    const calendar = GoogleCalendarService.instance();
+                    if (isValidRequest) {
+                        console.log('📨 Получено сообщение:', request.action, request);
+                    }
 
                     switch (request.action) {
-                        case 'googleLogin':
-                            return await calendar.login();
-                        case 'importFromGoogle':
-                            return await calendar.importFromGoogle();
-                        case 'googleLogout':
-                            return await calendar.logout();
-                        case 'googleCheckStatus':
-                            if (!calendar.currentUser) {
-                                return { authenticated: false };
+                        case 'SAR__OPEN_FROM_FAB':
+                            await openMainWindow();
+                            return {success: true};
+
+                        case 'SAR__GOOGLE_LOGIN':
+                            return await GoogleCalendarService.instance().login();
+
+                        case 'SAR__IMPORT_FROM_GOOGLE':
+                            return await GoogleCalendarService.instance().importFromGoogle();
+
+                        case 'SAR__GOOGLE_LOGOUT':
+                            return await GoogleCalendarService.instance().logout();
+
+                        case 'SAR__GOOGLE_CHECK_STATUS':
+                            if (!GoogleCalendarService.instance().currentUser) {
+                                return {authenticated: false};
                             }
-                            const isValidUser = await calendar.checkUser();
+                            const isValidUser = await GoogleCalendarService.instance().checkUser();
                             return {
                                 authenticated: isValidUser,
-                                user: calendar.currentUser,
-                                message: !isValidUser ? `Пользователь не авторизован или возникли проблемы, попробуйте перезагрузить или повторить позднее` : undefined
+                                user: GoogleCalendarService.instance().currentUser,
+                                message: !isValidUser
+                                    ? browser.i18n.getMessage("errorAuth")
+                                    : undefined
                             };
-                        case 'googleUpdateEvent':
-                            const reminder = await calendar.remServ.repository.getById(request.reminderId);
+
+                        case 'SAR__GOOGLE_UPDATE_EVENT':
+                            const reminder = await ReminderService.instance().repository.getById(request.reminderId);
+
                             if (reminder) {
-                                await calendar.updateEventByReminder(reminder);
+                                await GoogleCalendarService.instance().updateEventByReminder(reminder);
                             }
-                            return { success: true }; // Всегда возвращаем ответ
-                        case 'googleDeleteEvent':
+                            return {success: true};
+
+                        case 'SAR__GOOGLE_DELETE_EVENT':
                             console.log('Удаление события:', request.googleEventId);
-                            await calendar.deleteEvent(request.googleEventId);
-                            return { success: true };
-                        case 'googleCreateEvent':
-                            const newReminder = await calendar.remServ.repository.getById(request.reminderId);
+                            await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
+                            return {success: true};
+
+                        case 'SAR__GOOGLE_CREATE_EVENT':
+                            const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
                             if (newReminder) {
-                                await calendar.createEventByReminder(newReminder);
+                                await GoogleCalendarService.instance().createEventByReminder(newReminder);
                             }
-                            return { success: true };
+                            return {success: true};
+
                         default:
-                            console.warn('Неизвестное действие:', request.action);
-                            return { success: false, error: 'Unknown action' };
+                            if (isValidRequest) {
+                                console.warn('Неизвестное действие:', request.action);
+                            }
+                            return {success: false, error: 'Unknown action'};
                     }
                 } catch (error: any) {
                     console.error('Ошибка в обработчике сообщений:', error);
-                    return { success: false, error: error.message };
+                    return {success: false, error: error.message};
                 }
-            };
+            }
 
-            // В современном API можно просто вернуть Promise
-            // return handleMessage(); // Работает в новых версиях
-
-            // Для обратной совместимости оставляем старый подход, но улучшаем его
             handleMessage()
                 .then(response => {
                     try {
                         sendResponse(response);
                     } catch (e) {
-                        // Игнорируем ошибку "канал закрыт"
                         console.debug('Канал уже закрыт, ответ не отправлен');
                     }
                 })
@@ -233,47 +312,86 @@ export default defineBackground({
                         // Игнорируем
                     }
                 });
-
-            return true; // Важно для асинхронности
+            
+            return true; // Для асинхронных обработчиков
         });
 
         // При старте браузера
         browser.runtime.onStartup?.addListener(() => {
-            GoogleCalendarService.instance().run().catch(console.error);
+            GoogleCalendarService.instance().run()
         });
 
         // При установке/обновлении
-        browser.runtime.onInstalled?.addListener(() => {
-            browser.contextMenus.create({
-                id: "set-a-reminder-selection",
-                title: browser.i18n.getMessage("contextmenu_setSelectionReminder"),
-                contexts: ["selection"]
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder-context",
-                title: browser.i18n.getMessage("contextmenu_addLinkForReminder"),
-                contexts: ["link", "image", "video", "audio"]
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder",
-                title: browser.i18n.getMessage("contextmenu_setReminder"),
-                contexts: ["page", "frame", "editable"]
-            });
-            
-            GoogleCalendarService.instance().run().catch(console.error);
+        browser.runtime.onInstalled?.addListener(async () => {
+            try {
+                // Очищаем старые контекстные меню
+                await browser.contextMenus.removeAll();
+
+                const documentUrlPatterns = ["http://*/*", "https://*/*"];
+
+                browser.contextMenus.create({
+                    id: "set-a-reminder-selection",
+                    title: browser.i18n.getMessage("contextmenu_setSelectionReminder"),
+                    contexts: ["selection"],
+                });
+                
+                browser.contextMenus.create({
+                    id: "set-a-reminder-link",
+                    title: browser.i18n.getMessage("contextmenu_setLinkReminder"),
+                    contexts: ["link"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-img",
+                    title: browser.i18n.getMessage("contextmenu_setImgReminder"),
+                    contexts: ["image"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-video",
+                    title: browser.i18n.getMessage("contextmenu_setVideoReminder"),
+                    contexts: ["video"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-audio",
+                    title: browser.i18n.getMessage("contextmenu_setAudioReminder"),
+                    contexts: ["audio"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder",
+                    title: browser.i18n.getMessage("contextmenu_reminderSite"),
+                    contexts: ["page", "frame"],
+                    documentUrlPatterns,
+                });
+
+                GoogleCalendarService.instance().run();
+            } catch (error) {
+                console.error('Error during installation:', error);
+            }
         });
-        
-        browser.contextMenus.onClicked.addListener((info, tab) => {
+
+        browser.contextMenus.onClicked.addListener(async (info, tab) => {
             if (info.menuItemId.toString().startsWith('set-a-reminder')) {
                 const selectionText = info.selectionText?.trim() || '';
-                const url = info.srcUrl ?? info.linkUrl;
-                
-                console.log(info.srcUrl, info.linkUrl);
-                
-                if (url){
-                    //todo вызывать и вставлять ссылку
-                } else if (selectionText.length){
-                    //todo вызывать окно и вставлять название
+                let url = info.srcUrl ?? info.linkUrl;
+
+                if (url) {
+                    await openMainWindow({
+                        url: url,
+                        title: tab?.title// || url.split('/').pop(), // не лучший вариант если юзеру нужно осмысленное своё название
+                    });
+                } else if (selectionText.length) {
+                    await openMainWindow({
+                        title: selectionText
+                    });
+                } else {
+                    url = tab?.url ?? info.frameUrl;
+                    await openMainWindow({
+                        url: url,
+                        title: tab?.title// || url.split('/').pop(),
+                    });
                 }
             }
         });

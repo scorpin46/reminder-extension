@@ -58,7 +58,7 @@ export class ReminderRepository {
         this._db = new Dexie(DB_NAME, {}) as typeof this._db;
 
         this._db.version(3).stores({
-            reminders: '++id, title, desc, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, [completed+datetime]'
+            reminders: '++id, title, desc, url, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, [completed+datetime]'
         });
 
         // Хуки

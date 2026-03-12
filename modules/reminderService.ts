@@ -1,6 +1,6 @@
 import { localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale} from "./utils/helpers";
 import {reactive} from "vue";
-import {Reminder, ReminderRepository} from "./repositories/reminderRepository.js";
+import {Reminder, ReminderRepository} from "./reminderRepository.js";
 import {RecognitionService} from "./recognitionService.js";
 import {browser} from 'wxt/browser';
 import {getStoredAllowGoogleSync} from "./utils/storage";
@@ -65,7 +65,7 @@ export class ReminderService {
 
         if (shouldSendMessage && allowSync) {
             browser.runtime.sendMessage({ 
-                action : isUpdated ? 'googleUpdateEvent' : 'googleCreateEvent',
+                action : isUpdated ? 'SAR__GOOGLE_UPDATE_EVENT' : 'SAR__GOOGLE_CREATE_EVENT',
                 reminderId: id
             })
         }
@@ -76,13 +76,13 @@ export class ReminderService {
     async delete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'SAR__GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
     }
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'googleDeleteEvent', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'SAR__GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
     }
 
     async getAllGoogleEventsIds(){

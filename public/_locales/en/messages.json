@@ -116,11 +116,26 @@
   "errorNetwork": {
     "message": "Network error. Please check your internet connection."
   },
+  "errorWrongGoogleCalendarConnection": {
+    "message": "Unstable internet connection or Google Calendar is unavailable"
+  },
   "contextmenu_setReminder": {
     "message": "Set a Reminder"
   },
-  "contextmenu_addLinkForReminder": {
-    "message": "Add link for reminder"
+  "contextmenu_reminderSite": {
+    "message": "Auto-open Site on schedule"
+  },
+  "contextmenu_setLinkReminder": {
+    "message": "Auto-open link on schedule"
+  },
+  "contextmenu_setImgReminder": {
+    "message": "Auto-open image on schedule"
+  },
+  "contextmenu_setVideoReminder": {
+    "message": "Auto-open video on schedule"
+  },
+  "contextmenu_setAudioReminder": {
+    "message": "Auto-play audio on schedule"
   },
   "contextmenu_setSelectionReminder": {
     "message": "Add as Reminder: \"%s\""

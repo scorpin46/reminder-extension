@@ -1,5 +1,3 @@
-// import pkg from '../../package.json' with {type: 'json'};
-
 import {browser} from 'wxt/browser';
 
 export const localTimeUntil = (dateObj: Date, locale: Intl.LocalesArgument, now = new Date()) => {

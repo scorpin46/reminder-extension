@@ -48,19 +48,19 @@
 import RemindersPanel from "@/components/RemindersPanel.vue";
 import MainPanel from "@/components/MainPanel.vue";
 import {ReminderService} from "@/modules/reminderService.js";
-import {nextTick, ref, watch} from "vue";
+import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import RecordBtn from "@/components/RecordBtn.vue";
 import Settings from "@/components/Settings.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
+import {GoogleCalendarService} from "@/modules/googleCalendarService.ts";
+import {useToast} from "vue-toastification";
+import {getBroadcastErrorStore} from "@/modules/utils/storage.ts";
 
 const props = defineProps({
   activePanel: {
     type: String,
-  },
-  initialFormInputData: {
-    type: Object,
   },
 })
 const reminderService = ReminderService.instance();
@@ -69,8 +69,16 @@ const activePanel = ref(props.activePanel ?? 'main');
 const editingId = ref();
 const mainPanelRef = ref();
 const backToPanel = ref();
+let initialFormInputData = {};
 const remindersCountUp = ref(false);
 const showSettings = ref(false);
+const toast = useToast();
+
+const url = new URL(window.location.href);
+
+url.searchParams.entries().forEach(entry => {
+  initialFormInputData[entry[0]] = entry[1];
+})
 
 const editItem = async (id) => {
   backToPanel.value = 'reminders';
@@ -132,5 +140,26 @@ watch(() => reminderService.repository.state.isLoaded, async () => {
     }
   })
 }, {once: true});
+
+onMounted(() => {
+  if (Object.keys(initialFormInputData).length) {
+    activePanel.value = props.activePanel = 'main';
+
+    url.search = '';
+    initialFormInputData = {};
+
+    window.history.replaceState(
+        null,
+        null,
+        url.toString()
+    );
+  }
+
+  getBroadcastErrorStore().watch((value, oldValue) => {
+    if (value && value !== oldValue){
+      toast.error(value)
+    }
+  })
+})
 
 </script>

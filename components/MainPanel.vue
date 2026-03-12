@@ -106,8 +106,8 @@ const form = reactive({
   saved: false,
   input: {
     id: null,
-    title: props.initialFormInputData.title || '',
-    url: props.initialFormInputData.url,
+    title: '',
+    url: null,
     datetime: null,
   },
   save: async function () {
@@ -170,7 +170,7 @@ const initForm = async () => {
   if (!props.editingId) {
     form.input.datetime = recognitionService.state.parsedData?.date || null;
     form.input.title = recognitionService.state.parsedData?.cleanText || '';
-  }
+ }
 
   await nextTick();
   if (form.input.title && !form.input.datetime) {
@@ -222,6 +222,10 @@ watch(() => showExtraFields.value, async (value) => {
 onMounted(async () => {
   initForm();
 
+  form.input.title = form.input.title || props.initialFormInputData.title || '';
+  form.input.url = form.input.url || props.initialFormInputData.url || '';
+
+  
   const locale = await recognitionService.localeStore.getValue();
 
   recognitionLocale.value = recognitionService.allowedLocaleLanguages[locale] ? locale : Object.keys(recognitionService.allowedLocaleLanguages).find(regLocale => regLocale.split('-')[0] === locale);
@@ -237,7 +241,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  recognitionService.resetState()
+  recognitionService.resetState();
 })
 
 </script>

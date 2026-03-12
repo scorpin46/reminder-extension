@@ -1272,15 +1272,13 @@ export class FloatingFab {
             }, 1000);
 
             try {
-                browser.runtime.sendMessage({ type: "QUERY_PANEL_STATE" }, response => {
+                browser.runtime.sendMessage({ type: "SAR__CHECK_OPEN_PANEL" }, response => {
                     clearTimeout(timeout);
                     isQuerying = false;
 
                     if (browser.runtime.lastError) return;
 
-                    //todo свой обработчик
-                    const panelOpen = response?.success && response?.isPanelOpen || false;
-                    isPanelOpen = panelOpen;
+                    isPanelOpen = response?.success && response?.isOpen || false;
 
                     if (!isPanelOpen && isFabEnabled) {
                         fabInstance?.show();
@@ -1361,7 +1359,7 @@ export class FloatingFab {
                             isWelcomePage: isWelcomePage,
                             onButtonClick: () => {
                                 try {
-                                    browser.runtime.sendMessage({ type: "OPEN_SIDE_PANEL_FROM_FAB" });
+                                    browser.runtime.sendMessage({ type: "SAR__OPEN_FROM_FAB" });
                                 } catch { }
                             }
                         }).init();
@@ -1419,7 +1417,7 @@ export class FloatingFab {
                     isWelcomePage: isWelcomePage,
                     onButtonClick: () => {
                         try {
-                            browser.runtime.sendMessage({ type: "OPEN_SIDE_PANEL_FROM_FAB" });
+                            browser.runtime.sendMessage({ type: "SAR__OPEN_FROM_FAB" });
                         } catch { }
                     }
                 }).init();

@@ -44,3 +44,9 @@ export function getStoredGoogleAuthAlertIdStore() {
         fallback: undefined
     });
 }
+
+export function getBroadcastErrorStore() {
+    return storage.defineItem<string|undefined>('session:broadcastError', {
+        fallback: undefined
+    });
+}

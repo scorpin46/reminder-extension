@@ -1,5 +1,5 @@
 import { defineContentScript } from '#imports';
-import {FloatingFab} from "@/components/fab";
+import {FloatingFab} from "@/modules/utils/fab";
 
 export default defineContentScript({
   matches: ['<all_urls>'],

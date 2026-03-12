@@ -61,22 +61,27 @@ allowGoogleSyncStore.watch((newValue, oldValue) => {
 
 
 const runGoogleAuth = () => {
-  browser.runtime.sendMessage({ action: 'googleLogin' }, (response) => {
+  browser.runtime.sendMessage({ action: 'SAR__GOOGLE_LOGIN' }, (response) => {
     if (response.success) {
       allowGoogleSyncStore.setValue(true);
-      toast.success(`Вы вошли как: ${response.user.email}`);
+      toast.success(`Вы вошли как: ${response.user.email}`);      //todo перевод
 
       googleIsAuthenticatedEmail.value = response.user.email;
     } else {
-      toast.error(`Не удалось авторизоваться`);
+      toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 8000});
     }
   });
 }
 
 const checkGoogleAuth = () => {
   if (allowGoogleAuth.value) {
-    browser.runtime.sendMessage({ action : 'googleCheckStatus' }, (response) => {
+    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_CHECK_STATUS' }, (response) => {
+      console.log(response);
       googleIsAuthenticatedEmail.value = response.authenticated ? response.user.email : '';
+      
+      if (response.message){
+        toast.error(response.message, {timeout: 8000});
+      }
     });   
   }
 }
