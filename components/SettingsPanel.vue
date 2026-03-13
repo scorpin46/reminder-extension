@@ -1,36 +1,55 @@
 <template>
-  <div class="settings">
-    <div class="settings__header">
-      <div class="settings__title">{{ browser.i18n.getMessage('settings') }}</div>
-      <span class="settings__close" role="button" @click="emit('close')" :title="browser.i18n.getMessage('close')">
-        <IconXmark height="24"/>
-      </span>
+  <div class="panel">
+    <button
+        class="panel__close"
+        type="button"
+        :title="browser.i18n.getMessage('close')"
+        @click="emit('close')"
+    >
+      <IconXmark/>
+    </button>
+    
+    <div class="panel__title">
+      {{ browser.i18n.getMessage('settings') }}
     </div>
-    <div class="settings__body">
-      <button @click="runGoogleAuth" v-if="!googleIsAuthenticatedEmail">Авторизоваться в гугл</button>
-      <span v-else>авторизован , email: {{ googleIsAuthenticatedEmail}}</span>
+    <div class="panel__body">
+<!--      todo перевод-->
+      <section>
+        <header>Гугл-авторизация</header>
+        <div>
+          <button @click="runGoogleAuth" v-if="!googleIsAuthenticatedEmail">Авторизоваться в гугл</button>
+          <span v-else>авторизован , email: {{ googleIsAuthenticatedEmail}}</span>
+        </div>
+      </section>
+      
+      <section>
+        <header>Прочие</header>
+        <div>
+          <div>
+            <label class="switch">
+              <span>Автоматически включать(клик) голосовую запись при добавлении</span>
+              <input type="checkbox">
+            </label>
+          </div>
 
-      <br>
-      <br>
-      <br>
+          <div>
+            <div>Вкладка по умолчанию (default tab)</div>
+            <label class="switch">
+              <span>Add Reminder</span>
+              <input type="checkbox">
+              <span>Reminders</span>
+            </label>
+          </div>
 
-      <label class="switch">
-        <span>Автоматически включать(клик) голосовую запись при добавлении</span>
-        <input type="checkbox">
-      </label>
-
-      <div>Вкладка по умолчанию (default tab)</div>
-      <label class="switch">
-        <span>Add Reminder</span>
-        <input type="checkbox">
-        <span>Reminders</span>
-      </label>
-
-<!-- todo на галочка очистки (и теоретиечского удаления должна быть активна)-->
-      <label class="switch">
-        <span>Режим автосохранения изменений (без подтверждения)</span>
-        <input type="checkbox">
-      </label>
+          <div>
+            <!-- todo на галочка очистки (и теоретиечского удаления должна быть активна)-->
+            <label class="switch">
+              <span>Режим автосохранения изменений (без подтверждения)</span>
+              <input type="checkbox">
+            </label>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -44,6 +63,7 @@ import {
   getStoredGoogleUser
 } from "@/modules/utils/storage.ts";
 import {browser} from 'wxt/browser';
+import IconPlus from "@/components/icons/IconPlus.vue";
 
 const props = defineProps({
 });

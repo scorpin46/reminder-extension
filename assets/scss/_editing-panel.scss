@@ -11,12 +11,6 @@
   color: #fff;
   max-height: 100%;
 
-  &#{&}--small{
-    height: 35px;
-    width: 35px;
-    transform: none;
-  }
-
   svg {
     height: 60%;
     aspect-ratio: 1;

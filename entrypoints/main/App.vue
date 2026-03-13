@@ -88,10 +88,14 @@
       :editingInitialFormData="editingInitialFormData"
       @close="editingPanelVisible = false"
   />
-  <SettingsPanel v-if="settingsPanelVisible" @close="settingsPanelVisible = false"/>
+  
+  <SettingsPanel 
+      v-if="settingsPanelVisible"
+      @close="settingsPanelVisible = false"
+  />
 
-  <footer>
-    <button class="settings-btn" @click="settingsPanelVisible = true">
+  <footer class="footer">
+    <button class="footer__settings-btn" @click="settingsPanelVisible = true">
       <IconSettings/>
       <span>{{ browser.i18n.getMessage('settings') }}</span>
     </button>
@@ -101,7 +105,7 @@
 <script setup>
 import EditPanel from "@/components/EditPanel.vue";
 import {ReminderService} from "@/modules/reminderService.js";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
@@ -181,12 +185,16 @@ const daysGroupsReminders = computed(() => {
   return groups;
 });
 
-const showEditPanel = async (id = null) => {
-  if (id){
-    editingInitialFormData = await reminderService.repository.getById(id) || {}
+const showEditPanel = async (reminder = null) => {
+  if (reminder){
+    editingInitialFormData = isFinite(reminder)
+        ? await reminderService.repository.getById(reminder.id) || {}
+        : reminder
   }
 
   editingPanelVisible.value = true;
+  await nextTick();
+  editingInitialFormData = {};
 }
 
 const actualize = () => {

@@ -75,7 +75,7 @@
     }
     
     &.--completed{
-      background: var(--border-color-light);
+      background: var(--color-light); //todo replace to backdrop-filter or opacity?
       
       #{$reminderItem}__day{
         //> *:not(.icon-timer){

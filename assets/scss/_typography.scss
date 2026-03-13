@@ -22,8 +22,18 @@ input,textarea{
   font-size: 14px;
 }
 
-select{
+select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
   line-height: 1.1;
+
+  &:focus{
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--foreground);
+  }
 }
 
 button{
@@ -184,6 +194,17 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   color: #666;
   line-height: 1;
 
+  &:has(:required){
+    span{
+      &:after{
+        content: "*";
+        color: var(--color-red);
+        //font-size: 1.2em;
+        line-height: 0;
+        padding-left: 2px;
+      }
+    }
+  }
   span{
     user-select: none;
   }

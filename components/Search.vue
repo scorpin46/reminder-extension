@@ -63,6 +63,8 @@ const filterDate = ref();
 const inputRef = ref();
 
 watch(() => filterDate.value, (value, oldValue) => {
+  calendarOpened.value = false; //для закрытия календаря после выбора
+
   filterQuery.value = value ? value.toLocaleDateString(reminderService.regionLocale) : '';
 })
 

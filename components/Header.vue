@@ -1,17 +1,19 @@
 <template>
   <header class="header">
-    <!--    <RecordBtn v-if="activePanel !== 'edit'" class="record-btn&#45;&#45;small"/>-->
-    <!--    todo вернуть-->
 
-    <button
-        :class="{'header__add': true, '--active': editingPanelVisible}"
-        type="button"
-        :title="editingPanelVisible ? browser.i18n.getMessage('close') : browser.i18n.getMessage('addReminder')"
-        @click="editingPanelVisible = !editingPanelVisible"
-        @dblclick="editingPanelVisible = !editingPanelVisible"
-    >
-      <IconPlus/>
-    </button>
+    <div class="header__add-group">
+      <button
+          :class="{'header__add': true, '--active': editingPanelVisible}"
+          type="button"
+          :title="editingPanelVisible ? browser.i18n.getMessage('close') : browser.i18n.getMessage('addReminder')"
+          @click="editingPanelVisible = !editingPanelVisible"
+          @dblclick="editingPanelVisible = !editingPanelVisible"
+      >
+        <IconPlus/>
+      </button>
+      <RecordBtn @click="editingPanelVisible = true"/>
+    </div>
+    
 
     <div class="header__menu menu">
       <button
@@ -47,8 +49,9 @@
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconSearch from "@/components/icons/IconSearch.vue";
 import {ReminderService} from "@/modules/reminderService.ts";
-import {computed} from "vue";
+import {computed, nextTick} from "vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
+import RecordBtn from "@/components/RecordBtn.vue";
 
 const props = defineProps({
   editingPanelVisible: {

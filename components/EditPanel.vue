@@ -1,7 +1,7 @@
 <template>
   <div class="panel panel--editing">
     <div class="panel__title">
-      {{ !form.input.id ? browser.i18n.getMessage('addReminder') : browser.i18n.getMessage('editReminder') }}
+      {{ form.isCreating() ? browser.i18n.getMessage('addReminder') : browser.i18n.getMessage('editReminder') }}
     </div>
     <div class="panel__body">
       <label class="language-selector form-label w-100" v-if="isDev">
@@ -51,11 +51,10 @@
           <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
             <IconCheck />
           </button>
-          <button v-if="!form.isCreating()" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
+          
+          <button type="button" class="reminder-cancel" @click="form.reset" :title="browser.i18n.getMessage('cancel')">
+<!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
             <IconCancel />
-          </button>
-          <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="recognitionService.state.isRecording || form.isEmpty()" title="Clear fields">
-            <IconXmark />
           </button>
         </div>
       </form>
@@ -81,6 +80,10 @@ const props = defineProps({
   editingInitialFormData: {
     type: Object,
     default: () => ({})
+  },
+  autostartRecording: {
+    type: Boolean,
+    default: false
   },
 });
 
@@ -158,6 +161,7 @@ const textDatetime = computed(() => {
 });
 
 
+
 watch(() => showExtraFields.value, async (value) => {
   await nextTick();
   
@@ -196,7 +200,6 @@ onMounted(async () => {
     form.input.datetime = value?.date || form.input.datetime;
     form.input.title = value?.cleanText || form.input.title;
     reminderTitleRef.value?.focus();
-
   }, {
     deep: true,
     immediate: true,
@@ -212,6 +215,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  recognitionService.stop();
   recognitionService.resetState();
 })
 

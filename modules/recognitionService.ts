@@ -98,7 +98,7 @@ export class RecognitionService {
 
             this.state.error = customError;
 
-            recognition.abort();
+            this.stop();
         }
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -175,17 +175,19 @@ export class RecognitionService {
             }
         });
 
-        this.#recognition?.start();
+        
+        try {
+            this.#recognition?.start();    
+        } catch (e){
+            console.log(e);
+        }
 
         return this.#currentAudioStream;
     }
 
     stop() {
         this.#recognition?.stop();
-
-        if (this.state.isRecording){
-            this.#recognition?.abort()
-        }
+        this.#recognition?.abort()
     }
 
     isSupported() {

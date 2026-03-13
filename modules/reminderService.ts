@@ -98,7 +98,8 @@ export class ReminderService {
 
     getPreviewTitle(reminderItem: Reminder) {
         const dateFormatted = localDateFormat(reminderItem.datetime, true, this.regionLocale);
-        return `${dateFormatted}\n${reminderItem.title}`;
+        return `${dateFormatted}\n${reminderItem.title}`.trim();
+        // return `${dateFormatted}\n${reminderItem.title}\n${reminderItem.desc}\n\n${reminderItem.url}`.trim();
     }
 
     getTimeUntil(reminderItem: Reminder, now = new Date()) {
