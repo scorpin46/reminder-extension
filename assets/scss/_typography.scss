@@ -1,0 +1,202 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+button,input,optgroup,select,textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+input,textarea{
+  font-size: 14px;
+}
+
+select{
+  line-height: 1.1;
+}
+
+button{
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+.w-100{
+  width: 100%;
+}
+
+.text-center{
+  text-align: center;
+}
+
+.color-red{
+  color: var(--color-red);
+}
+
+.color-green{
+  color: var(--color-green);
+}
+
+$offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
+
+@each $offset in $offsets {
+  .m {
+    &t-#{$offset} {
+      margin-top: #{$offset}px !important;
+    }
+
+    &b-#{$offset} {
+      margin-bottom: #{$offset}px !important;
+    }
+
+    &r-#{$offset} {
+      margin-right: #{$offset}px !important;
+    }
+
+    &l-#{$offset} {
+      margin-left: #{$offset}px !important;
+    }
+
+    &x-#{$offset} {
+      margin-left: #{$offset}px !important;
+      margin-right: #{$offset}px !important;
+    }
+
+    &y-#{$offset} {
+      margin-top: #{$offset}px !important;
+      margin-bottom: #{$offset}px !important;
+    }
+  }
+
+  .p {
+    &t-#{$offset} {
+      padding-top: #{$offset}px !important;
+    }
+
+    &b-#{$offset} {
+      padding-bottom: #{$offset}px !important;
+    }
+
+    &r-#{$offset} {
+      padding-right: #{$offset}px !important;
+    }
+
+    &l-#{$offset} {
+      padding-left: #{$offset}px !important;
+    }
+
+    &x-#{$offset} {
+      padding-left: #{$offset}px !important;
+      padding-right: #{$offset}px !important;
+    }
+
+    &y-#{$offset} {
+      padding-top: #{$offset}px !important;
+      padding-bottom: #{$offset}px !important;
+    }
+  }
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.mb-auto {
+  margin-bottom: auto;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.mr-auto {
+  margin-right: auto;
+}
+
+.px-none {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.py-none {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.danger-label {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 16px;
+  min-height: 16px;
+
+  background: transparent;
+  color: var(--color-red);
+  border: 1px solid currentColor;
+
+  &.filed{
+    background: var(--color-red);
+    color: #fff;
+    border: 1px solid var(--color-red);
+  }
+}
+
+.form-control {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-input);
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  //appearance: none;
+  border-radius: 5px;
+  min-height: 30px;
+
+  &:focus{
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--foreground);
+  }
+}
+
+.form-label {
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #666;
+  line-height: 1;
+
+  span{
+    user-select: none;
+  }
+
+  input,textarea,select{
+    margin-top: 5px;
+  }
+
+}
+
+.Vue-Toastification__toast{
+  padding-top: 0;
+  padding-bottom: 0;
+
+  align-items: center;
+}

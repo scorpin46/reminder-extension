@@ -67,7 +67,7 @@ export class GoogleCalendarService {
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
                     title: "🔔 " + browser.i18n.getMessage('appName'),  //todo подойдет ли название (учитывая другие языки и глагольную подачу)
-                    message: browser.i18n.getMessage('syncFailed'),
+                    message: browser.i18n.getMessage('syncFailed', [user.email]),
                     requireInteraction: true,
                     buttons: [{title: browser.i18n.getMessage('signIn')}],
                 });

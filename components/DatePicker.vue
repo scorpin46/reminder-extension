@@ -3,7 +3,7 @@
       color="primary"
       elevation="24"
       weekday-format="short"
-      :allowed-dates="allowedDates"
+      :allowed-dates="() => allowedDates.length ? allowedDates : false"
       :max="maxFilterDate"
       :min="minFilterDate"
       hide-header

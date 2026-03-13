@@ -1,18 +1,20 @@
 <template>
   <Header
+    v-model:searchVisible="searchVisible"
     v-model:openedTab="openedTab"
-    v-model:filterQuery="filterQuery"
-    v-model:filterDate="filterDate"
+    v-model:editingPanelVisible="editingPanelVisible"
     :hasExpired="!!expired.length"
     @openCreatePanel="showEditPanel(null)"
   />
+  <Search
+      :class="{'--active': searchVisible}"
+      v-model:filterQuery="filterQuery"
+      :allowedDates="allowedDates"
+      :minFilterDate="minFilterDate"
+      :maxFilterDate="maxFilterDate"
+      :searchVisible="searchVisible"
+  />
   <main>
-    <EditPanel
-        v-if="editingPanelVisible"
-        :editingInitialFormData="editingInitialFormData"
-        @close="editingPanelVisible = false"
-    />
-
     <div v-if="filterQuery && ! Object.keys(daysGroupsReminders).length">
       <b>{{ browser.i18n.getMessage('noResults') }}</b>
       <div>
@@ -20,7 +22,7 @@
       </div>
 
       <div>
-        <button type="button">{{ browser.i18n.getMessage('reset') }}</button>
+        <button type="button" @click="resetSearch">{{ browser.i18n.getMessage('reset') }}</button>
       </div>
     </div>
     
@@ -80,8 +82,13 @@
       </div>
     </div>
   </main>
-
-  <Settings v-if="settingsPanelVisible" @close="settingsPanelVisible = false"/>
+  
+  <EditPanel
+      v-if="editingPanelVisible"
+      :editingInitialFormData="editingInitialFormData"
+      @close="editingPanelVisible = false"
+  />
+  <SettingsPanel v-if="settingsPanelVisible" @close="settingsPanelVisible = false"/>
 
   <footer>
     <button class="settings-btn" @click="settingsPanelVisible = true">
@@ -94,9 +101,8 @@
 <script setup>
 import EditPanel from "@/components/EditPanel.vue";
 import {ReminderService} from "@/modules/reminderService.js";
-import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
-import RecordBtn from "@/components/RecordBtn.vue";
-import Settings from "@/components/Settings.vue";
+import {computed, onMounted, ref, watch} from "vue";
+import SettingsPanel from "@/components/SettingsPanel.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
@@ -110,6 +116,8 @@ import {localDateFormat} from "@/modules/utils/helpers.ts";
 import {useIntervalFn} from "@vueuse/core";
 import {useDate} from "vuetify/framework";
 import Header from "@/components/Header.vue";
+import Search from "@/components/Search.vue";
+import {max, min} from "es-toolkit/compat";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -131,7 +139,6 @@ const openedTab = ref(props.openedTab);
 
 const dateAdapter = useDate()
 const toast = useToast();
-const filterDate = ref();
 const filterQuery = ref('');
 const expired = ref([]);
 const soon = ref([]);
@@ -140,18 +147,16 @@ const SOON_MINUTES = 10;
 
 const reminders = computed(() => reminderService.repository.state[openedTab.value] || []);
 const daysGroupsReminders = computed(() => {
+  console.log(reminders.value.length);
   const groups = {};
-
+  
   reminders.value.forEach((item) => {
-    if (filterDate.value && ! dateAdapter.isSameDay(item.datetime, filterDate.value)){
-      return true;
-    }
-
-    if (!filterDate.value && filterQuery.value && ! `${item.title} ${item.desc}`.includes(filterQuery.value)){
-      return true;
-    }
-
     let groupKey = item.datetime.toLocaleDateString(reminderService.regionLocale);
+
+    if (filterQuery.value && ! `${item.title} ${item.desc}`.includes(filterQuery.value) && groupKey !== filterQuery.value){
+      return true;
+    }
+
     let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true)
 
     if (expired.value.includes(item.id)){
@@ -185,12 +190,22 @@ const showEditPanel = async (id = null) => {
 }
 
 const actualize = () => {
+  if (settingsPanelVisible.value || editingPanelVisible.value) {
+    return;
+  }
+  console.log('actualize');
+  
   now.value = new Date();
-  expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
-  soon.value = reminderService.repository.state.active.filter(item => {
-    const diff = item.datetime - now.value;
-    return !item.completed && diff > 0 && diff < SOON_MINUTES * 60 * 1000
-  }).map(item => item.id);
+  
+  if (openedTab.value === 'active') {
+    console.log('expired and soon checking');
+
+    expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
+    soon.value = reminderService.repository.state.active.filter(item => {
+      const diff = item.datetime - now.value;
+      return !item.completed && diff > 0 && diff < SOON_MINUTES * 60 * 1000
+    }).map(item => item.id);
+  }
 }
 
 const complete = (item) => {
@@ -198,9 +213,21 @@ const complete = (item) => {
   now.value = new Date();
 }
 
+const searchVisible = ref(false);
+const resetSearch = () => {
+  filterQuery.value = '';
+}
+
+const allowedDates = computed(() => {
+  const dates = (reminderService.repository.state[openedTab.value] || []).map(item => dateAdapter.toISO(item.datetime));
+  return Array.from(new Set(dates))
+});
+const minFilterDate = computed(() => min(allowedDates.value));
+const maxFilterDate = computed(() => max(allowedDates.value));
+
 useIntervalFn(() => {
     actualize();
-}, 5000, {
+}, 10000, {
   immediateCallback: true
 })
 
@@ -208,12 +235,20 @@ watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
 })
 
-watch(() => filterDate.value, (value, oldValue) => {
-  filterQuery.value = value;
+watch(() => searchVisible.value, (value, oldValue) => {
+  if (!value){
+    resetSearch()
+  }
 })
 
 watch(() => recognitionService.state.isRecording, (value, oldValue) => {
   document.documentElement.classList.toggle('--recording', value);
+})
+
+watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVisible], [settingsVisibleOld, editingVisibleOld]) => {
+  if (!settingsVisible && ! editingVisible){
+    actualize();
+  }
 })
 
 const url = new URL(window.location.href);

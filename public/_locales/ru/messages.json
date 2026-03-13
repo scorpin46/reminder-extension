@@ -12,10 +12,10 @@
     "message": "Отложить напоминание"
   },
   "addReminder": {
-    "message": "Создать напоминание"
+    "message": "Добавить напоминание"
   },  
-  "editingReminder": {
-    "message": "Редактирование напоминания..."
+  "editReminder": {
+    "message": "Изменить напоминание"
   },
   "reminders": {
     "message": "Напоминания"
@@ -142,6 +142,9 @@
   },
   "search": {
     "message": "Поиск"
+  },
+  "searchPlaceholder": {
+    "message": "Поиск напоминаний..."
   }
 }
 

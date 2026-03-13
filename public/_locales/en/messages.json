@@ -12,10 +12,10 @@
     "message": "Postpone the reminder"
   },
   "addReminder": {
-    "message": "Add Reminder"
+    "message": "New Reminder"
   },
-  "editingReminder": {
-    "message": "Editing a reminder..."
+  "editReminder": {
+    "message": "Edit reminder"
   },
   "reminders": {
     "message": "Reminders"
@@ -142,6 +142,9 @@
   },
   "search": {
     "message": "Search"
+  },
+  "searchPlaceholder": {
+    "message": "Search..."
   }
 }
 

@@ -1,66 +1,69 @@
 <template>
-  <div class="panel">
-    <label class="language-selector form-label w-100" v-if="isDev">
-      <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>
-      <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
-        <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
-      </select>
-    </label>
-
-    <div class="text-center">
-      <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
-<!--      todo для поддерживаемых языков chrono и microsoft добавить пример фразы с датой и временем-->
+  <div class="panel panel--editing">
+    <div class="panel__title">
+      {{ !form.input.id ? browser.i18n.getMessage('addReminder') : browser.i18n.getMessage('editReminder') }}
     </div>
-
-    <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
-      <label class="form-label w-100 reminder-title__label">
-        <span class="form-label__title">{{ recognitionService.state.streamRecordingText || browser.i18n.getMessage('reminderTitle')}}</span>
-        <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+    <div class="panel__body">
+      <label class="language-selector form-label w-100" v-if="isDev">
+        <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>
+        <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
+          <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
+        </select>
       </label>
-      <div class="w-100">
-        <button v-if="!showExtraFields" @click="showExtraFields = true">+ {{ browser.i18n.getMessage('reminderAdvanced') }}</button>
-        <div v-if="showExtraFields" ref="reminderDetailsRef">
-          <label class="form-label w-100 reminder-title__label">
-            <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
-            <textarea class="form-control w-100" v-model.trim="form.input.desc" rows="3"></textarea>
-          </label>
-          <label class="form-label w-100 reminder-title__label">
-            <span class="form-label__title">URL</span>
-            <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
-          </label>
+
+      <div class="text-center">
+        <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
+        <!--      todo для поддерживаемых языков chrono и microsoft добавить пример фразы с датой и временем-->
+      </div>
+
+      <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
+        <label class="form-label w-100 reminder-title__label">
+          <span class="form-label__title">{{ recognitionService.state.streamRecordingText || browser.i18n.getMessage('reminderTitle')}}</span>
+          <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+        </label>
+        <div class="w-100">
+          <button v-if="!showExtraFields" @click="showExtraFields = true">+ {{ browser.i18n.getMessage('reminderAdvanced') }}</button>
+          <div v-if="showExtraFields" ref="reminderDetailsRef">
+            <label class="form-label w-100 reminder-title__label">
+              <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
+              <textarea class="form-control w-100" v-model.trim="form.input.desc" rows="3"></textarea>
+            </label>
+            <label class="form-label w-100 reminder-title__label">
+              <span class="form-label__title">URL</span>
+              <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
+            </label>
+          </div>
         </div>
-      </div>
-      <br>
-      <label class="form-label w-100">
-        <span class="form-label__title">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
+        <br>
+        <label class="form-label w-100">
+          <span class="form-label__title">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
-        <InputDatetime required ref="reminderDateRef" class="form-control w-100" v-model="form.input.datetime" />
-      </label>
-      <!--        <br>-->
-      <!--        <label class="form-label w-100">-->
-      <!--            <div>{{ browser.i18n.getMessage('reminderDetails') }}</div>-->
-      <!--            <textarea class="form-control w-100" rows="2"></textarea>-->
-      <!--        </label>-->
-      <br>
-      <br>
-      <div class="reminder-buttons">
-        <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
-          <IconCheck />
-        </button>
-        <button v-if="!form.isCreating()" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
-          <IconCancel />
-        </button>
-        <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="recognitionService.state.isRecording || form.isEmpty()" title="Clear fields">
-          <IconXmark />
-        </button>
-      </div>
-    </form>
-
+          <InputDatetime required ref="reminderDateRef" class="form-control w-100" v-model="form.input.datetime" />
+        </label>
+        <!--        <br>-->
+        <!--        <label class="form-label w-100">-->
+        <!--            <div>{{ browser.i18n.getMessage('reminderDetails') }}</div>-->
+        <!--            <textarea class="form-control w-100" rows="2"></textarea>-->
+        <!--        </label>-->
+        <br>
+        <br>
+        <div class="reminder-buttons">
+          <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
+            <IconCheck />
+          </button>
+          <button v-if="!form.isCreating()" type="button" class="reminder-cancel" @click="form.reset" title="Cancel">
+            <IconCancel />
+          </button>
+          <button v-else type="button" class="reminder-reset" @click="form.reset" :disabled="recognitionService.state.isRecording || form.isEmpty()" title="Clear fields">
+            <IconXmark />
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 <script setup>
 import {computed, onMounted, onUnmounted, reactive, ref, watch, nextTick} from "vue";
-import {pick} from "es-toolkit";
 import {ReminderService} from "@/modules/reminderService.js";
 import InputDatetime from "@/components/InputDatetime.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";

@@ -140,7 +140,6 @@ export const detectLocale = () => {
     return results.find(l => l.startsWith(locale) && l.includes('-')) || locale;
 }
 
-
 export const reminderNotificationPrefix = 'reminder_';
 
 export const reminderIdToAlarmName = (reminderId: number) => {
