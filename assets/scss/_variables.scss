@@ -1,20 +1,37 @@
+//:root{
+//  --color-default: #333;
+//  //--color-primary: #ff5c21;
+//  //--color-primary: rgba(255, 92, 33, 0.8);
+//  //--color-primary: #b06b5b;
+//  //--color-primary: #fa6b11;
+//  --color-primary: rgb(158, 87, 87);
+//  //--color-secondary: #b06b5b;
+//  
+//  --color-red: #eb5757;
+//  --color-green: #67b279;
+//  --color-light: #999;
+//  --border-color: #bcbcbc;
+//
+//  --background: #fefefe;
+//  --foreground: #e7d5cf;
+//  --foreground-active: #eee4de;
+//}
 :root{
-  --color-default: #333;
-  //--color-primary: #ff5c21;
-  //--color-primary: rgba(255, 92, 33, 0.8);
-  //--color-primary: #b06b5b;
-  //--color-primary: #fa6b11;
-  --color-primary: rgb(158, 87, 87);
-  //--color-secondary: #b06b5b;
-  
-  --color-red: #eb5757;
+  --color-default: #434343;
+  --color-primary: rgb(29 93 142);
+  //--color-red: #eb5757;
+  --color-red: #db5461;
   --color-green: #67b279;
-  --color-light: #999;
-  --border-color: #bcbcbc;
+  --color-light: #a1a1a1;
+  --color-orange: #ff8500;
+  --border-color: #e4e4e4;
+  --background: #eff3f5;
+  --foreground: #c1dbed;
+  --foreground-active: #ffffff;
 
-  --background: #fefefe;
-  --foreground: #e7d5cf;
-  --foreground-active: #eee4de;
+  --transition-fn: cubic-bezier(.4, 0, .2, 1);
+
+  //#758CA3 -интересный цвет (старый от микрофона)
 }
 
 [data-theme="dark"]{

@@ -1,9 +1,12 @@
+@use './mixins' as *;
+
 html {
-  color: var(--color-input);
+  color: var(--color-default);
   //padding: 10px;
   margin: 0;
   min-width: 250px;
   //padding: 10px;
+  overflow: hidden;
   background: var(--background);
 }
 
@@ -109,14 +112,20 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 14px;
-    color: var(--color-primary);
     //color: var(--color-light);
     font-weight: 600;
-    background: var(--foreground-active);
     border-radius: 20px;
+    position: relative;
+    
+    &:before{
+      @include beforeBg;
+      background: var(--foreground-active);
+      opacity: .42;
+    }
 
     &__item {
       cursor: pointer;
+      color: var(--color-default);
       display: inline-flex;
       white-space: nowrap;
       position: relative;
@@ -129,7 +138,9 @@ body {
       transition: all .2s ease;
       line-height: 1.45;
 
-      span {
+      span,
+      &:after, 
+      {
         opacity: .6;
       }
 
@@ -148,10 +159,30 @@ body {
           padding: 3px;
           z-index: 2;
         }
+
+
+        &.--blink{
+          &:after{
+            animation: blink 1s forwards;
+            animation-iteration-count: 2;
+          }
+        }
+        
+        @keyframes blink {
+          0% {opacity: 1;}
+          25% {opacity: .5;}
+          50% {opacity: 0;}
+          75% {opacity: .5;}
+          100% {opacity: 1;}
+        }
       }
 
       &:hover {
-        span {
+        color: var(--color-primary);
+
+        span,
+        &:after, 
+        {
           opacity: 1;
         }
       }
@@ -159,7 +190,7 @@ body {
       &.--active,
       {
         pointer-events: none;
-        background: var(--background);
+        background: var(--foreground-active);
         color: var(--color-primary);
         //border: 1px solid;
 
@@ -169,7 +200,6 @@ body {
         }
 
         &[data-count]:after {
-          background: var(--mio-theme-color-surface-1);
         }
 
         span {
@@ -178,8 +208,6 @@ body {
       }
 
       &:hover {
-        background: var(--mio-theme-color-on-surface-variant-2);
-        color: var(--mio-theme-color-on-surface);
       }
     }
   }
@@ -193,11 +221,12 @@ body {
     border-radius: 100%;
     margin-left: -3px;
     position: relative;
-    opacity: .8;
+    opacity: .7;
 
     svg {
       height: 100%;
       width: 100%;
+      transition: transform .2s ease;
     }
 
     &:hover,
@@ -206,6 +235,12 @@ body {
       opacity: 1;
       background: var(--background);
       color: var(--color-primary);
+    }
+    
+    &.--active{
+      svg{
+        transform: scale(1.15);
+      }
     }
 
     .icon-xmark {
@@ -225,8 +260,9 @@ body {
 }
 
 main {
-  padding: 5px 10px;
+  padding: 0 10px;
   flex: 1 1 auto;
+  overflow: auto;
   //transition: backdrop-filter 200ms linear;
 
   @at-root :has(.panel) #{&} {
@@ -362,7 +398,6 @@ main {
     width: 100%;
     border-radius: 25px;
     padding: 0 35px;
-    font-size: 14px;
   }
 
   &__date-picker {
@@ -381,16 +416,27 @@ main {
   font-size: 14px;
   font-weight: 600;
   background: #ede4dd;
-  padding: 5px 10px;
+  padding: 7px 10px;
   user-select: none;
+  
+  &:before{
+    @include beforeBg;
+    opacity: .65;
+    background: var(--foreground);
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
 
   &__settings-btn {
     display: flex;
     align-items: center;
     width: max-content;
     gap: 4px;
-    color: var(--color-input);
-    opacity: .8;
+    color: var(--color-default);
+    opacity: .7;
     
     svg {
       height: 26px;
@@ -399,7 +445,9 @@ main {
     }
     
     &:hover{
+      color: var(--color-primary);
       opacity: 1;
+      
       svg{
         transform: rotate(90deg);
       }

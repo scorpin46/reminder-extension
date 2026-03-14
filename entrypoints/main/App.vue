@@ -58,7 +58,7 @@
         >
           <div class="reminders-item__title notranslate">{{ item.title }}</div>
           <div class="reminders-item__time-box">
-            <div class="reminders-item__time">{{ item.localTime }}</div>
+            <div class="reminders-item__time"><span>{{ item.localTime }}</span></div>
 
             <div class="reminders-item__day">
               <IconTimer width="14" height="14"/>
@@ -71,10 +71,10 @@
             <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
               <IconEdit/>
             </span>
-            <span role="button" v-if="!item.completed" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+            <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
               <IconChecks/>
             </span>
-            <span role="button" v-if="item.completed" class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.delete(item)">
+            <span role="button" v-else class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.delete(item)">
               <IconXmark/>
             </span>
           </div>
@@ -147,7 +147,7 @@ const filterQuery = ref('');
 const expired = ref([]);
 const soon = ref([]);
 const now = ref();
-const SOON_MINUTES = 10;
+const SOON_MINUTES = 15;
 
 const reminders = computed(() => reminderService.repository.state[openedTab.value] || []);
 const daysGroupsReminders = computed(() => {
@@ -241,6 +241,17 @@ useIntervalFn(() => {
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
+  
+  if (value.length === oldValue.length + 1) {
+    const menuItem = document.getElementById('menu-item-actual');
+    if (menuItem) {
+      menuItem.classList.add('--blink');
+      
+      setTimeout(() => {
+        menuItem.classList.remove('--blink');
+      }, 3000)
+    }
+  }
 })
 
 watch(() => searchVisible.value, (value, oldValue) => {

@@ -17,18 +17,18 @@
       </div>
 
       <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
-        <label class="form-label w-100 reminder-title__label">
-          <span class="form-label__title">{{ recognitionService.state.streamRecordingText || browser.i18n.getMessage('reminderTitle')}}</span>
-          <textarea required class="form-control reminder-title__input" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+        <label class="form-label w-100 reminder-title">
+          <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
+          <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
         </label>
         <div class="w-100">
           <button v-if="!showExtraFields" @click="showExtraFields = true">+ {{ browser.i18n.getMessage('reminderAdvanced') }}</button>
           <div v-if="showExtraFields" ref="reminderDetailsRef">
-            <label class="form-label w-100 reminder-title__label">
+            <label class="form-label w-100">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
-              <textarea class="form-control w-100" v-model.trim="form.input.desc" rows="3"></textarea>
+              <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3"></textarea>
             </label>
-            <label class="form-label w-100 reminder-title__label">
+            <label class="form-label w-100">
               <span class="form-label__title">URL</span>
               <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
             </label>
@@ -161,7 +161,6 @@ const textDatetime = computed(() => {
 });
 
 
-
 watch(() => showExtraFields.value, async (value) => {
   await nextTick();
   
@@ -194,6 +193,12 @@ onMounted(async () => {
 
   watch(() => recognitionLocale.value, (value) => {
     recognitionService.changeLocale(value);
+  });
+  
+  watch(() => recognitionService.state.streamRecordingText, (value) => {
+    if (value){
+      form.input.title = value;
+    }
   });
 
   watch(() => recognitionService.state.parsedData, (value, oldValue) => {

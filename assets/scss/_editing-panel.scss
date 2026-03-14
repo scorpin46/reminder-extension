@@ -6,7 +6,8 @@
   justify-content: center;
   align-items: center;
   aspect-ratio: 1;
-  background: #758CA3;
+  //background: #758CA3;
+  background: var(--color-primary);
   transition: transform .25s ease;
   color: #fff;
   max-height: 100%;
@@ -86,23 +87,21 @@
 }
 
 .reminder-title{
-  &__label{
-    display: flex;
-    flex-wrap: wrap;
-    position: relative;
-    flex-direction: column;
-    
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  flex-direction: column;
+
+  .form-label__title{
     @at-root .--recording #{&}{
       &:after {
-        position: absolute;
-        bottom: 20px;
-        color: var(--color-input);
+        color: var(--color-default);
         opacity: .8;
         line-height: 0;
         content: '.';
         left: 10px;
         z-index: 1;
-        font-size: 25px;
+        font-size: 16px;
 
         animation: typing 1.2s ease-out infinite;
       }
@@ -113,7 +112,27 @@
     }
   }
 
-  &__input{
+  //@at-root .--recording #{&}{
+  //  &:after {
+  //    position: absolute;
+  //    bottom: 20px;
+  //    color: var(--color-default);
+  //    opacity: .8;
+  //    line-height: 0;
+  //    content: '.';
+  //    left: 10px;
+  //    z-index: 1;
+  //    font-size: 25px;
+  //
+  //    animation: typing 1.2s ease-out infinite;
+  //  }
+  //
+  //  svg {
+  //    fill: var(--color-red);
+  //  }
+  //}
+
+  textarea{
     field-sizing: content;
     resize: vertical;
     //flex: 0 1 calc(100% - 30px);
@@ -121,34 +140,11 @@
     flex: 1 1 auto;
     padding-right: 30px;
   }
+}
 
-  &__record {
-    cursor: pointer;
-    flex: 0 0 max-content;
-    margin-left: 5px;
-    margin-top: 7px;
-    color: #758CA3;
-    //color: #ff9f9f;
-    position: absolute;
-    z-index: 1;
-    right: 12px;
-    top: 19px;
-
-    transition: transform .25s ease;
-
-
-    @at-root .--recording #{&},
-    &:hover,
-    {
-      color: var(--color-red);
-      transform: scale(1.1);
-    }
-
-    svg {
-      height: 19px;
-      aspect-ratio: 1;
-    }
-  }
+.reminder-desc{
+  field-sizing: content;
+  resize: vertical;
 }
 
 .reminder-buttons{

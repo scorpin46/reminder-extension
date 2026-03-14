@@ -5,7 +5,7 @@
   border: 0;
 }
 
-button,input,optgroup,select,textarea {
+button, input, optgroup, select, textarea {
   font-family: inherit;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
@@ -18,8 +18,13 @@ button,input,optgroup,select,textarea {
   padding: 0;
 }
 
-input,textarea{
+input, textarea, select {
   font-size: 14px;
+  
+  &:focus:invalid{
+    box-shadow: none !important;
+    border-color: var(--color-red) !important;
+  }
 }
 
 select {
@@ -30,13 +35,13 @@ select {
   font-size: 14px;
   line-height: 1.1;
 
-  &:focus{
+  &:focus {
     outline: 0;
     box-shadow: 0 0 0 3px var(--foreground);
   }
 }
 
-button{
+button {
   cursor: pointer;
 
   &:disabled {
@@ -45,19 +50,19 @@ button{
   }
 }
 
-.w-100{
+.w-100 {
   width: 100%;
 }
 
-.text-center{
+.text-center {
   text-align: center;
 }
 
-.color-red{
+.color-red {
   color: var(--color-red);
 }
 
-.color-green{
+.color-green {
   color: var(--color-green);
 }
 
@@ -161,7 +166,7 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   color: var(--color-red);
   border: 1px solid currentColor;
 
-  &.filed{
+  &.filed {
     background: var(--color-red);
     color: #fff;
     border: 1px solid var(--color-red);
@@ -171,17 +176,17 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
 .form-control {
   display: inline-block;
   padding: 3px 10px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
-  color: var(--color-input);
+  color: var(--color-default);
   background-color: #fff;
   border: 1px solid var(--border-color);
   //appearance: none;
   border-radius: 5px;
   min-height: 30px;
 
-  &:focus{
+  &:focus {
     outline: 0;
     box-shadow: 0 0 0 3px var(--foreground);
   }
@@ -194,28 +199,27 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   color: #666;
   line-height: 1;
 
-  &:has(:required){
-    span{
-      &:after{
-        content: "*";
-        color: var(--color-red);
-        //font-size: 1.2em;
-        line-height: 0;
-        padding-left: 2px;
-      }
+  &:has(:required) &__title {
+    &:after {
+      content: "*";
+      color: var(--color-red);
+      //font-size: 1.2em;
+      line-height: 0;
+      padding-left: 2px;
     }
   }
-  span{
+
+  &__title {
     user-select: none;
   }
 
-  input,textarea,select{
+  input, textarea, select {
     margin-top: 5px;
   }
 
 }
 
-.Vue-Toastification__toast{
+.Vue-Toastification__toast {
   padding-top: 0;
   padding-bottom: 0;
 

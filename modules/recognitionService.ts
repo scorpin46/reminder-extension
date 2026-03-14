@@ -187,7 +187,8 @@ export class RecognitionService {
 
     stop() {
         this.#recognition?.stop();
-        this.#recognition?.abort()
+        this.#recognition?.abort();
+        this.state.isRecording = false;
     }
 
     isSupported() {

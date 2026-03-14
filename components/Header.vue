@@ -17,6 +17,7 @@
 
     <div class="header__menu menu">
       <button
+          id="menu-item-actual"
           :class="{'menu__item': true, '--active': openedTab === 'active'}"
           :data-count="reminderService.repository.state.active.length"
           @click="openedTab = 'active'"

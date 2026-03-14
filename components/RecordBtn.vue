@@ -32,6 +32,9 @@ const recordClickHandler = () => {
 
             if (err.message.includes('Permission denied')){
               toast.error(browser.i18n.getMessage('noMicrophoneAccess'));
+              recognitionService.stop();
+              //todo добавить ссылку на настройки, когда будет постоянный ID: chrome://settings/content/siteDetails?site=chrome-extension://oicbdedefebiabfolmlphmddhflnillb
+              //todo хотя в яндексе по другому
             } else if (err.message.includes('recognition has already started')) {
               recognitionService.start();
             }
