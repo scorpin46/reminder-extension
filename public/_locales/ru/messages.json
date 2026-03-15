@@ -95,6 +95,15 @@
       }
     }
   },
+  "successAuth": {
+    "message": "Вы вошли как $EMAIL$!",
+    "placeholders": {
+      "email": {
+        "content": "$1",
+        "example": "example@gmail.com"
+      }
+    }
+  },
   "signIn": {
     "message": "Авторизоваться"
   },

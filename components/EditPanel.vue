@@ -1,7 +1,10 @@
 <template>
   <div class="panel panel--editing">
     <div class="panel__title">
-      {{ form.isCreating() ? browser.i18n.getMessage('addReminder') : browser.i18n.getMessage('editReminder') }}
+      <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminder')}}</template>
+      <template v-else>
+        {{ browser.i18n.getMessage('editReminder')}}
+      </template>
     </div>
     <div class="panel__body">
    
@@ -25,11 +28,11 @@
       <form :class="{'--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
         <div class="main-fields">
           <div>
-            <label class="form-label reminder-title">
+            <label class="form-label mb-15 reminder-title">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
               <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
             </label>
-            <label class="form-label">
+            <label class="form-label mb-15">
               <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
               <InputDatetime required class="form-control w-100" v-model="form.input.datetime" />
@@ -46,13 +49,25 @@
             <IconDown />
           </button>
           <div v-show="showExtraFields" ref="reminderDetailsRef">
-            <label class="form-label">
+            <label class="form-label mb-15">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
               <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3"></textarea>
             </label>
-            <label class="form-label">
+            <label class="form-label mb-15">
               <span class="form-label__title">URL</span>
               <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
+            </label>
+            <label class="form-check mb-15">
+<!--              todo перевод-->
+              <span>Синхронизировать с Google Calendar</span>
+              <input 
+                  type="checkbox"
+                  v-model="form.input.googleSync"
+                  :true-value="1"
+                  :false-value="0"
+                  class="form-control w-100" 
+                  @click="reminderGoogleSyncClickHandler"
+              >
             </label>
           </div>
         </div>
@@ -77,13 +92,12 @@ import {ReminderService} from "@/modules/reminderService.js";
 import InputDatetime from "@/components/InputDatetime.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
-import IconCancel from "@/components/icons/IconRevert.vue";
 import {useToast} from "vue-toastification";
 import RecordBtn from "@/components/RecordBtn.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
-import IconPlus from "@/components/icons/IconPlus.vue";
 import IconDown from "@/components/icons/IconDown.vue";
+import {sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 
 const props = defineProps({
   backToPanel: {
@@ -96,6 +110,9 @@ const props = defineProps({
   autostartRecording: {
     type: Boolean,
     default: false
+  },
+  isAuthenticated: {
+    type: Boolean,
   },
 });
 
@@ -116,6 +133,7 @@ const formInputInitData = {
   url: null,
   datetime: null,
   desc: null,
+  googleSync: null,
 };
 
 const form = reactive({
@@ -169,6 +187,16 @@ const textDatetime = computed(() => {
 });
 
 
+const reminderGoogleSyncClickHandler = (event) => {
+  if (!props.isAuthenticated) {
+    sendGoogleLoginMessage(() => {
+      event.target.checked = true;
+    });
+
+    return false;
+  }
+}
+
 watch(() => showExtraFields.value, async (value) => {
   await nextTick();
   
@@ -176,15 +204,19 @@ watch(() => showExtraFields.value, async (value) => {
     const fields = reminderDetailsRef.value.querySelectorAll('input,textarea');
     let focusingEl;
 
-    fields.forEach(field => {
-      if (field.value?.length) {
-        focusingEl = field;
+    fields.forEach(el => {
+      if (el.value?.length && el.type !== 'checkbox') {
+        focusingEl = el;
         return false;
       }
     })
 
     focusingEl ??= fields[0];
     focusingEl?.focus();
+
+    if (form.isCreating() && props.isAuthenticated) {
+      form.input.googleSync = 1;
+    }
   }
 })
 
@@ -226,6 +258,11 @@ onMounted(async () => {
     showExtraFields.value = true
   }
 })
+
+
+watch(() => form, (value) => {
+  console.log(value.input.googleSync);
+}, {immediate: true, deep: true});
 
 onUnmounted(() => {
   recognitionService.stop();

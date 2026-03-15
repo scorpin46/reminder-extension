@@ -47,7 +47,7 @@ export default defineBackground({
             try {
                 const lastWindow = await browser.windows.getLastFocused();
 
-                const width = 500;
+                const width = 450;
                 const CHROME_UI_OFFSET = 95;
                 const height = lastWindow.height! - CHROME_UI_OFFSET;
                 const left = lastWindow.left! + lastWindow.width! - width;
@@ -236,6 +236,8 @@ export default defineBackground({
                     if (isValidRequest) {
                         console.log('📨 Получено сообщение:', request.action, request);
                     }
+                    
+                    let success = false;
 
                     switch (request.action) {
                         case 'SAR__OPEN_FROM_FAB':
@@ -266,23 +268,30 @@ export default defineBackground({
 
                         case 'SAR__GOOGLE_UPDATE_EVENT':
                             const reminder = await ReminderService.instance().repository.getById(request.reminderId);
-
-                            if (reminder) {
+                            
+                            if (reminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().updateEventByReminder(reminder);
+                                success = true;
                             }
-                            return {success: true};
+                            
+                            return {success: success};
 
                         case 'SAR__GOOGLE_DELETE_EVENT':
-                            console.log('Удаление события:', request.googleEventId);
-                            await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
-                            return {success: true};
+                            if (await GoogleCalendarService.instance().checkUser()){
+                                await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
+                                success = true;   
+                            }
+                          
+                            return {success: success};
 
                         case 'SAR__GOOGLE_CREATE_EVENT':
                             const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
-                            if (newReminder) {
+
+                            if (newReminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().createEventByReminder(newReminder);
+                                success = true;
                             }
-                            return {success: true};
+                            return {success: success};
 
                         default:
                             if (isValidRequest) {

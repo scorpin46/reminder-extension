@@ -1,7 +1,6 @@
 import {browser} from "wxt/browser";
 import {
     getBroadcastErrorStore,
-    getStoredAllowGoogleSync,
     getStoredGoogleAuthAlertIdStore,
     getStoredGoogleIsAuthenticated,
     getStoredGoogleLastSyncTs,
@@ -26,7 +25,6 @@ export class GoogleCalendarService {
     readonly #defaultEndTimeAppendMs: number = 1000;
 
     readonly #googleUserStore: ReturnType<typeof getStoredGoogleUser>;
-    readonly #allowGoogleSyncStore: ReturnType<typeof getStoredAllowGoogleSync>;
     readonly #googleLastSyncTsStore: ReturnType<typeof getStoredGoogleLastSyncTs>;
     readonly #googleIsAuthenticatedStore: ReturnType<typeof getStoredGoogleIsAuthenticated>;
     readonly #googleAuthAlertIdStore: ReturnType<typeof getStoredGoogleAuthAlertIdStore>;
@@ -36,14 +34,13 @@ export class GoogleCalendarService {
     #lastActiveToken?: string | null;
     #axiosInstance: AxiosInstance;
 
-    currentUser?: GoogleUser | null = null;
     #reminderService: ReminderService;
+    currentUser?: GoogleUser | null = null;
 
     static syncAlarmName?: string = 'syncUpdates';
 
     private constructor() {
         this.#googleUserStore = getStoredGoogleUser();
-        this.#allowGoogleSyncStore = getStoredAllowGoogleSync();
         this.#googleLastSyncTsStore = getStoredGoogleLastSyncTs();
         this.#googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
         this.#googleAuthAlertIdStore = getStoredGoogleAuthAlertIdStore();
@@ -171,6 +168,7 @@ export class GoogleCalendarService {
             }
 
             await this.#googleUserStore.setValue(userInfo);
+            await this.#googleIsAuthenticatedStore.setValue(true);
 
             console.log(`✅ Аккаунт закреплен: ${userInfo.email}`);
             await this.run();
@@ -231,8 +229,6 @@ export class GoogleCalendarService {
 
     async createEvent(summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
-            if (!await this.syncAllowed()) return
-
             let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
             const event = {
@@ -274,7 +270,7 @@ export class GoogleCalendarService {
 
     async updateEvent(eventId: string, summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
-            if (!eventId || !await this.syncAllowed()) return
+            if (!eventId) return
 
             let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
@@ -289,9 +285,17 @@ export class GoogleCalendarService {
                     timeZone: this.timeZone
                 },
                 description: description,
-                //тут настройки видимости перебивать не буду (вдруг юзер сам поменял для удобства)
-                // transparency: 'transparent',
-                // visibility: 'private',
+                transparency: 'transparent',
+                visibility: 'private',
+                extendedProperties: {
+                    private: {
+                        appName: this.#appNameForCalendar
+                    }
+                },
+                reminders: {
+                    useDefault: false,
+                    overrides: [{method: 'popup', minutes: 0}]
+                }
             };
 
             const response = await this.#axiosInstance.put(
@@ -339,8 +343,6 @@ export class GoogleCalendarService {
             return;
         }
 
-        if (!await this.syncAllowed()) return;
-
         if (reminder.googleSync === 0 || !reminder.googleEventId) return;
 
         try {
@@ -364,11 +366,7 @@ export class GoogleCalendarService {
 
     async createEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
         try {
-            if (!reminder || !await this.syncAllowed()) {
-                return;
-            }
-
-            if (reminder.googleSync === 0) {
+            if (!reminder || reminder.googleSync === 0) {
                 return;
             }
 
@@ -392,7 +390,7 @@ export class GoogleCalendarService {
     }
 
     async deleteEvent(eventId?: string): Promise<void> {
-        if (!eventId || !await this.syncAllowed()) return;
+        if (!eventId) return;
 
         try {
             await this.#axiosInstance.delete(
@@ -406,12 +404,12 @@ export class GoogleCalendarService {
 
     async #syncUpdates(): Promise<void> {
         console.log(`syncUpdates checking`);
+        
+        if (!await this.checkUser()) {
+            return
+        }
 
         try {
-            if (!await this.syncAllowed() || !await this.checkUser()) {
-                return
-            }
-
             console.log('syncUpdates running...');
 
             const events = await this.getEvents();
@@ -458,7 +456,7 @@ export class GoogleCalendarService {
             }
 
             for (let reminderItem of updating) {
-                await this.createEventByReminder(reminderItem)
+                await this.updateEventByReminder(reminderItem)
             }
 
             for (let eventId of deletingEvents) {
@@ -539,18 +537,8 @@ export class GoogleCalendarService {
         return false;
     }
 
-    async syncAllowed() {
-        const syncAllow = await this.#allowGoogleSyncStore.getValue();
-
-        if (!syncAllow || !this.currentUser) {
-            return false;
-        }
-
-        return true;
-    }
-
     async importFromGoogle() {
-        if (!await this.syncAllowed() || !await this.checkUser()) {
+        if (!await this.checkUser()) {
             return
         }
 

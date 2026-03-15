@@ -1,9 +1,6 @@
 import { localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale} from "./utils/helpers";
-import {reactive} from "vue";
 import {Reminder, ReminderRepository} from "./reminderRepository.js";
-import {RecognitionService} from "./recognitionService.js";
 import {browser} from 'wxt/browser';
-import {getStoredAllowGoogleSync} from "./utils/storage";
 
 export class ReminderService {
     readonly repository: ReminderRepository;
@@ -61,13 +58,18 @@ export class ReminderService {
             await browser.alarms.create(reminderIdToAlarmName(id), {when: +reminderParams.datetime});
         }
         
-        const allowSync = await getStoredAllowGoogleSync().getValue();
-
-        if (shouldSendMessage && allowSync) {
-            browser.runtime.sendMessage({ 
-                action : isUpdated ? 'SAR__GOOGLE_UPDATE_EVENT' : 'SAR__GOOGLE_CREATE_EVENT',
-                reminderId: id
-            })
+        if (shouldSendMessage) {
+            if (reminderParams.googleSync === 0){
+                browser.runtime.sendMessage({
+                    action : 'SAR__GOOGLE_DELETE_EVENT',
+                    googleEventId: reminderParams.googleEventId
+                })
+            } else {
+                browser.runtime.sendMessage({
+                    action : isUpdated ? 'SAR__GOOGLE_UPDATE_EVENT' : 'SAR__GOOGLE_CREATE_EVENT',
+                    reminderId: id
+                })
+            }
         }
 
         return id;

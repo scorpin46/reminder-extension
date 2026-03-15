@@ -1,10 +1,10 @@
 <template>
   <Header
-    v-model:searchVisible="searchVisible"
-    v-model:openedTab="openedTab"
-    v-model:editingPanelVisible="editingPanelVisible"
-    :hasExpired="!!expired.length"
-    @openCreatePanel="showEditPanel(null)"
+      v-model:searchVisible="searchVisible"
+      v-model:openedTab="openedTab"
+      v-model:editingPanelVisible="editingPanelVisible"
+      :hasExpired="!!expired.length"
+      @openCreatePanel="showEditPanel(null)"
   />
   <Search
       :class="{'--active': searchVisible}"
@@ -25,25 +25,25 @@
         <button type="button" @click="resetSearch">{{ browser.i18n.getMessage('reset') }}</button>
       </div>
     </div>
-    
+
     <div v-else-if="openedTab === 'active' && !reminderService.repository.state.active.length">
       <!--      todo Добавить перевод и текст стилизовать -->
-      Иконка   <br>
+      Иконка <br>
       Нет активных напоминаний
 
       Создать напоминание
     </div>
-    
+
     <div v-else-if="openedTab === 'completed' && !reminderService.repository.state.completed.length">
       <!--      todo Добавить перевод и текст стилизовать -->
-      Иконка   <br>
+      Иконка <br>
       Нет прошедших напоминаний
       Здесь будут отображаться выполненные напоминания
-      
+
       Создать напоминание
     </div>
-    
-    <div class="reminders" >
+
+    <div class="reminders">
       <div v-for="(group, dateString) in daysGroupsReminders" :key="dateString">
         <div class="reminders-day">
           <template v-if="dateString !== 'expired'">
@@ -86,9 +86,9 @@
             <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
               <IconChecks/>
             </span>
-            <span v-else role="button" 
-                  class="reminders-item__delete" 
-                  :title="browser.i18n.getMessage('delete')" 
+            <span v-else role="button"
+                  class="reminders-item__delete"
+                  :title="browser.i18n.getMessage('delete')"
                   @click.stop="deleteItem(item)"
             >
               <IconTrash/>
@@ -98,15 +98,17 @@
       </div>
     </div>
   </main>
-  
+
   <EditPanel
       v-if="editingPanelVisible"
       :editingInitialFormData="editingInitialFormData"
+      :isAuthenticated="isAuthenticated"
       @close="closeEditPanel"
   />
-  
-  <SettingsPanel 
+
+  <SettingsPanel
       v-if="settingsPanelVisible"
+      :isAuthenticated="isAuthenticated"
       @close="settingsPanelVisible = false"
   />
 
@@ -114,6 +116,19 @@
     <button class="footer__settings-btn" @click="settingsPanelVisible = true">
       <IconSettings/>
       <span>{{ browser.i18n.getMessage('settings') }}</span>
+    </button>
+    
+    <button
+        v-if="!isAuthenticated"
+        class="footer__google-btn"
+        @click="sendGoogleLoginMessage" :title="/*todo перевод*/''"
+    >
+      <IconGoogle/>
+      <!--      todo перевод-->
+      Sign in with Google
+    </button>
+    <button v-else @click="settingsPanelVisible = true">
+      Google Sync is active  <!--      todo перевод-->
     </button>
   </footer>
 
@@ -127,8 +142,7 @@ import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 import {useToast} from "vue-toastification";
-import {getBroadcastErrorStore} from "@/modules/utils/storage.ts";
-import IconXmark from "@/components/icons/IconXmark.vue";
+import {getBroadcastErrorStore, getStoredGoogleIsAuthenticated} from "@/modules/utils/storage.ts";
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
@@ -139,6 +153,8 @@ import Header from "@/components/Header.vue";
 import Search from "@/components/Search.vue";
 import {max, min} from "es-toolkit/compat";
 import IconTrash from "@/components/icons/IconTrash.vue";
+import IconGoogle from "@/components/icons/IconGoogle.vue";
+import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -157,6 +173,27 @@ const recognitionService = RecognitionService.instance();
 const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
+const isAuthenticated = ref(false);
+
+const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+
+googleIsAuthenticatedStore.getValue().then(value => {
+  isAuthenticated.value = value
+});
+
+googleIsAuthenticatedStore.watch((newValue) => {
+  isAuthenticated.value = newValue;
+
+  if (!newValue) {
+    sendGoogleCheckStatusMessage(response => {
+      isAuthenticated.value = !!response.authenticated;
+
+      if (!response.authenticated && response.message) {
+        toast.error(response.message, {timeout: 8000});
+      }
+    })
+  }
+});
 
 const dateAdapter = useDate()
 const toast = useToast();
@@ -170,17 +207,17 @@ const reminders = computed(() => reminderService.repository.state[openedTab.valu
 const daysGroupsReminders = computed(() => {
   console.log(reminders.value.length);
   const groups = {};
-  
+
   reminders.value.forEach((item) => {
     let groupKey = item.datetime.toLocaleDateString(reminderService.regionLocale);
 
-    if (filterQuery.value && ! `${item.title} ${item.desc}`.includes(filterQuery.value) && groupKey !== filterQuery.value){
+    if (filterQuery.value && !`${item.title} ${item.desc}`.includes(filterQuery.value) && groupKey !== filterQuery.value) {
       return true;
     }
 
     let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true)
 
-    if (expired.value.includes(item.id)){
+    if (expired.value.includes(item.id)) {
       groupKey = 'expired';
       label = browser.i18n.getMessage('missed')
     }
@@ -203,7 +240,7 @@ const daysGroupsReminders = computed(() => {
 });
 
 const showEditPanel = async (reminder = null) => {
-  if (reminder){
+  if (reminder) {
     editingInitialFormData = isFinite(reminder)
         ? await reminderService.repository.getById(reminder.id) || {}
         : reminder
@@ -216,13 +253,13 @@ const showEditPanel = async (reminder = null) => {
 
 const closeEditPanel = async (data) => {
   editingPanelVisible.value = false;
-  
-  if (data?.savedId){
+
+  if (data?.savedId) {
     await nextTick();
     const reminderEl = document.getElementById('reminder-' + data.savedId);
 
     reminderEl.classList.add('--saved');
-    
+
     setTimeout(() => {
       reminderEl.classList.remove('--saved');
     }, 1500)
@@ -234,9 +271,9 @@ const actualize = () => {
     return;
   }
   console.log('actualize');
-  
+
   now.value = new Date();
-  
+
   if (openedTab.value === 'active') {
     console.log('expired and soon checking');
 
@@ -260,7 +297,7 @@ const complete = (item) => {
 
 const deleteItem = (item) => {
   document.getElementById('reminder-' + item.id)?.classList.add('--moving');
-  
+
   setTimeout(() => {
     reminderService.delete(item);
   }, 300)
@@ -279,25 +316,25 @@ const minFilterDate = computed(() => min(allowedDates.value));
 const maxFilterDate = computed(() => max(allowedDates.value));
 
 useIntervalFn(() => {
-    actualize();
+  actualize();
 }, 10000, {
   immediateCallback: true
 })
 
 watch(() => reminderService.repository.state.isLoaded, (value) => {
-  if (value && ! reminderService.repository.state.active.length && ! reminderService.repository.state.completed.length){
+  if (value && !reminderService.repository.state.active.length && !reminderService.repository.state.completed.length) {
     showEditPanel(null);
   }
 })
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
-  
+
   if (value.length === oldValue.length + 1) {
     const menuItem = document.getElementById('menu-item-actual');
     if (menuItem) {
       menuItem.classList.add('--blink');
-      
+
       setTimeout(() => {
         menuItem.classList.remove('--blink');
       }, 3000)
@@ -306,7 +343,7 @@ watch(() => reminderService.repository.state.active, (value, oldValue) => {
 })
 
 watch(() => searchVisible.value, (value, oldValue) => {
-  if (!value){
+  if (!value) {
     resetSearch()
   }
 })
@@ -316,7 +353,7 @@ watch(() => recognitionService.state.isRecording, (value, oldValue) => {
 })
 
 watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVisible], [settingsVisibleOld, editingVisibleOld]) => {
-  if (!settingsVisible && ! editingVisible){
+  if (!settingsVisible && !editingVisible) {
     actualize();
   }
 })
@@ -339,7 +376,7 @@ onMounted(() => {
   }
 
   getBroadcastErrorStore().watch((value, oldValue) => {
-    if (value && value !== oldValue){
+    if (value && value !== oldValue) {
       toast.error(value)
     }
   })

@@ -10,6 +10,7 @@
     </button>
     
     <div class="panel__title">
+      <IconSettings />
       {{ browser.i18n.getMessage('settings') }}
     </div>
     <div class="panel__body">
@@ -17,7 +18,7 @@
       <section>
         <header>Гугл-авторизация</header>
         <div>
-          <button @click="runGoogleAuth" v-if="!googleIsAuthenticatedEmail">Авторизоваться в гугл</button>
+          <button @click="sendGoogleLoginMessage()" v-if="!googleIsAuthenticatedEmail">Авторизоваться в гугл</button>
           <span v-else>авторизован , email: {{ googleIsAuthenticatedEmail}}</span>
         </div>
       </section>
@@ -25,25 +26,25 @@
       <section>
         <header>Прочие</header>
         <div>
-          <div>
-            <label class="switch">
+          <div class="mb-15">
+            <label class="form-check">
               <span>Автоматически включать(клик) голосовую запись при добавлении</span>
               <input type="checkbox">
             </label>
           </div>
 
-          <div>
+          <div class="mb-15">
             <div>Вкладка по умолчанию (default tab)</div>
-            <label class="switch">
+            <label class="form-check">
               <span>Add Reminder</span>
               <input type="checkbox">
               <span>Reminders</span>
             </label>
           </div>
 
-          <div>
+          <div class="mb-15">
             <!-- todo на галочка очистки (и теоретиечского удаления должна быть активна)-->
-            <label class="switch">
+            <label class="form-check">
               <span>Режим автосохранения изменений (без подтверждения)</span>
               <input type="checkbox">
             </label>
@@ -57,62 +58,28 @@
 import IconXmark from "@/components/icons/IconXmark.vue";
 import {useToast} from "vue-toastification";
 import {onMounted, ref} from "vue";
-import {
-  getStoredAllowGoogleSync,
-  getStoredGoogleIsAuthenticated,
-  getStoredGoogleUser
-} from "@/modules/utils/storage.ts";
 import {browser} from 'wxt/browser';
-import IconPlus from "@/components/icons/IconPlus.vue";
+import IconSettings from "@/components/icons/IconSettings.vue";
+import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 
 const props = defineProps({
+  isAuthenticated: {
+    type: Boolean,
+  },
 });
 
 const emit = defineEmits(["close"]);
 const toast = useToast();
-const allowGoogleSyncStore = getStoredAllowGoogleSync();
 const googleIsAuthenticatedEmail = ref();
 
-const allowGoogleAuth = ref();
-
-allowGoogleSyncStore.watch((newValue, oldValue) => {
-  allowGoogleAuth.value = newValue;
-})
-
-
-const runGoogleAuth = () => {
-  browser.runtime.sendMessage({ action: 'SAR__GOOGLE_LOGIN' }, (response) => {
-    if (response.success) {
-      allowGoogleSyncStore.setValue(true);
-      toast.success(`Вы вошли как: ${response.user.email}`);      //todo перевод
-
-      googleIsAuthenticatedEmail.value = response.user.email;
-    } else {
-      toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 8000});
-    }
-  });
-}
-
-const checkGoogleAuth = () => {
-  if (allowGoogleAuth.value) {
-    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_CHECK_STATUS' }, (response) => {
-      console.log(response);
-      googleIsAuthenticatedEmail.value = response.authenticated ? response.user.email : '';
-      
-      if (response.message){
-        toast.error(response.message, {timeout: 8000});
-      }
-    });   
-  }
-}
-
 onMounted(async () => {
-  allowGoogleAuth.value = await allowGoogleSyncStore.getValue();
-  checkGoogleAuth()
-})
-
-getStoredGoogleIsAuthenticated().watch((newValue) => {
-  checkGoogleAuth();
+  sendGoogleCheckStatusMessage(response => {
+    googleIsAuthenticatedEmail.value = response.user.email;
+    
+    if (!response.authenticated && response.message){
+      toast.error(response.message, {timeout: 8000});
+    }
+  })
 })
 
 </script>

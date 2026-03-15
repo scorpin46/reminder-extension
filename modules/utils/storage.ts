@@ -21,12 +21,6 @@ export function getStoredGoogleUser() {
     });
 }
 
-export function getStoredAllowGoogleSync() {
-    return storage.defineItem<boolean>('local:allowGoogleSync', {
-        fallback: false
-    });
-}
-
 export function getStoredGoogleIsAuthenticated() {
     return storage.defineItem<boolean>('session:googleIsAuthenticated', {
         fallback: false

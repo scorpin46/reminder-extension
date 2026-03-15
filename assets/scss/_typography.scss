@@ -25,6 +25,7 @@ button, input, optgroup, select, textarea {
 
 input, textarea, select {
   font-size: 14px;
+  user-select: auto;
   
   &:focus:invalid{
     box-shadow: none !important;
@@ -41,11 +42,15 @@ select {
   border: 1px solid #ddd;
   font-size: 14px;
   line-height: 1.1;
+}
 
-  &:focus {
-    outline: 0;
-    box-shadow: 0 0 0 3px var(--foreground);
-  }
+input[type=checkbox]{
+  cursor: pointer;
+  height: 16px;
+  width: 16px;
+  flex: 0 0 16px;
+  border-radius: 4px;
+  accent-color: var(--color-primary);
 }
 
 button {
@@ -195,6 +200,10 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   &:focus {
     outline: 0;
     box-shadow: 0 0 0 3px var(--foreground);
+    
+    &[type=checkbox], &[type=radio]{
+      box-shadow: 0 0 0 1px var(--foreground);
+    }
   }
 
   &[type="datetime-local"]{
@@ -210,7 +219,6 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   line-height: 1;
   font-weight: 500;
   width: 100%;
-  margin-bottom: 15px;
 
   &:has(:required) &__title {
     &:after {
@@ -232,6 +240,21 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
     margin-top: 5px;
   }
 
+}
+
+.form-check{
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  
+  &:has(input:disabled){
+    cursor: not-allowed;
+  }
+  input{
+    cursor: inherit;
+  }
 }
 
 .Vue-Toastification__toast {

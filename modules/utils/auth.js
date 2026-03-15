@@ -1,0 +1,25 @@
+import {browser} from "wxt/browser";
+import {useToast} from "vue-toastification";
+const toast = useToast();
+
+export const sendGoogleLoginMessage = (callback) => {
+    browser.runtime.sendMessage({ action: 'SAR__GOOGLE_LOGIN' }, (response) => {
+        if (!response.success) {
+            toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 8000});
+        } else if (!response.silent){
+            toast.success(browser.i18n.getMessage('successAuth', [response.user.email]));
+        }
+
+        if (callback && typeof callback === 'function') {
+            callback(response)
+        }
+    });
+}
+
+export const sendGoogleCheckStatusMessage = (callback) => {
+    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_CHECK_STATUS' }, (response) => {
+        if (callback && typeof callback === 'function') {
+            callback(response)
+        }
+    });
+}
