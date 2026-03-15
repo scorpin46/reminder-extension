@@ -12,6 +12,7 @@ import type {Reminder} from "./reminderRepository";
 import type {calendar_v3} from "@googleapis/calendar";
 import axios, {AxiosInstance, AxiosError} from 'axios';
 import rateLimit from 'axios-rate-limit';
+import {delay} from "./utils/helpers";
 
 type CalendarEvent = calendar_v3.Schema$Event;
 type EventList = calendar_v3.Schema$Events;
@@ -95,7 +96,7 @@ export class GoogleCalendarService {
                 return config;
             }
 
-            this.#lastActiveToken ??= await this.fetchToken(false);
+            this.#lastActiveToken ??= await this.#fetchToken(false);
 
             if (this.#lastActiveToken) {
                 config.headers.Authorization = `Bearer ${this.#lastActiveToken}`;
@@ -107,7 +108,7 @@ export class GoogleCalendarService {
         // Перехватчик для обработки ошибок
         this.#axiosInstance.interceptors.response.use(
             response => response,
-            this.handleAxiosError.bind(this)
+            this.#handleAxiosError.bind(this)
         );
     }
 
@@ -119,9 +120,13 @@ export class GoogleCalendarService {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
 
+    #isConnectionError = (error: any) => {
+        return error && (error.code === 'ECONNABORTED' || error.message === 'Network Error' || error.message?.includes('timeout'));
+    }
+    
     // Обработка ошибок axios
-    async handleAxiosError(error: AxiosError): Promise<never> {
-        if (error.code === 'ECONNABORTED' || error.message === 'Network Error' || error.message?.includes('timeout')) {
+    async #handleAxiosError(error: AxiosError): Promise<never> {
+        if (this.#isConnectionError(error)) {
             await this.#broadcastErrorStore.setValue(browser.i18n.getMessage("errorWrongGoogleCalendarConnection"));
 
             throw new Error(error.message);
@@ -133,7 +138,7 @@ export class GoogleCalendarService {
             const data = error.response.data as any;
 
             if (status === 401) {
-                await this.fetchToken(false).then(token => {
+                await this.#fetchToken(false).then(token => {
                     this.#lastActiveToken = token;
                 })
             } else if (status === 429) {
@@ -159,33 +164,33 @@ export class GoogleCalendarService {
 
     async login(): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
         try {
-            this.#lastActiveToken = await this.fetchToken(true);
+            this.#lastActiveToken = await this.#fetchToken(true);
 
-            const userInfo = await this.fetchUserInfo();
+            const userInfoRes = await this.#fetchUserInfo();
 
-            if (!userInfo?.email) {
-                throw new Error('Failed to get user info');
+            if (!userInfoRes.user.email) {
+                throw new Error(userInfoRes.error || 'Failed to get user info');
             }
 
-            await this.#googleUserStore.setValue(userInfo);
+            await this.#googleUserStore.setValue(userInfoRes.user);
             await this.#googleIsAuthenticatedStore.setValue(true);
 
-            console.log(`✅ Аккаунт закреплен: ${userInfo.email}`);
+            console.log(`✅ Аккаунт закреплен: ${userInfoRes.user.email}`);
             await this.run();
 
-            return {success: true, user: userInfo};
+            return {success: true, user: userInfoRes.user};
         } catch (error: any) {
             console.error('Ошибка входа:', error);
 
             let errorMessage = error.message;
-            if (error.message.includes('network')) {
+            if (this.#isConnectionError(error)) {
                 errorMessage = browser.i18n.getMessage('errorNetwork');
-            } else if (error.message.includes('auth')) {
+            } else if (error.message.toLocaleLowerCase().includes('auth')) {
                 errorMessage = browser.i18n.getMessage('errorAuth');
             }
 
             return {success: false, error: errorMessage};
-        }
+        } 
     }
 
     async logout(): Promise<{ success: boolean }> {
@@ -210,7 +215,7 @@ export class GoogleCalendarService {
         return {success: true};
     }
 
-    async getEvents(maxResults: number = 2500): Promise<CalendarEvent[]> {
+    async #getEvents(maxResults: number = 2500): Promise<CalendarEvent[]> {
         const params = new URLSearchParams({
             maxResults: maxResults.toString(),
             timeZone: this.timeZone,
@@ -227,7 +232,7 @@ export class GoogleCalendarService {
         return response.data.items || [];
     }
 
-    async createEvent(summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
+    async #createEvent(summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
             let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
 
@@ -268,7 +273,7 @@ export class GoogleCalendarService {
         return null;
     }
 
-    async updateEvent(eventId: string, summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
+    async #updateEvent(eventId: string, summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
         try {
             if (!eventId) return
 
@@ -346,7 +351,7 @@ export class GoogleCalendarService {
         if (reminder.googleSync === 0 || !reminder.googleEventId) return;
 
         try {
-            const event = await this.updateEvent(
+            const event = await this.#updateEvent(
                 reminder.googleEventId,
                 reminder.title,
                 this.#prepareEventDescription(reminder),
@@ -370,7 +375,7 @@ export class GoogleCalendarService {
                 return;
             }
 
-            const event = await this.createEvent(
+            const event = await this.#createEvent(
                 reminder.title,
                 this.#prepareEventDescription(reminder),
                 reminder.datetime
@@ -403,16 +408,16 @@ export class GoogleCalendarService {
 
 
     async #syncUpdates(): Promise<void> {
-        console.log(`syncUpdates checking`);
+        console.log(`${new Date()}: : syncUpdates checking`);
         
         if (!await this.checkUser()) {
             return
         }
 
         try {
-            console.log('syncUpdates running...');
+            console.log(`syncUpdates running...`);
 
-            const events = await this.getEvents();
+            const events = await this.#getEvents();
 
             const creating: Reminder[] = [];
             const updating: Reminder[] = [];
@@ -470,7 +475,7 @@ export class GoogleCalendarService {
     }
 
 
-    async fetchToken(interactive = false): Promise<string | null | undefined> {
+    async #fetchToken(interactive = false): Promise<string | null | undefined> {
         if (!this.currentUser && !interactive) return null;
 
         return new Promise((resolve) => {
@@ -489,27 +494,29 @@ export class GoogleCalendarService {
         });
     }
 
-    async fetchUserInfo(): Promise<GoogleUser|undefined> {
+    async #fetchUserInfo() {
         try {
             const response = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo')
 
             return {
-                email: response.data.email,
-                name: response.data.name,
-                id: response.data.id
+                user: {
+                    email: response.data.email,
+                    name: response.data.name,
+                    id: response.data.id
+                },
+                error: null
             };
         } catch (error: any) {
             console.error('Ошибка получения информации о пользователе:', error);
 
-            if (error.code === 'ECONNABORTED' || error.message === 'Network Error' || error.message?.includes('timeout')) {
-                return undefined;
+            return {
+                user: {
+                    email: '',
+                    name: '',
+                    id: '',
+                },
+                error: error
             }
-        }
-        
-        return {
-            email: '',
-            name: '',
-            id: ''
         }
     }
 
@@ -521,16 +528,23 @@ export class GoogleCalendarService {
                 return false;
             }
 
-            this.#lastActiveToken ??= await this.fetchToken(false); //для страховки
-            const tokenUser = await this.fetchUserInfo();
-            const isSuccess = tokenUser?.email === this.currentUser.email;
+            this.#lastActiveToken ??= await this.#fetchToken(false); //для страховки
+            let userInfoRes = await this.#fetchUserInfo();
 
-            if (tokenUser !== undefined) {
-                await this.#googleIsAuthenticatedStore.setValue(isSuccess);
+            if (userInfoRes.error && this.#isConnectionError(userInfoRes.error)) {
+                return false;
             }
+            
+            if (userInfoRes.error && userInfoRes.error.status === 401) {
+                await delay(500); //задержка перед повторным запросом, пока axios запрашивает новый токен (хотя скорее всего к этому моменту уже получен)
+                userInfoRes = await this.#fetchUserInfo(); //контрольная проверка
+            }
+            
+            const isSuccess = userInfoRes.user.email === this.currentUser.email;
+            await this.#googleIsAuthenticatedStore.setValue(isSuccess);
 
             return isSuccess;
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
         }
 
@@ -542,7 +556,7 @@ export class GoogleCalendarService {
             return
         }
 
-        const events = (await this.getEvents())
+        const events = (await this.#getEvents())
             .filter(event => event.status !== 'cancelled' && event.start?.dateTime);
 
         for (const event of events) {

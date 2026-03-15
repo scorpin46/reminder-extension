@@ -118,18 +118,20 @@
       <span>{{ browser.i18n.getMessage('settings') }}</span>
     </button>
     
-    <button
-        v-if="!isAuthenticated"
-        class="footer__google-btn"
-        @click="sendGoogleLoginMessage" :title="/*todo перевод*/''"
-    >
-      <IconGoogle/>
-      <!--      todo перевод-->
-      Sign in with Google
-    </button>
-    <button v-else @click="settingsPanelVisible = true">
-      Google Sync is active  <!--      todo перевод-->
-    </button>
+    <template v-if="isAuthenticated !== undefined">
+      <button
+          v-if="!isAuthenticated"
+          class="footer__google-btn"
+          @click="sendGoogleLoginMessage" :title="/*todo перевод*/''"
+      >
+        <IconGoogle/>
+        <!--      todo перевод -->
+        Sign in with Google
+      </button>
+      <button v-else @click="settingsPanelVisible = true">
+        Google Sync is active  <!--      todo перевод + мь иконка с галкой вместо текста?-->
+      </button>
+    </template>
   </footer>
 
 </template>
@@ -173,25 +175,24 @@ const recognitionService = RecognitionService.instance();
 const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
-const isAuthenticated = ref(false);
+const isAuthenticated = ref();
 
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+const checkAuth = () => {
+  sendGoogleCheckStatusMessage(response => {
+    isAuthenticated.value = !!response.authenticated;
 
-googleIsAuthenticatedStore.getValue().then(value => {
-  isAuthenticated.value = value
-});
+    if (!response.authenticated && response.message) {
+      toast.error(response.message, {timeout: 8000});
+    }
+  })
+}
 
 googleIsAuthenticatedStore.watch((newValue) => {
   isAuthenticated.value = newValue;
 
   if (!newValue) {
-    sendGoogleCheckStatusMessage(response => {
-      isAuthenticated.value = !!response.authenticated;
-
-      if (!response.authenticated && response.message) {
-        toast.error(response.message, {timeout: 8000});
-      }
-    })
+    checkAuth();
   }
 });
 
@@ -294,7 +295,6 @@ const complete = (item) => {
   }, 300)
 }
 
-
 const deleteItem = (item) => {
   document.getElementById('reminder-' + item.id)?.classList.add('--moving');
 
@@ -329,17 +329,6 @@ watch(() => reminderService.repository.state.isLoaded, (value) => {
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
-
-  if (value.length === oldValue.length + 1) {
-    const menuItem = document.getElementById('menu-item-actual');
-    if (menuItem) {
-      menuItem.classList.add('--blink');
-
-      setTimeout(() => {
-        menuItem.classList.remove('--blink');
-      }, 3000)
-    }
-  }
 })
 
 watch(() => searchVisible.value, (value, oldValue) => {
@@ -380,5 +369,7 @@ onMounted(() => {
       toast.error(value)
     }
   })
+
+  checkAuth();
 })
 </script>

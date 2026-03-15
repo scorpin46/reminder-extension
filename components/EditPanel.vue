@@ -150,9 +150,21 @@ const form = reactive({
     if (id){
       this.saved = id;
       
+      if (this.isCreating()){
+        const menuItem = document.getElementById('menu-item-actual');
+        
+        if (menuItem) {
+          menuItem.classList.add('--blink');
+
+          setTimeout(() => {
+            menuItem.classList.remove('--blink');
+          }, 3000)
+        }
+      }
+      
       setTimeout(() => {
         this.reset();
-      }, this.isCreating() ? 300 : 0)
+      }, this.isCreating() ? 300 : 0);
     }
   },
   hasExtraFields: function(){
@@ -263,6 +275,7 @@ onMounted(async () => {
 watch(() => form, (value) => {
   console.log(value.input.googleSync);
 }, {immediate: true, deep: true});
+
 
 onUnmounted(() => {
   recognitionService.stop();
