@@ -142,6 +142,7 @@ export const detectLocale = () => {
 
 export const reminderNotificationPrefix = 'reminder_';
 
+
 export const reminderIdToAlarmName = (reminderId: number) => {
     return `${reminderNotificationPrefix}${reminderId}`
 }
@@ -180,3 +181,54 @@ export const processInBatches = async <T>(
 }
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const blockPageScaling = () => {
+    // Блокировка Ctrl + колесико мыши
+    document.addEventListener('wheel', function(event) {
+        if (event.ctrlKey || event.metaKey) { // metaKey для Mac (Cmd)
+            event.preventDefault();
+        }
+    }, { passive: false, capture: true });
+
+    // Блокировка клавиатурных сочетаний масштабирования
+    document.addEventListener('keydown', function(event) {
+        // Проверяем зажат ли Ctrl (или Cmd на Mac)
+        if (event.ctrlKey || event.metaKey) {
+            // Проверяем клавиши: +, -, = (обычно = это + без Shift)
+            // Используем event.key вместо устаревшего keyCode
+            const key = event.key;
+
+            // '+' может быть '=' (без Shift) или '+' (с Shift)
+            // '-' может быть '-' или '_'
+            if (key === '+' || key === '-' || key === '=' || key === '_') {
+                event.preventDefault();
+            }
+
+            // Также блокируем колесико мыши при зажатом Ctrl/Cmd
+            // (это уже обрабатывается в wheel событии выше)
+        }
+    }, { capture: true });
+
+    // Дополнительная блокировка для сенсорных панелей (pinch-to-zoom)
+    // Предотвращаем жест сжатия/растяжения на тачпадах
+    document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+    }, { passive: false });
+
+    // Блокировка двойного тапа для масштабирования на мобильных
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(event) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false, capture: true });
+
+    // Блокировка мультитач жестов (pinch)
+    document.addEventListener('touchmove', function(event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    }, { passive: false, capture: true });
+}

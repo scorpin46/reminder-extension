@@ -7,8 +7,9 @@ import {aliases, mdi} from 'vuetify/iconsets/mdi-svg' // для оптимизи
 import "vue-toastification/dist/index.css";
 import 'vuetify/styles'
 import '@/assets/scss/styles.scss'
-import {detectLocale} from "@/modules/utils/helpers.ts";
+import {detectLocale, blockPageScaling} from "@/modules/utils/helpers.ts";
 
+blockPageScaling();
 document.title = browser.i18n.getMessage('mainTitle');
 
 const locale = detectLocale();

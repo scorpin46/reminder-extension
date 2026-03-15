@@ -26,9 +26,21 @@
       </div>
     </div>
     
-    <div v-else-if="!reminderService.repository.state.active.length">
+    <div v-else-if="openedTab === 'active' && !reminderService.repository.state.active.length">
       <!--      todo Добавить перевод и текст стилизовать -->
-      Иконка + нет активных напоминаний + кнопка создать
+      Иконка   <br>
+      Нет активных напоминаний
+
+      Создать напоминание
+    </div>
+    
+    <div v-else-if="openedTab === 'completed' && !reminderService.repository.state.completed.length">
+      <!--      todo Добавить перевод и текст стилизовать -->
+      Иконка   <br>
+      Нет прошедших напоминаний
+      Здесь будут отображаться выполненные напоминания
+      
+      Создать напоминание
     </div>
     
     <div class="reminders" >
@@ -74,8 +86,12 @@
             <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
               <IconChecks/>
             </span>
-            <span role="button" v-else class="reminders-item__delete" :title="browser.i18n.getMessage('delete')" @click.stop="reminderService.delete(item)">
-              <IconXmark/>
+            <span v-else role="button" 
+                  class="reminders-item__delete" 
+                  :title="browser.i18n.getMessage('delete')" 
+                  @click.stop="deleteItem(item)"
+            >
+              <IconTrash/>
             </span>
           </div>
         </div>
@@ -86,7 +102,7 @@
   <EditPanel
       v-if="editingPanelVisible"
       :editingInitialFormData="editingInitialFormData"
-      @close="editingPanelVisible = false"
+      @close="closeEditPanel"
   />
   
   <SettingsPanel 
@@ -122,6 +138,7 @@ import {useDate} from "vuetify/framework";
 import Header from "@/components/Header.vue";
 import Search from "@/components/Search.vue";
 import {max, min} from "es-toolkit/compat";
+import IconTrash from "@/components/icons/IconTrash.vue";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -197,6 +214,21 @@ const showEditPanel = async (reminder = null) => {
   editingInitialFormData = {};
 }
 
+const closeEditPanel = async (data) => {
+  editingPanelVisible.value = false;
+  
+  if (data?.savedId){
+    await nextTick();
+    const reminderEl = document.getElementById('reminder-' + data.savedId);
+
+    reminderEl.classList.add('--saved');
+    
+    setTimeout(() => {
+      reminderEl.classList.remove('--saved');
+    }, 1500)
+  }
+}
+
 const actualize = () => {
   if (settingsPanelVisible.value || editingPanelVisible.value) {
     return;
@@ -217,8 +249,21 @@ const actualize = () => {
 }
 
 const complete = (item) => {
-  reminderService.complete(item);
-  now.value = new Date();
+  document.getElementById('reminder-' + item.id)?.classList.add('--moving');
+
+  setTimeout(() => {
+    reminderService.complete(item);
+    now.value = new Date();
+  }, 300)
+}
+
+
+const deleteItem = (item) => {
+  document.getElementById('reminder-' + item.id)?.classList.add('--moving');
+  
+  setTimeout(() => {
+    reminderService.delete(item);
+  }, 300)
 }
 
 const searchVisible = ref(false);
@@ -237,6 +282,12 @@ useIntervalFn(() => {
     actualize();
 }, 10000, {
   immediateCallback: true
+})
+
+watch(() => reminderService.repository.state.isLoaded, (value) => {
+  if (value && ! reminderService.repository.state.active.length && ! reminderService.repository.state.completed.length){
+    showEditPanel(null);
+  }
 })
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {

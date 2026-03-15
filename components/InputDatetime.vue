@@ -4,10 +4,11 @@
       type="datetime-local"
       :value="displayValue"
       :min="minDateTime"
-      @input="onInput"
+      @input="input"
       @click="onClick"
       @focus="onFocus"
       @change="onChange"
+      @keydown="onKeydown"
   />
 </template>
 
@@ -76,7 +77,7 @@ const openInputPicker = () => {
 const onFocus = async () => {
   if (inputRef.value.value < inputRef.value.min){
     inputRef.value.value = inputRef.value.min; 
-    onInput();
+    input();
     await nextTick();
   }
 
@@ -88,28 +89,44 @@ const onClick = (event) => {
 }
 
 const onChange = (event) => {
-  emit('change', event)
+  if (inputRef.value.value && inputRef.value.value < minDateTime.value) {
+    inputRef.value.value = minDateTime.value;
+  }
+
+  input();
+}
+
+const onKeydown = (e) => {
+  if (e.key === 'Tab' && !e.shiftKey) {
+    e.preventDefault();
+    const allFocusable = Array.from(e.target.form?.querySelectorAll(
+        'input, button, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'
+    ) || []).filter(el => !el.disabled);
+
+    const currentIndex = allFocusable.indexOf(e.target);
+    const nextElement = allFocusable[currentIndex + 1];
+
+    if (nextElement) {
+      nextElement.focus();
+    }
+  } else if ((/^[0-9]$/.test(e.key))) {
+    e.preventDefault();
+  }
 }
 
 // При вводе из input → в Date с часовым поясом
-const onInput = () => {
+const input = () => {
   let inputValue = inputRef.value.value
- 
-  if (!inputValue) {
-    emit('update:modelValue', null)
-    return
-  }
-  
-  if (inputValue < minDateTime.value) {
-    inputValue = minDateTime.value;
-  }
-
   const offset = getTimezoneOffset()
   const dateWithOffset = new Date(inputValue + ':00' + offset);
   
-  //todo можно сделать вот как - при выборе времени меньшего , но в том же дне, переводить на следующий день (типо выбрал 00:10, но как тогда выбор полночи при текущем 00:05) 
-  
+  if (!inputValue || isNaN(dateWithOffset)) {
+    emit('update:modelValue', null)
+    return
+  }
+
   emit('update:modelValue', dateWithOffset)
+  //todo можно сделать вот как - при выборе времени меньшего , но в том же дне, переводить на следующий день (типо выбрал 00:10, но как тогда выбор полночи при текущем 00:05) 
 }
 
 defineExpose({

@@ -1,7 +1,8 @@
 import {createApp} from 'vue'
 import App from './Postpone.vue';
 import '@/assets/scss/postpone.scss';
-import {detectLocale} from "@/modules/utils/helpers.ts";
+import {blockPageScaling, detectLocale} from "@/modules/utils/helpers.ts";
+blockPageScaling();
 
 document.title = browser.i18n.getMessage('postponeTitle') + ' 🕒';
 

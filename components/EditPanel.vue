@@ -4,57 +4,67 @@
       {{ form.isCreating() ? browser.i18n.getMessage('addReminder') : browser.i18n.getMessage('editReminder') }}
     </div>
     <div class="panel__body">
-      <label class="language-selector form-label w-100" v-if="isDev">
-        <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>
-        <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
-          <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
-        </select>
-      </label>
+   
 
-      <div class="text-center">
-        <RecordBtn class="my-20" :data-locale="recognitionLocale"/>
-        <!--      todo для поддерживаемых языков chrono и microsoft добавить пример фразы с датой и временем-->
+      <div class="record-box">
+<!--       <div>-->
+<!--         <b>Тапни и произнеси что-то вроде:</b> <br>-->
+<!--         "Завтра в 15:00 важная встреча с партнером"-->
+<!--       </div>-->
+        <div class="text-center">
+          <RecordBtn  :data-locale="recognitionLocale"/>
+        </div>
+<!--        <label class="language-selector form-label">-->
+<!--          <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>-->
+<!--          <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">-->
+<!--            <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>-->
+<!--          </select>-->
+<!--        </label>-->
       </div>
 
-      <form :class="{'result-section': true, '--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
-        <label class="form-label w-100 reminder-title">
-          <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
-          <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
-        </label>
+      <form :class="{'--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
+        <div class="main-fields">
+          <div>
+            <label class="form-label reminder-title">
+              <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
+              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+            </label>
+            <label class="form-label">
+              <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
+
+              <InputDatetime required class="form-control w-100" v-model="form.input.datetime" />
+            </label>
+          </div>
+<!--          <RecordBtn  :data-locale="recognitionLocale"/>-->
+        </div>
         <div class="w-100">
-          <button v-if="!showExtraFields" @click="showExtraFields = true">+ {{ browser.i18n.getMessage('reminderAdvanced') }}</button>
-          <div v-if="showExtraFields" ref="reminderDetailsRef">
-            <label class="form-label w-100">
+          <button v-if="!showExtraFields" 
+                  @click="showExtraFields = !showExtraFields" 
+                  class="reminder-more-btn mb-10"
+          >
+            <span>{{ browser.i18n.getMessage('reminderAdvanced') }}</span>
+            <IconDown />
+          </button>
+          <div v-show="showExtraFields" ref="reminderDetailsRef">
+            <label class="form-label">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
               <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3"></textarea>
             </label>
-            <label class="form-label w-100">
+            <label class="form-label">
               <span class="form-label__title">URL</span>
               <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
             </label>
           </div>
         </div>
-        <br>
-        <label class="form-label w-100">
-          <span class="form-label__title">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
-
-          <InputDatetime required ref="reminderDateRef" class="form-control w-100" v-model="form.input.datetime" />
-        </label>
-        <!--        <br>-->
-        <!--        <label class="form-label w-100">-->
-        <!--            <div>{{ browser.i18n.getMessage('reminderDetails') }}</div>-->
-        <!--            <textarea class="form-control w-100" rows="2"></textarea>-->
-        <!--        </label>-->
-        <br>
-        <br>
+     
         <div class="reminder-buttons">
-          <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording || form.isEmpty()">
-            <IconCheck />
-          </button>
-          
           <button type="button" class="reminder-cancel" @click="form.reset" :title="browser.i18n.getMessage('cancel')">
-<!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
-            <IconCancel />
+            <!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
+<!--            <IconCancel />-->
+            <IconXmark />
+          </button>
+          <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording">
+            <IconCheck />
           </button>
         </div>
       </form>
@@ -72,6 +82,8 @@ import {useToast} from "vue-toastification";
 import RecordBtn from "@/components/RecordBtn.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
+import IconPlus from "@/components/icons/IconPlus.vue";
+import IconDown from "@/components/icons/IconDown.vue";
 
 const props = defineProps({
   backToPanel: {
@@ -87,8 +99,6 @@ const props = defineProps({
   },
 });
 
-const isDev = import.meta.env.DEV;
-
 const emit = defineEmits(["close"]);
 const toast = useToast();
 const reminderService = ReminderService.instance();
@@ -96,7 +106,6 @@ const recognitionService = RecognitionService.instance();
 
 const reminderTitleRef = ref();
 const reminderDetailsRef = ref();
-const reminderDateRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
 const showExtraFields = ref(false);
@@ -121,21 +130,20 @@ const form = reactive({
     recognitionService.resetState();
     
     if (id){
-      this.saved = true;
+      this.saved = id;
       
       setTimeout(() => {
         this.reset();
-      }, 200)
+      }, this.isCreating() ? 300 : 0)
     }
   },
   hasExtraFields: function(){
     return Object.keys(this.input).some(key => ! ['id', 'title', 'datetime'].includes(key) && this.input[key]);
   },
   reset: function ()  {
+    emit('close', {savedId: this.saved});
     this.saved = false;
     this.input = formInputInitData;
-
-    emit('close');
   },
   isEmpty: function() {
     return ! Object.values(this.input).some(val => val?.length)

@@ -1,3 +1,24 @@
+.main-fields{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  
+  *:first-child{
+    flex: 1 1 auto;
+  }
+}
+.record-box{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  
+  & > *{
+    flex: 0 0 33.3%
+  }
+}
+
 .record-btn {
   border-radius: 100%;
   height: 100px;
@@ -142,40 +163,77 @@
   }
 }
 
+.reminder-datetime{
+  &::first-letter{
+    //text-transform: uppercase;
+  }
+}
+
 .reminder-desc{
   field-sizing: content;
   resize: vertical;
+  min-height: 68px;
+}
+
+.reminder-more-btn{
+  font-size: 13px;
+  //font-weight: 500;
+  display: inline-flex;
+  align-content: center;
+  line-height: 1.1;
+  gap: 4px;
+  padding-left: 2px;
+  color: var(--color-primary);
+  
+  &:hover{
+    //font-weight: 500;
+    text-decoration: underline;
+    
+    + *{
+      //display: block !important;
+    }
+  }
+  
+  svg{
+    padding-top: 2px;
+    width: 11px;
+  }
 }
 
 .reminder-buttons{
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
+  margin: 20px auto 0;
 }
 
 .reminder-cancel,
 .reminder-reset,
 .reminder-save{
-  padding: 7px 10px;
+  border-radius: 100%;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 15px;
   transition: transform 0.3s;
-  min-width: 120px;
+  width: 70px;
+  height: 70px;
+  opacity: .7;
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled),
+  &:focus:not(:disabled),
+  {
     transform: scale(1.1);
+    opacity: 1;
+  }
+
+  &:focus:not(:disabled){
+    outline: none;
+    box-shadow: 0 0 0 3px var(--foreground);
   }
 
   svg {
     fill: #fff;
-    height: 30px;     
-  }
-
-  @media(max-width: 350px){
-    min-width: 50px;
-    width: 48%;
+    height: 50%;     
   }
 }
 
@@ -183,41 +241,15 @@
   background: var(--color-green);
   
   @at-root .--saved #{&}{
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    border-radius: 5px;
-    z-index: 5;
-
     transition: all 0.6s ease;
-    //transform: scale(11) translate(11px, -8px);
+    ////transform: scale(11) translate(11px, -8px);
     opacity: .5;
     pointer-events: none;
-    
-    svg {
-      transform: scale(2.5);
-    }
-
-    //svg {
-    //  transform: scale(0);
-    //  animation: check 1s ease-out;
-    //
-    //  @keyframes check {
-    //    0%{
-    //      transform: scale(0);
-    //    }
-    //    100%{
-    //      transform: scale(1);
-    //    }
-    //  }
-    //}
-    //opacity: .8;
+    transform: scale(2.5);
   }
 }
 
-.reminder-reset{
+.reminder-close{
   background: var(--color-red);
   color: #fff;
 
@@ -226,30 +258,24 @@
   }
 
   @at-root .--saved #{&}{
-    display: none;
+    visibility: hidden;
   }
+
 }
 
 .reminder-cancel {
-  background: var(--border-color);
+  //background: var(--color-light);
+  background: var(--color-red);
   color: #fff;
+  //border: 2px solid ;
   
+  
+  //color: var(--color-red);
   svg{
-    height: 24px;
+    //height: 24px;
   }
 
   @at-root .--saved #{&}{
-    display: none;
-  }
-}
-
-@keyframes fade {
-  0% {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+    visibility: hidden;
   }
 }
