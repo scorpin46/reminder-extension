@@ -241,7 +241,7 @@ export default defineBackground({
 
                     switch (request.action) {
                         case 'SAR__OPEN_FROM_FAB':
-                            await openMainWindow();
+                            await openMainWindow({id: null,});
                             return {success: true};
 
                         case 'SAR__GOOGLE_LOGIN':

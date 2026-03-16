@@ -26,6 +26,10 @@ button, input, optgroup, select, textarea {
 input, textarea, select {
   font-size: 14px;
   user-select: auto;
+
+  &::placeholder {
+    color: var(--color-light);
+  }
   
   &:focus:invalid{
     box-shadow: none !important;

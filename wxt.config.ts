@@ -20,7 +20,7 @@ export default defineConfig({
             "notifications",
             "identity",
             "identity.email",
-            "offscreen",
+            // "offscreen",
             "scripting"
         ],
         "action": {
@@ -43,6 +43,7 @@ export default defineConfig({
     }),
     modules: [
         '@wxt-dev/module-vue',
+        '@wxt-dev/auto-icons'
     ],
     modulesDir: "wxt-modules",
     consoleForward: {

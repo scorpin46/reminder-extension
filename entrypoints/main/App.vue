@@ -206,7 +206,6 @@ const SOON_MINUTES = 15;
 
 const reminders = computed(() => reminderService.repository.state[openedTab.value] || []);
 const daysGroupsReminders = computed(() => {
-  console.log(reminders.value.length);
   const groups = {};
 
   reminders.value.forEach((item) => {

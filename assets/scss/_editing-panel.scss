@@ -1,24 +1,25 @@
-.panel--editing{
+.panel--editing {
   font-size: 13px;
 }
 
-.main-fields{
+.main-fields {
   display: flex;
   align-items: center;
   gap: 20px;
   width: 100%;
-  
-  *:first-child{
+
+  *:first-child {
     flex: 1 1 auto;
   }
 }
-.record-box{
+
+.record-box {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
-  
-  & > *{
+
+  & > * {
     flex: 0 0 33.3%
   }
 }
@@ -44,7 +45,7 @@
     //opacity: inherit;
   }
 
-  &:disabled{
+  &:disabled {
     cursor: not-allowed;
     opacity: .5;
   }
@@ -55,8 +56,7 @@
 
 
   @at-root .--recording #{&},
-  &.--recording
-  {
+  &.--recording {
     animation: pulse 1.5s ease-out infinite;
     color: var(--color-red);
     background: rgb(255, 182, 182);
@@ -111,14 +111,14 @@
   }
 }
 
-.reminder-title{
+.reminder-title {
   display: flex;
   flex-wrap: wrap;
   position: relative;
   flex-direction: column;
 
-  .form-label__title{
-    @at-root .--recording #{&}{
+  .form-label__title {
+    @at-root .--recording #{&} {
       &:after {
         color: var(--color-default);
         opacity: .8;
@@ -157,7 +157,7 @@
   //  }
   //}
 
-  textarea{
+  textarea {
     field-sizing: content;
     resize: vertical;
     //flex: 0 1 calc(100% - 30px);
@@ -167,19 +167,19 @@
   }
 }
 
-.reminder-datetime{
-  &::first-letter{
+.reminder-datetime {
+  &::first-letter {
     //text-transform: uppercase;
   }
 }
 
-.reminder-desc{
+.reminder-desc {
   field-sizing: content;
   resize: vertical;
   min-height: 68px;
 }
 
-.reminder-more-btn{
+.reminder-more-btn {
   font-size: 13px;
   //font-weight: 500;
   display: inline-flex;
@@ -188,23 +188,23 @@
   gap: 4px;
   padding-left: 2px;
   color: var(--color-primary);
-  
-  &:hover{
+
+  &:hover {
     //font-weight: 500;
     text-decoration: underline;
-    
-    + *{
+
+    + * {
       //display: block !important;
     }
   }
-  
-  svg{
+
+  svg {
     padding-top: 2px;
     width: 11px;
   }
 }
 
-.reminder-buttons{
+.reminder-buttons {
   display: flex;
   justify-content: space-around;
   margin: 20px auto 0;
@@ -212,7 +212,7 @@
 
 .reminder-cancel,
 .reminder-reset,
-.reminder-save{
+.reminder-save {
   border-radius: 100%;
   line-height: 1;
   display: inline-flex;
@@ -230,41 +230,31 @@
     opacity: 1;
   }
 
-  &:focus:not(:disabled){
+  &:focus:not(:disabled) {
     outline: none;
     box-shadow: 0 0 0 3px var(--foreground);
   }
 
   svg {
     fill: #fff;
-    height: 50%;     
+    height: 50%;
   }
 }
 
-.reminder-save{
+.reminder-save {
   background: var(--color-green);
-  
-  @at-root .--saved #{&}{
+
+  @at-root .--saved #{&} {
     transition: all 0.6s ease;
     ////transform: scale(11) translate(11px, -8px);
     opacity: .5;
     pointer-events: none;
     transform: scale(2.5);
   }
-}
 
-.reminder-close{
-  background: var(--color-red);
-  color: #fff;
-
-  svg{
-    height: 24px;
+  svg {
+    height: 32px;
   }
-
-  @at-root .--saved #{&}{
-    visibility: hidden;
-  }
-
 }
 
 .reminder-cancel {
@@ -272,14 +262,14 @@
   background: var(--color-red);
   color: #fff;
   //border: 2px solid ;
-  
-  
+
+
   //color: var(--color-red);
-  svg{
+  svg {
     //height: 24px;
   }
 
-  @at-root .--saved #{&}{
+  @at-root .--saved #{&} {
     visibility: hidden;
   }
 }

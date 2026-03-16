@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@googleapis/calendar": "^14.2.0",
+    "@wxt-dev/auto-icons": "^1.1.1",
     "@wxt-dev/module-vue": "^1.0.3",
     "sass": "^1.97.3",
     "terser": "^5.46.0",

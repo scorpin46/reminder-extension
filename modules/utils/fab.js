@@ -866,23 +866,23 @@ class WelcomeMessenger {
     }
 
     sendFabReady(side, topPercent) {
-        this.postMessage({ type: "FAB_READY", side, topPercent });
+        this.postMessage({ action: "FAB_READY", side, topPercent });
     }
 
     sendFabClicked() {
-        this.postMessage({ type: "FAB_CLICKED" });
+        this.postMessage({ action: "FAB_CLICKED" });
     }
 
     sendSideChanged(side, topPercent) {
-        this.postMessage({ type: "FAB_SIDE_CHANGED", side, topPercent });
+        this.postMessage({ action: "FAB_SIDE_CHANGED", side, topPercent });
     }
 
     sendPositionChanged(side, topPercent) {
-        this.postMessage({ type: "FAB_POSITION_CHANGED", side, topPercent });
+        this.postMessage({ action: "FAB_POSITION_CHANGED", side, topPercent });
     }
 
     sendStateResponse(side, topPercent) {
-        this.postMessage({ type: "FAB_STATE_RESPONSE", side, topPercent });
+        this.postMessage({ action: "FAB_STATE_RESPONSE", side, topPercent });
     }
 
     postMessage(data) {
@@ -1272,7 +1272,7 @@ export class FloatingFab {
             }, 1000);
 
             try {
-                browser.runtime.sendMessage({ type: "SAR__CHECK_OPEN_PANEL" }, response => {
+                browser.runtime.sendMessage({ action: "SAR__CHECK_OPEN_PANEL" }, response => {
                     clearTimeout(timeout);
                     isQuerying = false;
 
@@ -1346,8 +1346,6 @@ export class FloatingFab {
                 return false;
             }
 
-            //todo доработать все эти события
-            
             // Переинициализация
             if (message.type === "REINIT_FAB") {
                 (async () => {
@@ -1361,7 +1359,7 @@ export class FloatingFab {
                             isWelcomePage: isWelcomePage,
                             onButtonClick: () => {
                                 try {
-                                    browser.runtime.sendMessage({ type: "SAR__OPEN_FROM_FAB" });
+                                    browser.runtime.sendMessage({ action: "SAR__OPEN_FROM_FAB" });
                                 } catch { }
                             }
                         }).init();
@@ -1419,7 +1417,7 @@ export class FloatingFab {
                     isWelcomePage: isWelcomePage,
                     onButtonClick: () => {
                         try {
-                            browser.runtime.sendMessage({ type: "SAR__OPEN_FROM_FAB" });
+                            browser.runtime.sendMessage({ action: "SAR__OPEN_FROM_FAB" });
                         } catch { }
                     }
                 }).init();
