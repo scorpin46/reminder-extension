@@ -138,6 +138,7 @@ export class GoogleCalendarService {
             const data = error.response.data as any;
 
             if (status === 401) {
+                //запрос нового токена (но повторного запроса инициировано не будет)
                 await this.#fetchToken(false).then(token => {
                     this.#lastActiveToken = token;
                 })
@@ -536,7 +537,7 @@ export class GoogleCalendarService {
             }
             
             if (userInfoRes.error && userInfoRes.error.status === 401) {
-                await delay(500); //задержка перед повторным запросом, пока axios запрашивает новый токен (хотя скорее всего к этому моменту уже получен)
+                this.#lastActiveToken = await this.#fetchToken(false);
                 userInfoRes = await this.#fetchUserInfo(); //контрольная проверка
             }
             

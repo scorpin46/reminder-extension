@@ -39,7 +39,7 @@ export default defineConfig({
                 "matches": ["*://*.google.com/*"],
                 "resources": ["icon/*.png"]
             }
-        ]
+        ],
     }),
     modules: [
         '@wxt-dev/module-vue',
