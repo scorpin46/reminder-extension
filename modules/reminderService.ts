@@ -53,9 +53,14 @@ export class ReminderService {
         } else {
             id = await this.repository.add(reminderParams);
         }
+
+        reminderParams.completed = +reminderParams.datetime! >= Date.now() ? 0 : reminderParams.completed; //обязательно должно быть перед блоком ниже, иначе не сработает alert, если восстанавливаешь из завершенных
         
         if (reminderParams.datetime && !reminderParams.completed){
-            await browser.alarms.create(reminderIdToAlarmName(id), {when: +reminderParams.datetime});
+            await browser.alarms.create(reminderIdToAlarmName(id), {
+                when: +reminderParams.datetime,
+                periodInMinutes: reminderParams.repeatAfterMin,
+            })
         }
         
         if (shouldSendMessage) {

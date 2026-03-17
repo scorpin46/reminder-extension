@@ -9,6 +9,7 @@
       @focus="onFocus"
       @change="onChange"
       @keydown="onKeydown"
+      @invalid="onInvalid"
   />
 </template>
 
@@ -21,16 +22,19 @@ const props = defineProps({
   minOffsetMinutes: {
     type: Number,
     default: 1 // по умолчанию +1 минута
+  },
+  rewritePastTime: {
+    type: Boolean,
+    default: false, //убрал, т.к. для пользователя это будет не понятно что произошло
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
 const inputRef = ref();
+const minDateTime = ref();
 
-// Текущее время + смещение
-const minDateTime = computed(() => {
-  const now = new Date()
-  const minDate = new Date(now.getTime() + props.minOffsetMinutes * 60 * 1000)
+const recalcMinDateTime = () => {
+  const minDate = new Date(Date.now() + props.minOffsetMinutes * 60 * 2 * 1000)
 
   // Форматируем для input
   const year = minDate.getFullYear()
@@ -38,9 +42,11 @@ const minDateTime = computed(() => {
   const day = String(minDate.getDate()).padStart(2, '0')
   const hours = String(minDate.getHours()).padStart(2, '0')
   const minutes = String(minDate.getMinutes()).padStart(2, '0')
+  // Текущее время + смещение
+  return minDateTime.value = `${year}-${month}-${day}T${hours}:${minutes}`
+}
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`
-})
+recalcMinDateTime();
 
 // Для отображения в input
 const displayValue = computed(() => {
@@ -66,34 +72,39 @@ const getTimezoneOffset = () => {
   return `${sign}${hours}:${minutes}`;
 }
 
-const openInputPicker = () => {
+const forceOpenInputPicker = (event) => {
+  const isClickEvent = event?.type === 'click';
+
   try {
-    inputRef.value?.showPicker();
+    if (isClickEvent || inputRef.value.checkValidity()){
+      inputRef.value?.showPicker();
+    }
   } catch (err){
     console.log(err);
   }
 }
 
-const onFocus = async () => {
-  if (inputRef.value.value < inputRef.value.min){
+const onFocus = async (event) => {
+  if (! inputRef.value.value || props.rewritePastTime && inputRef.value.value < inputRef.value.min){
     inputRef.value.value = inputRef.value.min; 
-    input();
-    await nextTick();
   }
+  input();
+  await nextTick();
 
-  openInputPicker()
+  forceOpenInputPicker()
 }
 
 const onClick = (event) => {
-  openInputPicker()
+  forceOpenInputPicker(event)
 }
 
-const onChange = (event) => {
-  if (inputRef.value.value && inputRef.value.value < minDateTime.value) {
-    inputRef.value.value = minDateTime.value;
-  }
+const onChange = async (event) => {
+  // if (props.rewritePastTime && inputRef.value.value && inputRef.value.value < minDateTime.value) {
+  //   inputRef.value.value = minDateTime.value;
+  // }
 
   input();
+  await nextTick();
 }
 
 const onKeydown = (e) => {
@@ -114,6 +125,11 @@ const onKeydown = (e) => {
   }
 }
 
+const onInvalid = async (e) => {
+  recalcMinDateTime();
+}
+
+
 // При вводе из input → в Date с часовым поясом
 const input = () => {
   let inputValue = inputRef.value.value
@@ -133,5 +149,4 @@ defineExpose({
   onFocus,
   inputRef,
 })
-
 </script>

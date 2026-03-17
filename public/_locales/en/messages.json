@@ -157,6 +157,15 @@
   },
   "cancel": {
     "message": "Cancel"
+  },
+  "linkIsOpened": {
+    "message": "The link opened"
+  },
+  "alertPostponeBtn": {
+    "message": "\uD83D\uDD52 Postpone"
+  },
+  "alertCompleteBtn": {
+    "message": "✅ Mark as Done"
   }
 }
 

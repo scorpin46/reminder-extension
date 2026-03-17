@@ -167,9 +167,23 @@
   }
 }
 
-.reminder-datetime {
-  &::first-letter {
-    //text-transform: uppercase;
+.reminder-datetime-wrapper{
+  position: relative;
+
+  input:not(:focus) ~ .date-confirm-icon{
+    display: none;
+  }
+
+  .date-confirm-icon{
+    cursor: pointer;
+    display: inline-block;
+    height: 20px;
+    padding: 3px;
+    fill: var(--color-green);
+    position: absolute;
+    bottom: 6px;
+    right: 38px;
+    z-index: 1;
   }
 }
 

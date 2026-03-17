@@ -157,6 +157,15 @@
   },
   "cancel": {
     "message": "Отмена"
+  },
+  "linkIsOpened": {
+    "message": "Ссылка открылась"
+  },
+  "alertPostponeBtn": {
+    "message": "\uD83D\uDD52 Отложить"
+  },
+  "alertCompleteBtn": {
+    "message": "✅ Выполнено"
   }
 }
 

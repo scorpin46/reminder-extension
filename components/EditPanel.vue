@@ -30,13 +30,14 @@
           <div>
             <label class="form-label mb-15 reminder-title">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
-              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef"></textarea>
+              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef" maxlength="250"></textarea>
             </label>
-            <label class="form-label mb-15">
+            <div class="form-label mb-15 reminder-datetime-wrapper">
               <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
-              <InputDatetime required class="form-control w-100" v-model="form.input.datetime" />
-            </label>
+              <InputDatetime required class="form-control w-100" v-model="form.input.datetime" :rewritePastTime="!form.isCreating()"/>
+              <IconCheck class="date-confirm-icon"/>
+            </div>
           </div>
 <!--          <RecordBtn  :data-locale="recognitionLocale"/>-->
         </div>
@@ -49,15 +50,15 @@
             <IconDown />
           </button>
           <div v-show="showExtraFields" ref="reminderDetailsRef">
-            <label class="form-label mb-15">
+            <label class="form-label mb-15" v-if="!form.input.url">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
-              <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3"></textarea>
+              <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3" maxlength="1000"></textarea>
             </label>
             <label class="form-label mb-15">
               <span class="form-label__title">URL</span>
-              <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com">
+              <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com" maxlength="2000">
             </label>
-            <label class="form-check mb-15">
+            <label class="form-check mb-15" v-if="!form.input.url">
 <!--              todo перевод-->
               <span>Синхронизировать с Google Calendar</span>
               <input 
@@ -103,7 +104,7 @@ const props = defineProps({
   backToPanel: {
     type: String,
   },
-  editingInitialFormData: {
+  initialFormData: {
     type: Object,
     default: () => ({})
   },
@@ -116,7 +117,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "update:initialFormData"]);
 const toast = useToast();
 const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
@@ -125,7 +126,7 @@ const reminderTitleRef = ref();
 const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
-const showExtraFields = ref(false);
+const showExtraFields = ref();//изначально должен быть Undefined!
 
 const formInputInitData = {
   id: null,
@@ -140,8 +141,13 @@ const form = reactive({
   saved: false,
   input: formInputInitData,
   save: async function () {
+    await nextTick(); //чтобы успели все правила валидации обновиться 
     if (! formRef.value.reportValidity()){
       return
+    }
+    
+    if (this.input.url){
+      this.input.googleSync = 0;
     }
     
     const id = await reminderService.save({...this.input});
@@ -149,18 +155,6 @@ const form = reactive({
     
     if (id){
       this.saved = id;
-      
-      if (this.isCreating()){
-        const menuItem = document.getElementById('menu-item-actual');
-        
-        if (menuItem) {
-          menuItem.classList.add('--blink');
-
-          setTimeout(() => {
-            menuItem.classList.remove('--blink');
-          }, 3000)
-        }
-      }
       
       setTimeout(() => {
         this.reset();
@@ -171,7 +165,7 @@ const form = reactive({
     return Object.keys(this.input).some(key => ! ['id', 'title', 'datetime'].includes(key) && this.input[key]);
   },
   reset: function ()  {
-    emit('close', {savedId: this.saved});
+    emit('close', {savedId: this.saved, isCreating: this.isCreating()});
     this.saved = false;
     this.input = formInputInitData;
   },
@@ -209,9 +203,10 @@ const reminderGoogleSyncClickHandler = (event) => {
   }
 }
 
-watch(() => showExtraFields.value, async (value) => {
+watch(() => showExtraFields.value, async (value, oldValue) => {
   await nextTick();
-  
+  console.log(oldValue);
+
   if (value && reminderDetailsRef.value) {
     const fields = reminderDetailsRef.value.querySelectorAll('input,textarea');
     let focusingEl;
@@ -223,17 +218,22 @@ watch(() => showExtraFields.value, async (value) => {
       }
     })
 
-    focusingEl ??= fields[0];
-    focusingEl?.focus();
-
+    if (oldValue !== undefined) {
+      focusingEl ??= fields[0];
+      focusingEl?.focus();
+    }
+    
     if (form.isCreating() && props.isAuthenticated) {
       form.input.googleSync = 1;
+      form.input.desc = null;
     }
   }
-})
+});
 
 onMounted(async () => {
-  Object.assign(form.input, props.editingInitialFormData);
+  Object.assign(form.input, props.initialFormData);
+  emit('update:initialFormData', {});
+  
   reminderTitleRef.value?.focus();
   
   const locale = await recognitionService.localeStore.getValue();
@@ -266,15 +266,10 @@ onMounted(async () => {
     value && toast.error(value);
   }, {immediate: true})
 
-  if (form.isCreating() && form.hasExtraFields()){
+  if (form.hasExtraFields()){
     showExtraFields.value = true
   }
 })
-
-
-watch(() => form, (value) => {
-  console.log(value.input.googleSync);
-}, {immediate: true, deep: true});
 
 
 onUnmounted(() => {

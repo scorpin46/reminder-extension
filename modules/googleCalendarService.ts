@@ -61,6 +61,7 @@ export class GoogleCalendarService {
             const user = await this.#googleUserStore.getValue();
 
             if (oldValue && !newValue && user) {
+                //todo вот здесь или до этого как-то отрепетировать мб сделать тайм аут или выключить (от ложных срабатываний)
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),

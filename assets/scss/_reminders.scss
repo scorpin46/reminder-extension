@@ -71,6 +71,8 @@
     }
     
     &.--saved{
+      //animation: blink-saved 1500ms forwards;
+      //animation-iteration-count: 1;
       animation: blink-saved 1500ms forwards;
       animation-iteration-count: 1;
     }

@@ -143,11 +143,11 @@ export const detectLocale = () => {
 export const reminderNotificationPrefix = 'reminder_';
 
 
-export const reminderIdToAlarmName = (reminderId: number) => {
-    return `${reminderNotificationPrefix}${reminderId}`
+export const reminderIdToAlarmName = (reminderId: number, type: string = 'default') => {
+    return `${reminderNotificationPrefix}${reminderId}#type-${type}`
 }
 
-export const alarmNameToReminderId = (alarmName: string) => {
+export const getReminderIdFromAlarmName = (alarmName: string) => {
     if (alarmName.startsWith(reminderNotificationPrefix)) {
         return parseInt(alarmName.replace(reminderNotificationPrefix, ''));
     }

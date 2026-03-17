@@ -1,13 +1,14 @@
 import {watch} from "vue";
-import {alarmNameToReminderId} from "@/modules/utils/helpers";
-import {browser} from 'wxt/browser';
-import {Browser} from "@wxt-dev/browser";
+import {getReminderIdFromAlarmName} from "@/modules/utils/helpers";
+import {browser, Browser} from 'wxt/browser';
 import {ReminderService} from "@/modules/reminderService.js";
 
 type Alarm = Browser.alarms.Alarm;
 import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
 import {getStoredGoogleAuthAlertIdStore} from "@/modules/utils/storage";
+import {Reminder} from "@/modules/reminderRepository";
+import NotificationCreateOptions = Browser.notifications.NotificationCreateOptions;
 
 export default defineBackground({
     type: 'module',
@@ -16,7 +17,7 @@ export default defineBackground({
         let popupWindowId: number | null = null;
         let isWindowOpening = false;
         let boundsChangeListener: ((windowInfo: Browser.windows.Window) => void) | null = null;
-
+        
         // Функция для фокусировки существующего окна и обновления параметров
         const focusExistingWindow = async (urlParams: Record<string, any>) => {
             if (!popupWindowId) return;
@@ -149,24 +150,55 @@ export default defineBackground({
         });
 
         browser.alarms.onAlarm?.addListener(async (alarm: Alarm) => {
-            const reminderId = alarmNameToReminderId(alarm.name);
+            const reminderId = getReminderIdFromAlarmName(alarm.name);
             const reminderService = ReminderService.instance();
 
             if (reminderId) {
                 const reminder = await reminderService.repository.getById(reminderId);
 
                 if (reminder?.id && !reminder.completed) {
-                    const notificationId = await browser.notifications.create({
+                    const notifyParams: NotificationCreateOptions = {
                         type: "basic",
                         iconUrl: browser.runtime.getURL("/icon/128.png"),
                         title: '🔔 ' + browser.i18n.getMessage('reminder'),
                         message: reminder.title,
                         contextMessage: reminder.desc!,
                         requireInteraction: true,
-                        buttons: [{title: "🕒 Postpone"}, {title: "✅ Mark as Done"}],
-                    });
+                        priority: 2,
+                        buttons: [
+                            {title: browser.i18n.getMessage('alertPostponeBtn')},
+                            {title: browser.i18n.getMessage('alertCompleteBtn')}
+                        ],
+                    };
+                    
+                    if (reminder.url) { //тут Url в приоритете, т.к. он может быть повторяемым
+                        notifyParams.buttons = [{title: '✅ ОК'}];
+                        notifyParams.title = '🔗 ' + browser.i18n.getMessage('linkIsOpened');
+                        notifyParams.message = reminder.title;
+                        notifyParams.contextMessage = reminder.url;
+                        // notifyParams.requireInteraction = false;
+                        //todo Добавить повтор и в гугл
+                    } else if (reminder.repeatAfterMin) {
+                        notifyParams.buttons = [{title: '✅ ОК'}];
+                    }
+                    
+                    const notificationId = await browser.notifications.create(notifyParams);
 
-                    await reminderService.repository.update(reminder.id, {notificationId});
+                    const newReminderParams:Partial<Reminder> = {notificationId};
+                    
+                    if (reminder.repeatAfterMin) {
+                        let nextDatetime = +reminder.datetime;
+                        while (nextDatetime <= Date.now()) {
+                            nextDatetime += reminder.repeatAfterMin * 60000;
+                        }
+                        newReminderParams.datetime = new Date(nextDatetime);
+                    } else if (reminder.url) { // если не повторяемый url
+                        newReminderParams.completed = 1;
+
+                        browser.tabs.create({ url: reminder.url, active: true });
+                    }
+                    
+                    await reminderService.repository.update(reminder.id, newReminderParams);
                 }
             }
         });
@@ -174,7 +206,11 @@ export default defineBackground({
         browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
             const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
 
-            if (reminder?.id) {
+            if (!reminder || reminder.url || reminder.repeatAfterMin){
+                return;
+            }
+            
+            if (reminder.id) {
                 if (buttonIndex === 1) {
                     await ReminderService.instance().complete(reminder, false);
                     GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
@@ -190,7 +226,7 @@ export default defineBackground({
             }
         });
 
-        browser.action.setBadgeBackgroundColor({color: "#4688F1"});
+        browser.action.setBadgeBackgroundColor({color: "rgb(29,93,142)"});
         browser.action.setBadgeTextColor({color: "white"});
 
         browser.tabs.onUpdated?.addListener(async (tabId, changeInfo, tab) => {

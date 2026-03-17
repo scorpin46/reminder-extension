@@ -101,7 +101,7 @@
 
   <EditPanel
       v-if="editingPanelVisible"
-      :editingInitialFormData="editingInitialFormData"
+      v-model:initialFormData="initialFormData"
       :isAuthenticated="isAuthenticated"
       @close="closeEditPanel"
   />
@@ -241,28 +241,34 @@ const daysGroupsReminders = computed(() => {
 
 const showEditPanel = async (reminder = null) => {
   if (reminder) {
-    editingInitialFormData = isFinite(reminder)
+    initialFormData = isFinite(reminder)
         ? await reminderService.repository.getById(reminder.id) || {}
         : reminder
   }
 
   editingPanelVisible.value = true;
   await nextTick();
-  editingInitialFormData = {};
 }
 
 const closeEditPanel = async (data) => {
   editingPanelVisible.value = false;
 
   if (data?.savedId) {
-    await nextTick();
-    const reminderEl = document.getElementById('reminder-' + data.savedId);
+    if (openedTab.value === 'completed' && data.isCreating) {
+      openedTab.value = 'active';
+    }
+    
+    setTimeout(async () => {
+      await nextTick();
+      const reminderEl = document.getElementById('reminder-' + data.savedId);
 
-    reminderEl.classList.add('--saved');
+      reminderEl?.scrollIntoView({behavior: 'smooth'});
+      reminderEl?.classList.add('--saved');
 
-    setTimeout(() => {
-      reminderEl.classList.remove('--saved');
-    }, 1500)
+      setTimeout(() => {
+        reminderEl?.classList.remove('--saved');
+      }, 2000)
+    }, 500)
   }
 }
 
@@ -328,6 +334,18 @@ watch(() => reminderService.repository.state.isLoaded, (value) => {
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
+  
+  if (oldValue !== undefined){
+    const menuItem = document.getElementById('menu-item-actual');
+
+    if (menuItem) {
+      menuItem.classList.add('--blink');
+
+      setTimeout(() => {
+        menuItem.classList.remove('--blink');
+      }, 3000)
+    }
+  }
 })
 
 watch(() => searchVisible.value, (value, oldValue) => {
@@ -347,14 +365,13 @@ watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVis
 })
 
 const url = new URL(window.location.href);
-let editingInitialFormData = Object.fromEntries(url.searchParams.entries());
+let initialFormData = Object.fromEntries(url.searchParams.entries());
 
 onMounted(() => {
-  if (Object.keys(editingInitialFormData).length) {
+  if (Object.keys(initialFormData).length) {
     showEditPanel(null);
 
     url.search = '';
-    editingInitialFormData = {};
 
     window.history.replaceState(
         null,
@@ -370,5 +387,12 @@ onMounted(() => {
   })
 
   checkAuth();
+
+  window.addEventListener('focus', () => actualize());
+
+  //пока убрал чтобы не перенагружать
+  // watch(() => openedTab.value, (value, oldValue) => {
+  //   actualize();
+  // })
 })
 </script>
