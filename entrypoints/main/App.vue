@@ -80,19 +80,21 @@
           </div>
 
           <div class="reminders-item__actions" @click="showEditPanel(item)">
-            <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
-              <IconEdit/>
-            </span>
-            <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
-              <IconChecks/>
-            </span>
-            <span v-else role="button"
-                  class="reminders-item__delete"
-                  :title="browser.i18n.getMessage('delete')"
-                  @click.stop="deleteItem(item)"
-            >
-              <IconTrash/>
-            </span>
+            <div class="reminders-item__actions-inner" title="">
+              <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
+                <IconEdit/>
+              </span>
+                <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+                <IconChecks/>
+              </span>
+                <span v-else role="button"
+                      class="reminders-item__delete"
+                      :title="browser.i18n.getMessage('delete')"
+                      @click.stop="deleteItem(item)"
+                >
+                <IconTrash/>
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -438,7 +438,6 @@ main {
   z-index: 50;
   font-size: 14px;
   font-weight: 600;
-  background: #ede4dd;
   padding: 5px 10px;
   user-select: none;
   display: flex;
@@ -446,7 +445,7 @@ main {
   
   &:before{
     @include beforeBg;
-    opacity: .65;
+    opacity: .5;
     background: var(--foreground);
   }
   
@@ -461,7 +460,7 @@ main {
     width: max-content;
     gap: 4px;
     color: var(--color-default);
-    opacity: .7;
+    opacity: .75;
     
     svg {
       height: 26px;

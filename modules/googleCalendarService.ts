@@ -65,7 +65,7 @@ export class GoogleCalendarService {
                 const notificationId = await browser.notifications.create({
                     type: "basic",
                     iconUrl: browser.runtime.getURL("/icon/128.png"),
-                    title: "🔔 " + browser.i18n.getMessage('appName'),  //todo подойдет ли название (учитывая другие языки и глагольную подачу)
+                    title: "🔔 " + browser.i18n.getMessage('appName'),  //todo подойдет ли название (учитывая другие языки и глагольную подачу), может вообще тут не писать ничего? по иконке вроде и так понятно(также и обычных)
                     message: browser.i18n.getMessage('syncFailed', [user.email]),
                     requireInteraction: true,
                     buttons: [{title: browser.i18n.getMessage('signIn')}],
