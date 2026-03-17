@@ -5,6 +5,7 @@
       v-model:editingPanelVisible="editingPanelVisible"
       :hasExpired="!!expired.length"
       @openCreatePanel="showEditPanel(null)"
+      v-horizontal-wheel
   />
   <Search
       :class="{'--active': searchVisible}"

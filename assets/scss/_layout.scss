@@ -8,7 +8,7 @@ html {
   background: var(--background);
   overflow-y: hidden;
   overflow-x: auto;
-  min-width: 400px;
+  min-width: 320px;
 }
 
 body {
@@ -45,9 +45,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 2%;
   overflow: auto;
   scrollbar-width: thin;
+  scroll-behavior: smooth;
 
   & > * {
     flex: 1 1 max-content;
@@ -286,6 +287,7 @@ main {
   left: 0;
   top: 0;
   overflow: auto;
+  scroll-behavior: smooth;
   height: 100%;
   width: 100%;
   z-index: 999;

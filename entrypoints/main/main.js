@@ -1,7 +1,7 @@
 import {createApp} from 'vue'
 import App from './App.vue'
 import Toast from 'vue-toastification';
-import {vVisibility} from '@/modules/utils/directives';
+import {vHorizontalWheel, vVisibility} from '@/modules/utils/directives';
 import {createVuetify} from 'vuetify'
 import {aliases, mdi} from 'vuetify/iconsets/mdi-svg' // для оптимизированных
 import "vue-toastification/dist/index.css";
@@ -34,6 +34,7 @@ const vuetify = createVuetify({
 const main = createApp(App);
 
 main.directive('visibility', vVisibility);
+main.directive('horizontal-wheel', vHorizontalWheel);
 
 main.use(vuetify)
 
