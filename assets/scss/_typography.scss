@@ -237,12 +237,21 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   &__title {
     user-select: none;
     padding-left: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     margin-bottom: 2px;
   }
 
   input, textarea, select {
     max-width: 100%;
     margin-top: 5px;
+  }
+  
+  &__info{
+    color: var(--color-light);
+    margin-bottom: -2px;
+    cursor: help;
   }
 
 }
@@ -268,3 +277,4 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
 
   align-items: center;
 }
+

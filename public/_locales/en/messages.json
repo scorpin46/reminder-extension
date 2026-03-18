@@ -41,6 +41,12 @@
   "reminderAdvanced": {
     "message": "Advanced"
   },
+  "reminderUrlInfo": {
+    "message": "(Optional) Enter a website to open when this reminder triggers"
+  },
+  "syncWithGoogleCalendar": {
+    "message": "Sync with Google Calendar"
+  },
   "noMicrophoneAccess": {
     "message": "No microphone access"
   },

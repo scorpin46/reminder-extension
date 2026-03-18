@@ -128,7 +128,8 @@
       <button
           v-if="!isAuthenticated"
           class="footer__google-btn"
-          @click="sendGoogleLoginMessage" :title="/*todo перевод*/''"
+          @click="sendGoogleLoginMessage"
+          :title="/*todo перевод*/''"
       >
         <IconGoogle/>
         <!--      todo перевод -->
@@ -334,11 +335,12 @@ useIntervalFn(() => {
   immediateCallback: true
 })
 
-watch(() => reminderService.repository.state.isLoaded, (value) => {
-  if (value && !reminderService.repository.state.active.length && !reminderService.repository.state.completed.length) {
-    showEditPanel(null);
-  }
-})
+//нет в это необходимости, когда есть артефакт
+// watch(() => reminderService.repository.state.isLoaded, (value) => {
+//   if (value && !reminderService.repository.state.active.length && !reminderService.repository.state.completed.length) {
+//     showEditPanel(null);
+//   }
+// })
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();

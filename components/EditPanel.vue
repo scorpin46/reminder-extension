@@ -55,12 +55,14 @@
               <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3" maxlength="1000"></textarea>
             </label>
             <label class="form-label mb-15">
-              <span class="form-label__title">URL</span>
+              <span class="form-label__title">
+                URL <IconInfo width="15" height="15" class="form-label__info" v-title="browser.i18n.getMessage('reminderUrlInfo')" />
+              </span>
+             
               <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com" maxlength="2000">
             </label>
             <label class="form-check mb-15" v-if="!form.input.url">
-<!--              todo перевод-->
-              <span>Синхронизировать с Google Calendar</span>
+              <span>{{ browser.i18n.getMessage('syncWithGoogleCalendar') }}</span>
               <input 
                   type="checkbox"
                   v-model="form.input.googleSync"
@@ -104,6 +106,7 @@ import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 import IconDown from "@/components/icons/IconDown.vue";
 import {sendGoogleLoginMessage} from "@/modules/utils/auth.js";
+import IconInfo from "@/components/icons/IconInfo.vue";
 
 const props = defineProps({
   backToPanel: {

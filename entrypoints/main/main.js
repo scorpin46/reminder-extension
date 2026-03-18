@@ -8,6 +8,7 @@ import "vue-toastification/dist/index.css";
 import 'vuetify/styles'
 import '@/assets/scss/styles.scss'
 import {detectLocale, blockPageScaling} from "@/modules/utils/helpers.ts";
+import { plugin as VueTippy } from 'vue-tippy'
 
 blockPageScaling();
 document.title = browser.i18n.getMessage('mainTitle');
@@ -31,14 +32,26 @@ const vuetify = createVuetify({
     },
 });
 
-const main = createApp(App);
+const app = createApp(App);
 
-main.directive('visibility', vVisibility);
-main.directive('horizontal-wheel', vHorizontalWheel);
+app.directive('visibility', vVisibility);
+app.directive('horizontal-wheel', vHorizontalWheel);
 
-main.use(vuetify)
-
-main.use(Toast, {
+app.use(vuetify)
+app.use(
+    VueTippy,
+    // optional
+    {
+        directive: 'title', // => v-tippy
+        component: 'tippy', // => <tippy/>
+        componentSingleton: 'tippy-singleton', // => <tippy-singleton/>,
+        defaultProps: {
+            placement: 'auto-end',
+            allowHTML: false,
+        }, 
+    }
+)
+app.use(Toast, {
     transition: "Vue-Toastification__fade",
     maxToasts: 1,
     newestOnTop: true,
@@ -55,4 +68,4 @@ main.use(Toast, {
 });
 
 
-main.mount('#app');
+app.mount('#app');

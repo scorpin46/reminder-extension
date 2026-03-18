@@ -41,6 +41,12 @@
   "reminderAdvanced": {
     "message": "Дополнительно"
   },
+  "reminderUrlInfo": {
+    "message": "(Необязательно) Укажите сайт, который нужно открыть при срабатывании напоминания"
+  },
+  "syncWithGoogleCalendar": {
+    "message": "Синхронизировать с Google Calendar"
+  },
   "noMicrophoneAccess": {
     "message": "Нет доступа к микрофону"
   },

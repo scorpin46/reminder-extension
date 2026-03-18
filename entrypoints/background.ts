@@ -298,7 +298,7 @@ export default defineBackground({
                             return await GoogleCalendarService.instance().logout();
 
                         case 'SAR__GOOGLE_CHECK_STATUS':
-                            if (!GoogleCalendarService.instance().currentUser) {
+                            if (!GoogleCalendarService.instance().currentUser?.email) {
                                 return {authenticated: false};
                             }
                             const isValidUser = await GoogleCalendarService.instance().checkUser();

@@ -8,7 +8,7 @@
     <button
         class="search__calendar-btn"
         @click="calendarOpened = ! calendarOpened"
-        :title="browser.i18n.getMessage('filterByDate')"
+        v-title="browser.i18n.getMessage('filterByDate')"
     ><IconCalendar/></button>
 
     <DatePicker
