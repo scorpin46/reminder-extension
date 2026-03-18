@@ -158,6 +158,12 @@
   "cancel": {
     "message": "Cancel"
   },
+  "saveBtn": {
+    "message": "Save"
+  },
+  "updateBtn": {
+    "message": "Update"
+  },
   "linkIsOpened": {
     "message": "The link opened"
   },

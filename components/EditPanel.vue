@@ -30,7 +30,7 @@
           <div>
             <label class="form-label mb-15 reminder-title">
               <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
-              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef" maxlength="250"></textarea>
+              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef" maxlength="200"></textarea>
             </label>
             <div class="form-label mb-15 reminder-datetime-wrapper">
               <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
@@ -79,7 +79,12 @@
 <!--            <IconCancel />-->
             <IconXmark />
           </button>
-          <button type="submit" class="reminder-save" :disabled="recognitionService.state.isRecording">
+          <button 
+              type="submit" 
+              class="reminder-save" 
+              :disabled="recognitionService.state.isRecording"
+              :title="browser.i18n.getMessage(form.isCreating() ? 'saveBtn' : 'updateBtn')"
+          >
             <IconCheck />
           </button>
         </div>
@@ -205,7 +210,6 @@ const reminderGoogleSyncClickHandler = (event) => {
 
 watch(() => showExtraFields.value, async (value, oldValue) => {
   await nextTick();
-  console.log(oldValue);
 
   if (value && reminderDetailsRef.value) {
     const fields = reminderDetailsRef.value.querySelectorAll('input,textarea');

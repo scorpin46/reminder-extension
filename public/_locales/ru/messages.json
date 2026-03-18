@@ -158,6 +158,12 @@
   "cancel": {
     "message": "Отмена"
   },
+  "saveBtn": {
+    "message": "Сохранить"
+  },
+  "updateBtn": {
+    "message": "Обновить"
+  },
   "linkIsOpened": {
     "message": "Ссылка открылась"
   },

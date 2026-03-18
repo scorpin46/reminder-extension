@@ -179,6 +179,10 @@ export class ReminderRepository {
 
     // Публичные методы
     async getById(id: number): Promise<Reminder | undefined> {
+        if (!isFinite(id)){
+            return undefined;
+        }
+        
         const reminder = await this._db.reminders.get(+id);
         
         return reminder?.id ? toUI(reminder): undefined;

@@ -1364,7 +1364,7 @@ export class FloatingFab {
                             }
                         }).init();
 
-                        setupVisibilityHandler();
+                        // setupVisibilityHandler(); //отключил по отсутствию необходимости
                         queryPanelState();
 
                         sendResponse({ success: true, message: "FAB reinitialized" });
@@ -1423,7 +1423,7 @@ export class FloatingFab {
                 }).init();
 
                 queryPanelState();
-                setupVisibilityHandler();
+                // setupVisibilityHandler();//отключил по отсутствию необходимости
             } catch {
                 return;
             }

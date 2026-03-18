@@ -241,6 +241,7 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   }
 
   input, textarea, select {
+    max-width: 100%;
     margin-top: 5px;
   }
 

@@ -34,7 +34,7 @@ const inputRef = ref();
 const minDateTime = ref();
 
 const recalcMinDateTime = () => {
-  const minDate = new Date(Date.now() + props.minOffsetMinutes * 60 * 2 * 1000)
+  const minDate = new Date(Date.now() + props.minOffsetMinutes * 60 * 1.5 * 1000)
 
   // Форматируем для input
   const year = minDate.getFullYear()

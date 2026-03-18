@@ -25,7 +25,7 @@ export default defineBackground({
             try {
                 const window = await browser.windows.get(popupWindowId, {populate: true});
 
-                const tab = window.tabs?.[0];
+                const tab = window.tabs ? window.tabs[0] : null;
                 if (!tab?.url) return;
 
                 // Обновляем URL с новыми параметрами
@@ -160,7 +160,7 @@ export default defineBackground({
                     const notifyParams: NotificationCreateOptions = {
                         type: "basic",
                         iconUrl: browser.runtime.getURL("/icon/128.png"),
-                        title: '🔔 ' + browser.i18n.getMessage('reminder'),
+                        title: '',
                         message: reminder.title,
                         contextMessage: reminder.desc!,
                         requireInteraction: true,
@@ -200,6 +200,14 @@ export default defineBackground({
                     
                     await reminderService.repository.update(reminder.id, newReminderParams);
                 }
+            }
+        });
+        
+        browser.notifications.onClicked.addListener(async (notificationId) => {
+            const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
+
+            if (reminder?.id) {
+                await openMainWindow()
             }
         });
 
@@ -303,7 +311,7 @@ export default defineBackground({
                             };
 
                         case 'SAR__GOOGLE_UPDATE_EVENT':
-                            const reminder = await ReminderService.instance().repository.getById(request.reminderId);
+                            const reminder = await ReminderService.instance().repository.getById(+request.reminderId);
                             
                             if (reminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().updateEventByReminder(reminder);
@@ -321,7 +329,7 @@ export default defineBackground({
                             return {success: success};
 
                         case 'SAR__GOOGLE_CREATE_EVENT':
-                            const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
+                            const newReminder = await ReminderService.instance().repository.getById(+request.reminderId);
 
                             if (newReminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().createEventByReminder(newReminder);

@@ -67,9 +67,12 @@
                 '--soon': soon.includes(item.id),
              }"
              :id="`reminder-${item.id}`"
-             :title="item.previewTitle"
+             @mouseenter.once="$event.target.title = item.previewTitle"
         >
-          <div class="reminders-item__title notranslate">{{ item.title }}</div>
+          <div class="reminders-item__text-box">
+            <div class="reminders-item__title notranslate">{{ item.title }}</div>
+            <div class="reminders-item__desc notranslate">{{ item.desc }}</div>
+          </div>
           <div class="reminders-item__time-box">
             <div class="reminders-item__time"><span>{{ item.localTime }}</span></div>
 
@@ -141,7 +144,7 @@
 <script setup>
 import EditPanel from "@/components/EditPanel.vue";
 import {ReminderService} from "@/modules/reminderService.js";
-import {computed, nextTick, onMounted, ref, watch} from "vue";
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
@@ -245,8 +248,10 @@ const daysGroupsReminders = computed(() => {
 const showEditPanel = async (reminder = null) => {
   if (reminder) {
     initialFormData = isFinite(reminder)
-        ? await reminderService.repository.getById(reminder.id) || {}
+        ? await reminderService.repository.getById(reminder) || {}
         : reminder
+    
+    initialFormData ??= {}
   }
 
   editingPanelVisible.value = true;
@@ -265,7 +270,7 @@ const closeEditPanel = async (data) => {
       await nextTick();
       const reminderEl = document.getElementById('reminder-' + data.savedId);
 
-      reminderEl?.scrollIntoView({behavior: 'smooth'});
+      reminderEl?.scrollIntoView({behavior: 'smooth', block: 'center'});
       reminderEl?.classList.add('--saved');
 
       setTimeout(() => {
@@ -338,7 +343,7 @@ watch(() => reminderService.repository.state.isLoaded, (value) => {
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();
   
-  if (oldValue !== undefined){
+  if (oldValue !== undefined && oldValue !== value){
     const menuItem = document.getElementById('menu-item-actual');
 
     if (menuItem) {
@@ -370,9 +375,9 @@ watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVis
 const url = new URL(window.location.href);
 let initialFormData = Object.fromEntries(url.searchParams.entries());
 
-onMounted(() => {
+onMounted(async () => {
   if (Object.keys(initialFormData).length) {
-    showEditPanel(null);
+    await showEditPanel(initialFormData.id || null);
 
     url.search = '';
 
