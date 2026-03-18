@@ -105,6 +105,7 @@ const onChange = async (event) => {
 
   input();
   await nextTick();
+  emit('change', event);
 }
 
 const onKeydown = (e) => {

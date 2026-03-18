@@ -1,18 +1,23 @@
 <template>
   <div class="postpone">
-    <div class="notranslate postpone__title">
-      <b>{{ reminderItem.title }}</b>
-      <div class="postpone__desc" :title="reminderItem.desc">{{ reminderItem.desc }}</div>
+    <div :title="reminderService.getPreviewTitle(reminderItem, false)">
+      <div class="notranslate postpone__title">
+        <b>{{ reminderItem.title }}</b>
+      </div>
+      <div class="notranslate postpone__desc">{{ reminderItem.desc }}</div>
     </div>
+    <hr class="mt-10">
     <div>
       <div v-for="option in reminderOptions" :key="option.minutes" class="postpone__option" @click="sendNewTime(option.targetDate)" role="button">
         <span>{{ option.label }}</span>
-        <span v-if="option.labelUntil"> - {{ option.labelUntil }}</span>
+        <span v-if="option.labelUntil"> — {{ option.labelUntil }}</span>
       </div>
-      <label class="form-label w-100 mt-10 px-5">
-        <span class="form-label__title">{{ browser.i18n.getMessage('customDate') }}</span>
-        <InputDatetime v-model="inputDatetime" @change="sendNewTime(inputDatetime)" class="form-control" />
-      </label>
+      <div class="form-label mt-10 reminder-datetime-wrapper">
+        <span class="form-label__title reminder-datetime">{{ browser.i18n.getMessage('customDate') }}</span>
+
+        <InputDatetime v-model="inputDatetime" @change="changeCustomTime" class="form-control custom-time-input"/>
+        <IconCheck class="date-confirm-icon"/>
+      </div>
     </div>
   </div>
 </template>
@@ -22,6 +27,8 @@ import {computed, onMounted, ref, watch} from "vue";
 import {localTimeUntil} from "@/modules/utils/helpers.ts";
 import InputDatetime from "@/components/InputDatetime.vue";
 import {useNow} from "@vueuse/core";
+import {browser} from "wxt/browser";
+import IconCheck from "@/components/icons/IconCheck.vue";
 
 const now = useNow({interval: 1000});
 const inputDatetime = ref();
@@ -30,41 +37,46 @@ const minutes = ref([5, 10, 15, 30, 45, 60, 120, 240, 60 * 24]);
 const reminderService = ReminderService.instance();
 
 const reminderOptions = computed(() => {
-  const locale = reminderService.regionLocale; //так даже лучше и правильнее во всяком случае в этом компоненте
+  const locale = reminderService.regionLocale;
+  const nowDate = now.value;
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }); // создаем один раз
 
   return minutes.value.map(min => {
-    const targetDate = new Date(now.value.getTime() + min * 60 * 1000);
-    const diffInDays = Math.round((targetDate - now.value) / (1000 * 60 * 60 * 24));
+    const targetDate = new Date(nowDate.getTime() + min * 60 * 1000);
 
-    // Форматируем время (одинаково для всех случаев)
+    const isToday = targetDate.toDateString() === nowDate.toDateString();
+    const isTomorrow = targetDate.toDateString() === new Date(nowDate.getTime() + 24*60*60*1000).toDateString();
+    const diffInDays = Math.floor((targetDate - nowDate) / (1000 * 60 * 60 * 24));
+    const diffInHours = (targetDate - nowDate) / (1000 * 60 * 60);
+
     const timeStr = targetDate.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
     });
 
-    // Форматируем дату в зависимости от diffInDays
     let dateStr;
     let labelUntil;
 
-    if (diffInDays === 0 || diffInDays === 1) {
-      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-      const dayStr = rtf.format(diffInDays === 0 ? 0 : 1, 'day');
-      dateStr = dayStr.charAt(0).toUpperCase() + dayStr.slice(1) + ', ' + timeStr;
-      if (targetDate.getDay() === new Date().getDay()){
-        labelUntil = localTimeUntil(
-            targetDate,
-            locale,
-            now.value,
-        );
+    if (isToday) {
+      const dayStr = rtf.format(0, 'day');
+      dateStr = dayStr.charAt(0).toLocaleUpperCase(locale) + dayStr.slice(1) + ', ' + timeStr;
+      labelUntil = localTimeUntil(targetDate, locale, nowDate);
+    }
+    else if (isTomorrow) {
+      const dayStr = rtf.format(1, 'day');
+      dateStr = dayStr.charAt(0).toLocaleUpperCase(locale) + dayStr.slice(1) + ', ' + timeStr;
+      
+      if (diffInHours <= 23){
+        labelUntil = localTimeUntil(targetDate, locale, nowDate);
       }
-    } else {
+    }
+    else {
       dateStr = targetDate.toLocaleString(locale, {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
       });
     }
 
@@ -76,7 +88,6 @@ const reminderOptions = computed(() => {
     };
   });
 });
-
 onMounted(async () => {
   const url = new URL(location.href);
   const reminderId = url.searchParams.get('id');
@@ -92,6 +103,12 @@ const sendNewTime = async (value) => {
   if (value) {
     await reminderService.save(reminderItem.value.id, {datetime: value});
     window.close();
+  }
+}
+
+const changeCustomTime = async (event) => {
+  if (event.target.reportValidity()) {
+    sendNewTime(inputDatetime.value)
   }
 }
 

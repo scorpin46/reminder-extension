@@ -311,7 +311,7 @@ export default defineBackground({
                             };
 
                         case 'SAR__GOOGLE_UPDATE_EVENT':
-                            const reminder = await ReminderService.instance().repository.getById(+request.reminderId);
+                            const reminder = await ReminderService.instance().repository.getById(request.reminderId);
                             
                             if (reminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().updateEventByReminder(reminder);
@@ -329,7 +329,7 @@ export default defineBackground({
                             return {success: success};
 
                         case 'SAR__GOOGLE_CREATE_EVENT':
-                            const newReminder = await ReminderService.instance().repository.getById(+request.reminderId);
+                            const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
 
                             if (newReminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().createEventByReminder(newReminder);

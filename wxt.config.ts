@@ -25,6 +25,14 @@ export default defineConfig({
         ],
         "action": {
             default_title: '__MSG_appName__',
+            default_icon: {
+                16: 'icon/16.png',
+                24: 'icon/24.png',
+                32: 'icon/32.png',
+                48: 'icon/48.png',
+                96: 'icon/96.png',
+                128: 'icon/128.png',
+            },
         },
         "oauth2": {
             "client_id": import.meta.env.OAUTH_CLIENT_ID,

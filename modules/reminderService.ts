@@ -103,8 +103,8 @@ export class ReminderService {
         });
     }
 
-    getPreviewTitle(reminderItem: Reminder) {
-        const dateFormatted = localDateFormat(reminderItem.datetime, true, this.regionLocale);
+    getPreviewTitle(reminderItem: Reminder, prependDate: boolean = true) {
+        const dateFormatted = ! prependDate ? '' : localDateFormat(reminderItem.datetime, true, this.regionLocale);
         // return `${dateFormatted}\n${reminderItem.title}`.trim();
         return `${dateFormatted}\n${reminderItem.title}\n\n${reminderItem.desc || ''}\n\n${reminderItem.url || ''}`.replace(/\n{3,}/, '\n\n').trim();
     }
