@@ -18,8 +18,10 @@
       <section>
         <header>Гугл-авторизация</header>
         <div>
-          <button @click="sendGoogleLoginMessage()" v-if="!googleIsAuthenticatedEmail">Авторизоваться в гугл</button>
-          <span v-else>авторизован , email: {{ googleIsAuthenticatedEmail}}</span>
+          <button @click="sendGoogleLoginMessage()" v-if="!isAuthenticatedEmail">Авторизоваться в гугл</button>
+          <div v-else>авторизован , email: {{ isAuthenticatedEmail}} 
+            <button @click="sendGoogleLogoutMessage()">Отключить синхронизацию</button>
+          </div>
         </div>
       </section>
       
@@ -56,30 +58,15 @@
 </template>
 <script setup>
 import IconXmark from "@/components/icons/IconXmark.vue";
-import {useToast} from "vue-toastification";
-import {onMounted, ref} from "vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
-import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
+import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 
 const props = defineProps({
-  isAuthenticated: {
-    type: Boolean,
+  isAuthenticatedEmail: {
+    type: String,
   },
 });
 
 const emit = defineEmits(["close"]);
-const toast = useToast();
-const googleIsAuthenticatedEmail = ref();
-
-onMounted(async () => {
-  sendGoogleCheckStatusMessage(response => {
-    googleIsAuthenticatedEmail.value = response.user.email;
-    
-    if (!response.authenticated && response.message){
-      toast.error(response.message, {timeout: 8000});
-    }
-  })
-})
-
 </script>

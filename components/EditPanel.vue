@@ -203,8 +203,8 @@ const textDatetime = computed(() => {
 
 const reminderGoogleSyncClickHandler = (event) => {
   if (!props.isAuthenticated) {
-    sendGoogleLoginMessage(() => {
-      event.target.checked = true;
+    sendGoogleLoginMessage((response) => {
+      event.target.checked = response.success;
     });
 
     return false;

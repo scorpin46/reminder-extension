@@ -102,13 +102,16 @@
     }
   },
   "successAuth": {
-    "message": "You are logged in as $EMAIL$!",
+    "message": "You are logged in as $EMAIL$",
     "placeholders": {
       "email": {
         "content": "$1",
         "example": "example@gmail.com"
       }
     }
+  },
+  "successLogout": {
+    "message": "Google Calendar sync is off!"
   },
   "signIn": {
     "message": "Sign in"

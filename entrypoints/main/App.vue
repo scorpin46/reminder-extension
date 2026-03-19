@@ -108,13 +108,13 @@
   <EditPanel
       v-if="editingPanelVisible"
       v-model:initialFormData="initialFormData"
-      :isAuthenticated="isAuthenticated"
+      :isAuthenticatedEmail="isAuthenticatedEmail"
       @close="closeEditPanel"
   />
 
   <SettingsPanel
       v-if="settingsPanelVisible"
-      :isAuthenticated="isAuthenticated"
+      :isAuthenticatedEmail="isAuthenticatedEmail"
       @close="settingsPanelVisible = false"
   />
 
@@ -124,9 +124,9 @@
       <span>{{ browser.i18n.getMessage('settings') }}</span>
     </button>
     
-    <template v-if="isAuthenticated !== undefined">
+    <template v-if="isAuthenticatedEmail !== undefined">
       <button
-          v-if="!isAuthenticated"
+          v-if="!isAuthenticatedEmail"
           class="footer__google-btn"
           @click="sendGoogleLoginMessage"
           :title="/*todo перевод*/''"
@@ -182,24 +182,22 @@ const recognitionService = RecognitionService.instance();
 const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
-const isAuthenticated = ref();
+const isAuthenticatedEmail = ref();
 
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
-const checkAuth = () => {
-  sendGoogleCheckStatusMessage(response => {
-    isAuthenticated.value = !!response.authenticated;
 
-    if (!response.authenticated && response.message) {
-      toast.error(response.message, {timeout: 8000});
-    }
+const checkAuth = async () => {
+  sendGoogleCheckStatusMessage(async response => {
+    googleIsAuthenticatedStore.setValue(!!response.authenticated);
+    isAuthenticatedEmail.value = response?.user?.email || ''; //возвращать значение отличное от undefined!
   })
 }
 
-googleIsAuthenticatedStore.watch((newValue) => {
-  isAuthenticated.value = newValue;
-
-  if (!newValue) {
-    checkAuth();
+googleIsAuthenticatedStore.watch((newValue, oldValue) => {
+  checkAuth();
+  
+  if (oldValue && !newValue) {
+    toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 4000});
   }
 });
 

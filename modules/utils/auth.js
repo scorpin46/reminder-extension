@@ -4,12 +4,19 @@ const toast = useToast();
 
 export const sendGoogleLoginMessage = (callback) => {
     browser.runtime.sendMessage({ action: 'SAR__GOOGLE_LOGIN' }, (response) => {
+        console.log(response);
         if (!response.success) {
-            toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 8000});
+            toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 5000});
         } else if (!response.silent){
             toast.success(browser.i18n.getMessage('successAuth', [response.user.email]));
         }
 
+        if (response.success){
+            browser.runtime.sendMessage({ action : 'SAR__IMPORT_FROM_GOOGLE' }, (response) => {
+                console.log('Импорт из гугл', response);
+            });
+        }
+        
         if (callback && typeof callback === 'function') {
             callback(response)
         }
@@ -18,6 +25,14 @@ export const sendGoogleLoginMessage = (callback) => {
 
 export const sendGoogleCheckStatusMessage = (callback) => {
     browser.runtime.sendMessage({ action : 'SAR__GOOGLE_CHECK_STATUS' }, (response) => {
+        if (callback && typeof callback === 'function') {
+            callback(response)
+        }
+    });
+}
+
+export const sendGoogleLogoutMessage = (callback) => {
+    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_LOGOUT' }, async (response) => {
         if (callback && typeof callback === 'function') {
             callback(response)
         }

@@ -102,13 +102,16 @@
     }
   },
   "successAuth": {
-    "message": "Вы вошли как $EMAIL$!",
+    "message": "Вы вошли как $EMAIL$",
     "placeholders": {
       "email": {
         "content": "$1",
         "example": "example@gmail.com"
       }
     }
+  },
+  "successLogout": {
+    "message": "Синхронизация с Google Calendar отключена!"
   },
   "signIn": {
     "message": "Авторизоваться"

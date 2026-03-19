@@ -262,13 +262,19 @@ export default defineBackground({
             }
         }, {immediate: true});
 
-        browser.alarms.onAlarm?.addListener((alarm) => {
+        browser.alarms.onAlarm?.addListener(async (alarm) => {
             browser.action.setBadgeText({
                 text: (ReminderService.instance().repository.state.active.length || "").toString()
             });
 
             if (alarm.name === GoogleCalendarService.syncAlarmName) {
-                GoogleCalendarService.instance().run(null);
+                const isAuth = await GoogleCalendarService.instance().isAuthenticated();
+                
+                if (isAuth){
+                    await GoogleCalendarService.instance().run(true);
+                } else {
+                    browser.alarms.clear(GoogleCalendarService.syncAlarmName);
+                }
             }
         });
 
@@ -298,16 +304,10 @@ export default defineBackground({
                             return await GoogleCalendarService.instance().logout();
 
                         case 'SAR__GOOGLE_CHECK_STATUS':
-                            if (!GoogleCalendarService.instance().currentUser?.email) {
-                                return {authenticated: false};
-                            }
                             const isValidUser = await GoogleCalendarService.instance().checkUser();
                             return {
                                 authenticated: isValidUser,
                                 user: GoogleCalendarService.instance().currentUser,
-                                message: !isValidUser
-                                    ? browser.i18n.getMessage("errorAuth")
-                                    : undefined
                             };
 
                         case 'SAR__GOOGLE_UPDATE_EVENT':
