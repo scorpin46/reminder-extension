@@ -5,7 +5,6 @@ export interface GoogleUser {
     email: string;
     name?: string;
     id: string;
-    chromeAccountId: string;
 }
 
 
@@ -34,8 +33,15 @@ export function getStoredGoogleLastSyncTs() {
     });
 }
 
-export function getStoredGoogleAuthAlertIdStore() {
+export function getStoredGoogleAuthAlertId() {
     return storage.defineItem<string|undefined>('session:googleAuthAlertId', {
+        fallback: undefined
+    });
+}
+
+
+export function getStoredGoogleCalendarId() {
+    return storage.defineItem<string|undefined>('local:googleCalendarId', {
         fallback: undefined
     });
 }

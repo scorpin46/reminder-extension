@@ -67,7 +67,7 @@
                   type="checkbox"
                   v-model="form.input.googleSync"
                   :true-value="1"
-                  :false-value="0"
+                  :false-value="isAuthenticated ? 0 : undefined"
                   class="form-control w-100" 
                   @click="reminderGoogleSyncClickHandler"
               >
@@ -76,7 +76,7 @@
         </div>
      
         <div class="reminder-buttons">
-          <button type="button" class="reminder-cancel" @click="form.reset" :title="browser.i18n.getMessage('cancel')">
+          <button type="button" class="reminder-cancel" @click="form.reset" v-title="browser.i18n.getMessage('cancel')">
             <!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
 <!--            <IconCancel />-->
             <IconXmark />
@@ -85,7 +85,7 @@
               type="submit" 
               class="reminder-save" 
               :disabled="recognitionService.state.isRecording"
-              :title="browser.i18n.getMessage(form.isCreating() ? 'saveBtn' : 'updateBtn')"
+              v-title="browser.i18n.getMessage(form.isCreating() ? 'saveBtn' : 'updateBtn')"
           >
             <IconCheck />
           </button>

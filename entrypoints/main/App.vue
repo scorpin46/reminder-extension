@@ -197,7 +197,7 @@ googleIsAuthenticatedStore.watch((newValue, oldValue) => {
   checkAuth();
   
   if (oldValue && !newValue) {
-    toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 4000});
+    toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});
   }
 });
 

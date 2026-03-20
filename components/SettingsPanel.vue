@@ -20,7 +20,7 @@
         <div>
           <button @click="sendGoogleLoginMessage()" v-if="!isAuthenticatedEmail">Авторизоваться в гугл</button>
           <div v-else>авторизован , email: {{ isAuthenticatedEmail}} 
-            <button @click="sendGoogleLogoutMessage()">Отключить синхронизацию</button>
+            <button @click="logout">Отключить синхронизацию</button>
           </div>
         </div>
       </section>
@@ -69,4 +69,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
+
+const logout = () => {
+  sendGoogleLogoutMessage()
+}
 </script>

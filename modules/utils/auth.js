@@ -11,12 +11,6 @@ export const sendGoogleLoginMessage = (callback) => {
             toast.success(browser.i18n.getMessage('successAuth', [response.user.email]));
         }
 
-        if (response.success){
-            browser.runtime.sendMessage({ action : 'SAR__IMPORT_FROM_GOOGLE' }, (response) => {
-                console.log('Импорт из гугл', response);
-            });
-        }
-        
         if (callback && typeof callback === 'function') {
             callback(response)
         }
@@ -32,7 +26,7 @@ export const sendGoogleCheckStatusMessage = (callback) => {
 }
 
 export const sendGoogleLogoutMessage = (callback) => {
-    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_LOGOUT' }, async (response) => {
+    browser.runtime.sendMessage({ action : 'SAR__GOOGLE_LOGOUT'}, async (response) => {
         if (callback && typeof callback === 'function') {
             callback(response)
         }

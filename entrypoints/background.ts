@@ -6,7 +6,7 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
-import {getStoredGoogleAuthAlertIdStore} from "@/modules/utils/storage";
+import {getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
 import {Reminder} from "@/modules/reminderRepository";
 import NotificationCreateOptions = Browser.notifications.NotificationCreateOptions;
 
@@ -212,25 +212,25 @@ export default defineBackground({
         });
 
         browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
+            //Уведомление о необходимости авторизоваться
+            const authAlertId = await getStoredGoogleAuthAlertId().getValue();
+
+            if (notificationId === authAlertId) {
+                await GoogleCalendarService.instance().login();
+                return;
+            }
+            
             const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
 
             if (!reminder || reminder.url || reminder.repeatAfterMin){
                 return;
             }
-            
-            if (reminder.id) {
-                if (buttonIndex === 1) {
-                    await ReminderService.instance().complete(reminder, false);
-                    GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
-                } else if (buttonIndex === 0) {
-                    await openPostponeWindow(reminder.id);
-                }
-            } else {
-                const authAlertId = await getStoredGoogleAuthAlertIdStore().getValue();
 
-                if (notificationId === authAlertId) {
-                    GoogleCalendarService.instance().login();
-                }
+            if (buttonIndex === 1) {
+                await ReminderService.instance().complete(reminder, false);
+                await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
+            } else if (buttonIndex === 0) {
+                await openPostponeWindow(reminder.id!);
             }
         });
 
@@ -280,7 +280,7 @@ export default defineBackground({
 
         browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
             const isValidRequest = request.action?.startsWith('SAR__');
-
+            
             const handleMessage = async () => {
                 try {
                     if (isValidRequest) {
@@ -295,8 +295,7 @@ export default defineBackground({
                             return {success: true};
 
                         case 'SAR__GOOGLE_LOGIN':
-                            return await GoogleCalendarService.instance().login();
-
+                            return await GoogleCalendarService.instance().login()
                         case 'SAR__IMPORT_FROM_GOOGLE':
                             return await GoogleCalendarService.instance().importFromGoogle();
 
@@ -367,6 +366,11 @@ export default defineBackground({
                 });
             
             return true; // Для асинхронных обработчиков
+        });
+
+        // При старте браузера
+        browser.runtime.onStartup?.addListener(() => {
+            GoogleCalendarService.instance().run()
         });
 
         // При старте браузера
