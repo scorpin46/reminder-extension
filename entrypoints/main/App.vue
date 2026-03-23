@@ -252,7 +252,7 @@ const showEditPanel = async (reminder = null) => {
     
     initialFormData ??= {}
   }
-
+  console.log(initialFormData, reminder);
   editingPanelVisible.value = true;
   await nextTick();
 }
@@ -377,7 +377,8 @@ let initialFormData = Object.fromEntries(url.searchParams.entries());
 
 onMounted(async () => {
   if (Object.keys(initialFormData).length) {
-    await showEditPanel(initialFormData.id || null);
+    const id = (+initialFormData.id || null); //нужно!
+    await showEditPanel(id);
 
     url.search = '';
 

@@ -183,19 +183,24 @@
     "message": "✅ Mark as Done"
   },
   "welcomePageTitle": {
-    "message": "Extension installed!"
+    "message": "Extension installed!",
+    "description": "DO_NOT_TRANSLATE"
   },
   "welcomePageSubtitle": {
-    "message": "Try the interactive tutorial below"
+    "message": "Try the interactive tutorial below",
+    "description": "DO_NOT_TRANSLATE"
   },
   "welcomePageClickThe": {
-    "message": "Click the"
+    "message": "Click the",
+    "description": "DO_NOT_TRANSLATE"
   },
   "welcomePageButton": {
-    "message": "button"
+    "message": "button",
+    "description": "DO_NOT_TRANSLATE"
   },
   "welcomePageForOpen": {
-    "message": "to open Set a Reminder"
+    "message": "to set a reminder",
+    "description": "DO_NOT_TRANSLATE"
   }
 }
 
