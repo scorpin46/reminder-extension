@@ -326,11 +326,19 @@ export class GoogleCalendarService {
     async #deleteCalendar() {
         const calendarId = await this.#getCalendarId();
         
-        if (!calendarId || calendarId === 'primary'){
-            return;
-        }
-        
         try {
+            if (calendarId === 'primary'){
+                //todo но это будет долго выполняться если много событий и успешное логаует сообщение затянется на неопределенный срок, а асинхронно нельзя тк токены слетят
+                // один из вариантов сюда callback прокидывать извне с изменением токенов в нем, а снаруже проверять primary или нет или найти другой способ
+                const events = await this.#getEvents();
+                for (let event of events) {
+                    await this.deleteEvent(event.id!);
+                }
+                return;
+            } else if (!calendarId){
+                return;
+            }
+            
             await this.#axiosInstance.delete(
                 `https://www.googleapis.com/calendar/v3/calendars/${calendarId}`
             );
@@ -601,7 +609,7 @@ export class GoogleCalendarService {
     async #syncUpdates(): Promise<void> {
         console.log(`${new Date()}: syncUpdates checking`);
 
-        if (!await this.checkUser()) {
+        if (!await this.checkUser() || ! await this.#getCalendarId()) {
             return;
         }
 

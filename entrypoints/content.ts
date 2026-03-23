@@ -8,7 +8,8 @@ export default defineContentScript({
   ],
   runAt: 'document_start',
   matchAboutBlank: true,
-  world: 'ISOLATED',
+  world: 'MAIN',
+  // world: 'ISOLATED',
   
   async main() {
     FloatingFab.run();

@@ -61,6 +61,8 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
+import {getFabVoiceModeStore} from "@/modules/utils/storage.ts";
+import {onMounted} from "vue";
 
 const props = defineProps({
   isAuthenticatedEmail: {
@@ -73,4 +75,14 @@ const emit = defineEmits(["close"]);
 const logout = () => {
   sendGoogleLogoutMessage()
 }
+
+const fabVoiceModeStore = getFabVoiceModeStore();
+
+fabVoiceModeStore.watch((newValue, oldValue) => {
+  //todo Триггерить update иконки
+  // fabVoiceModeStore.setValue(newValue)
+
+  browser.runtime.sendMessage({ action: 'SAR__REINIT_FAB_FOR_CONTENT' });
+})
+
 </script>

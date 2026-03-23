@@ -1,9 +1,29 @@
-// ==================== SVG ИКОНКА ====================
-const fabIconSvg = `<svg width="10" height="20" viewBox="0 0 10 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9.19831 3.22824L9.23114 3.41446C9.33989 4.03122 8.93017 4.61959 8.31493 4.72807C7.69969 4.83655 7.11344 4.4238 7.00469 3.80704L6.97186 3.62082C6.88136 3.1076 6.39133 2.76314 5.87999 2.8533C5.36865 2.94347 5.02599 3.43476 5.11648 3.94798L7.15228 15.4936C7.46015 17.2396 6.29521 18.9089 4.55635 19.2155C2.81749 19.5221 1.15187 18.3519 0.844008 16.6059L0.811173 16.4197C0.702421 15.8029 1.11214 15.2146 1.72738 15.1061C2.34263 14.9976 2.92887 15.4104 3.03762 16.0271L3.07046 16.2133C3.16095 16.7266 3.65098 17.071 4.16232 16.9809C4.67367 16.8907 5.01633 16.3994 4.92583 15.8862L2.89003 4.34056C2.58216 2.59456 3.74711 0.925274 5.48596 0.618666C7.22482 0.312059 8.89044 1.48224 9.19831 3.22824Z" fill="#032221"/>
+import {browser} from "wxt/browser";
+
+const FAB_HOST_ID = "set-a-reminder-fab";
+const DEFAULT_Z_INDEX = 2147483647;
+const DEFAULT_POSITION_PERCENT = 55;
+
+const fabIconSvg = (withMic = false) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 378.82 373.4">
+ <g>
+  <circle fill="#C1DBED" class="fill-foreground" cx="171.72" cy="315.52" r="47.69"/>
+  <path fill="#C1DBED" class="fill-foreground" d="M293.01 278.7c-19.39,-16.98 -30.58,-41.44 -30.76,-67.18 -41.07,-10.1 -71.53,-47.15 -71.53,-91.33 0,-12.7 2.52,-24.81 7.09,-35.86 -8.27,-2.56 -17.02,-3.95 -26.09,-3.95 -49.9,0 -90.52,41.76 -90.52,93.1l0 37.07c0,0.1 0,0.21 0,0.31 0,26.04 -11.26,50.82 -30.87,67.94 -5.04,4.46 -7.92,10.87 -7.92,17.6 0,0.03 0,0.06 0,0.08 0,12.84 10.16,23.27 22.63,23.27l213.38 0c12.47,0 22.63,-10.45 22.63,-23.27 0,-6.78 -2.89,-13.24 -8.04,-17.78z"/>
+  <path fill="#1D5D8E" class="fill-primary" d="M176.25 373.4c-29.95,-0.04 -54.22,-24.31 -54.26,-54.26 0,-5.99 4.86,-10.85 10.85,-10.85 6,0 10.86,4.86 10.86,10.85 0,17.96 14.61,32.56 32.55,32.56 17.94,0 32.56,-14.6 32.56,-32.56 0,-5.99 4.86,-10.85 10.85,-10.85 5.99,0 10.85,4.86 10.85,10.85 -0.04,29.95 -24.31,54.22 -54.26,54.26l0 0z"/>
+  <path fill="#1D5D8E" class="fill-primary" d="M295.62 329.99l-238.74 0c-13.97,-0.03 -25.28,-11.37 -25.28,-25.35 0,-7.38 3.22,-14.4 8.81,-19.21 0.37,-0.32 0.76,-0.61 1.16,-0.87 21.21,-18.46 33.4,-45.22 33.4,-73.34 0,0 0,-0.02 0,-0.02l0 -40.37c0,-0.13 0,-0.28 0,-0.42 0,-46.72 32.17,-87.31 77.66,-97.98 0.81,-0.18 1.65,-0.28 2.5,-0.28 5.99,0 10.85,4.86 10.85,10.85 0,5.03 -3.45,9.4 -8.35,10.56 -35.71,8.37 -60.96,40.24 -60.96,76.92 0,0.11 0,0.23 0,0.35l0 40.37c0,34.94 -15.37,68.13 -42,90.73 -0.22,0.18 -0.41,0.34 -0.64,0.5 -0.5,0.63 -0.77,1.41 -0.77,2.21 0,0.01 0,0.02 0,0.03 0,1.97 1.65,3.62 3.62,3.62l238.74 0c1.97,0 3.62,-1.65 3.62,-3.62 0,-0.02 0,-0.03 0,-0.05 0,-0.8 -0.28,-1.57 -0.78,-2.19 -13.11,-10.97 -23.74,-24.69 -31.03,-40.15 -0.79,-1.55 -1.21,-3.27 -1.21,-5.01 0,-5.99 4.86,-10.85 10.85,-10.85 4.34,0 8.26,2.59 9.97,6.58 5.73,12.1 13.76,22.72 23.92,31.6 0.38,0.26 0.75,0.53 1.1,0.83 5.66,4.81 8.89,11.83 8.89,19.24 0,13.96 -11.36,25.32 -25.33,25.32l0 0z"/>
+  <g class="fab-mic fill-primary" style="transform: scale(8) translate(25px, 2px); ${ ! withMic ? 'display: none;' : ''}">
+     <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C5.23858 0 3 2.23858 3 5V13C3 15.7614 5.23858 18 8 18C10.7614 18 13 15.7614 13 13V5C13 2.23858 10.7614 0 8 0z"></path>
+     <path d="M2 11.5882C2 11.0359 1.55228 10.5882 1 10.5882C0.44772 10.5882 0 11.0359 0 11.5882V13.647C0 17.4729 3.12354 20.4939 7 20.9425V22H5C4.44772 22 4 22.4477 4 23C4 23.5523 4.44772 24 5 24H11C11.5523 24 12 23.5523 12 23C12 22.4477 11.5523 22 11 22H9V20.9425C12.8765 20.4939 16 17.4729 16 13.647V11.5882C16 11.0359 15.5523 10.5882 15 10.5882C14.4477 10.5882 14 11.0359 14 11.5882V13.647C14 16.5143 11.4072 19 8 19C4.59282 19 2 16.5143 2 13.647V11.5882z"></path>
+  </g>
+  <g class="fab-plus" style="${ withMic ? 'display: none;' : ''}">
+    <path fill="#1D5D8E" class="fill-primary" d="M284.77 214.24c-51.86,0 -94.05,-42.19 -94.05,-94.05 0,-51.86 42.19,-94.05 94.05,-94.05 51.86,0 94.05,42.19 94.05,94.05 0,51.86 -42.19,94.05 -94.05,94.05zm0 -166.4c-39.89,0 -72.34,32.46 -72.34,72.35 0,39.89 32.45,72.34 72.34,72.34 39.89,0 72.35,-32.45 72.35,-72.34 0,-39.89 -32.46,-72.35 -72.35,-72.35z"/>
+    <line fill="none" class="stroke-primary" stroke="#1D5D8E" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" x1="284.77" y1="78.02" x2="284.77" y2= "162.36" />
+    <line fill="none" class="stroke-primary" stroke="#1D5D8E" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" x1="242.6" y1="120.19" x2="326.94" y2= "120.19" />
+  </g>
+<!--  <path fill="none" stroke="#1D5D8E" class="stroke-primary" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" d="M47.71 170.9c0,-62.23 46.12,-114.83 107.82,-122.96"/>-->
+<!--  <path fill="none" stroke="#1D5D8E" class="stroke-primary" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" d="M10.5 170.9c0,-82.72 62.61,-152.02 144.9,-160.4"/>-->
+  </g>
 </svg>`;
 
-// ==================== CSS СТИЛИ ====================
 const fabStyles = `
   *, *::before, *::after { box-sizing: border-box; }
 
@@ -13,14 +33,34 @@ const fabStyles = `
   }
 
   .fab-root {
+    --fab-foreground: #C1DBED;
+    --fab-primary: #1D5D8E;
+    --collapsed-opacity: 1;
+    
     position: fixed;
     right: calc(0px + env(safe-area-inset-right, 0px));
     top: 50%;
     transform: translateY(-50%);
-    z-index: 2147483647;
+    z-index: ${DEFAULT_Z_INDEX};
     pointer-events: none;
     transition: opacity 0.6s ease;
     opacity: 0;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+      .fab-root{
+        --collapsed-opacity: 0.8;
+      }
+  }
+  
+  .fill-foreground{
+    fill: var(--fab-foreground);
+  }
+  .fill-primary{
+    fill: var(--fab-primary);
+  }
+  .stroke-primary{
+    stroke: var(--fab-primary);
   }
 
   /* Левая сторона */
@@ -119,12 +159,12 @@ const fabStyles = `
 
   /* Свернутое состояние */
   .fab-root.collapsed .fab-btn {
-    width: 18px;
+    width: 19px;
     border-radius: 5px 0 0 5px;
-    opacity: 0.8;
+    opacity: var(--collapsed-opacity);
     transform: translateX(6px);
   }
-
+  
   .fab-root.fab-left.collapsed .fab-btn {
     border-radius: 0 5px 5px 0;
     transform: translateX(-6px);
@@ -160,7 +200,7 @@ const fabStyles = `
     display: none;
     width: 10px;
     height: 16px;
-    color: #032221;
+    color: var(--fab-primary);
     transform: scale(2);
     transform-origin: center;
     margin-right: 5px;
@@ -193,8 +233,8 @@ const fabStyles = `
     width: 32px;
     height: 40px;
     border: none;
-    color: #032221;
-    background: orange;
+    color: var(--fab-primary);
+    background: var(--fab-foreground);
     border-radius: 12px 0 0 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     cursor: pointer;
@@ -213,7 +253,14 @@ const fabStyles = `
   .fab-btn:hover {
     box-shadow: 0 12px 32px rgba(0,0,0,.35);
     filter: saturate(1.15);
-    background: #00C571;
+  }
+  
+  .fab-btn:hover .fill-foreground{
+    fill: #ffe6ac;
+  }
+  
+  .fab-btn:hover svg{
+     /* transform: scale(1.1)*/
   }
 
   .fab-btn:active { transform: scale(.96); }
@@ -224,7 +271,7 @@ const fabStyles = `
   }
 
   .fab-icon {
-    width: 12px;
+    width: 26px;
     height: 26px;
     display: flex;
     align-items: center;
@@ -232,8 +279,11 @@ const fabStyles = `
   }
 
   .fab-icon svg {
-    width: 100%;
+    margin-top: -2px;
     height: 100%;
+    width: 100%;
+    flex: 0 0 max-content;
+    transition: all .2s ease;
   }
 
   .dragging .fab-btn { cursor: grabbing; }
@@ -288,11 +338,11 @@ const welcomeAnimations = `
   }
   @keyframes fabPulse {
     0%, 100% {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 20px rgba(0, 223, 129, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 20px rgba(29, 93, 142, .4);
       transform: scale(1);
     }
     50% {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 40px rgba(0, 223, 129, 0.6);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 40px rgba(29, 93, 142, .6);
       transform: scale(1.05);
     }
   }
@@ -302,9 +352,10 @@ const welcomeAnimations = `
 class FabStorage {
     constructor() {
         this.defaults = {
-            fabTopPercent: 50,
+            fabTopPercent: DEFAULT_POSITION_PERCENT,
             fabCollapsed: false,
-            fabSide: "right"
+            fabSide: "right",
+            fabVoiceMode: false
         };
     }
 
@@ -330,6 +381,14 @@ class FabStorage {
 
     async setSide(value) {
         await this.set({ fabSide: value });
+    }
+
+    async getVoiceMode() {
+        return this.get('fabVoiceMode');
+    }
+
+    async setVoiceMode(value) {
+        await this.set({ fabVoiceMode: value });
     }
 
     async getAll() {
@@ -782,7 +841,7 @@ class WelcomeOverlay {
         transform: translate(-50%, -50%);
         width: 100%;
         height: 100%;
-        border: 2px solid rgba(0, 223, 129, 0.6);
+        border: 2px solid rgba(29, 93, 142, .6);
         border-radius: 50%;
         animation: ripple 3s ease-out ${i * 1}s infinite;
       `;
@@ -827,10 +886,8 @@ class ZIndexManager {
         this.element = element;
     }
 
-    static DEFAULT_Z_INDEX = 2147483647;
-
     start() {
-        this.element.style.zIndex = String(ZIndexManager.DEFAULT_Z_INDEX);
+        this.element.style.zIndex = String(DEFAULT_Z_INDEX);
     }
 
     forceToTop() { }
@@ -849,7 +906,7 @@ class WelcomeMessenger {
         if (!this.isEnabled) return;
 
         this.messageHandler = (event) => {
-            if (this.isValidQuery(event) && event.data.type === "QUERY_FAB_STATE") {
+            if (this.isValidQuery(event) && event.data.action === "QUERY_FAB_STATE") {
                 const state = getFabState();
                 this.sendStateResponse(state.side, state.topPercent);
             }
@@ -866,23 +923,23 @@ class WelcomeMessenger {
     }
 
     sendFabReady(side, topPercent) {
-        this.postMessage({ action: "FAB_READY", side, topPercent });
+        this.postMessage({ action: "SAR__FAB_READY", side, topPercent, defaultPercent: DEFAULT_POSITION_PERCENT });
     }
 
     sendFabClicked() {
-        this.postMessage({ action: "FAB_CLICKED" });
+        this.postMessage({ action: "SAR__FAB_CLICKED" });
     }
 
     sendSideChanged(side, topPercent) {
-        this.postMessage({ action: "FAB_SIDE_CHANGED", side, topPercent });
+        // this.postMessage({ action: "SAR__FAB_SIDE_CHANGED", side, topPercent, defaultPercent: DEFAULT_POSITION_PERCENT });
     }
 
     sendPositionChanged(side, topPercent) {
-        this.postMessage({ action: "FAB_POSITION_CHANGED", side, topPercent });
+        this.postMessage({ action: "SAR__FAB_POSITION_CHANGED", side, topPercent, defaultPercent: DEFAULT_POSITION_PERCENT });
     }
 
     sendStateResponse(side, topPercent) {
-        this.postMessage({ action: "FAB_STATE_RESPONSE", side, topPercent });
+        this.postMessage({ action: "SAR__FAB_STATE_RESPONSE", side, topPercent, defaultPercent: DEFAULT_POSITION_PERCENT });
     }
 
     postMessage(data) {
@@ -899,14 +956,10 @@ class WelcomeMessenger {
         const data = event.data;
         return !!(data && typeof data === "object" &&
             data.source === "fab-welcome-page" &&
-            data.type === "QUERY_FAB_STATE");
+            data.action === "QUERY_FAB_STATE");
     }
 }
 
-// ==================== ОСНОВНОЙ КЛАСС FAB ====================
-const FAB_HOST_ID = "set-a-reminder-fab";
-const DEFAULT_Z_INDEX = 2147483647;
-const DEFAULT_POSITION_PERCENT = 50;
 
 export class FloatingFab {
     constructor(options = {}) {
@@ -960,6 +1013,8 @@ export class FloatingFab {
 
     async init() {
         await this.mount();
+        console.log('initFabFunc');
+
         return this;
     }
 
@@ -1025,17 +1080,11 @@ export class FloatingFab {
 
         const icon = document.createElement("div");
         icon.className = "fab-icon";
-        icon.innerHTML = fabIconSvg
-            .replace('fill="none"', 'fill="currentColor"')
-            .replace('fill="#032221"', 'fill="currentColor"');
+        icon.innerHTML = fabIconSvg();
 
         const arrow = document.createElement("div");
         arrow.className = "fab-arrow";
-        arrow.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M16 6 L8 12 L16 18 Z" />
-      </svg>
-    `;
+        arrow.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6 L8 12 L16 18 Z" /></svg>`;
 
         const srText = document.createElement("span");
         srText.className = "sr-only";
@@ -1056,6 +1105,18 @@ export class FloatingFab {
             this.root.classList.add("collapsed");
         }
 
+        const voiceMode = !! await this.storage.getVoiceMode();
+        const plusEl = this.root.querySelector('.fab-plus');
+        const micEl = this.root.querySelector('.fab-mic');
+        
+        if (plusEl){
+            plusEl.style.display = voiceMode ? "none" : "block";
+        }
+
+        if (micEl){
+            micEl.style.display = voiceMode ? "block" : "none";
+        }
+        
         await this.startOptionalFeatures();
     }
 
@@ -1180,18 +1241,18 @@ export class FloatingFab {
         const data = event.data;
         if (!data || typeof data !== "object" || data.source !== "fab-extension") return false;
         const validTypes = ["DISMISS_WELCOME_OVERLAY", "SHOW_WELCOME_OVERLAY"];
-        return typeof data.type === "string" && validTypes.includes(data.type);
+        return typeof data.action === "string" && validTypes.includes(data.action);
     }
 
     handleMessage(event) {
         if (!this.isValidMessage(event)) return;
         const data = event.data;
 
-        if (data.type === "DISMISS_WELCOME_OVERLAY" && this.welcomeOverlay?.isVisible()) {
+        if (data.action === "DISMISS_WELCOME_OVERLAY" && this.welcomeOverlay?.isVisible()) {
             this.welcomeOverlay.dismiss();
         }
 
-        if (data.type === "SHOW_WELCOME_OVERLAY" && this.welcomeOverlay && !this.welcomeOverlay.isVisible()) {
+        if (data.action === "SHOW_WELCOME_OVERLAY" && this.welcomeOverlay && !this.welcomeOverlay.isVisible()) {
             this.welcomeOverlay.updateSide(this.currentSide);
             this.welcomeOverlay.show();
         }
@@ -1234,8 +1295,8 @@ export class FloatingFab {
             this.host.remove();
         } catch { }
     }
-    
-    static run () {
+
+    static run() {
         // Запускаем только в главном окне, не в iframe
         if (window !== window.top) return;
 
@@ -1244,16 +1305,13 @@ export class FloatingFab {
         const oldHost = document.getElementById(FAB_HOST_ID);
         if (oldHost) oldHost.remove();
 
-        // Проверяем, находимся ли мы на welcome page
-        // const isWelcomePage = (() => {
-        //     const { hostname, pathname } = window.location;
-        //     return pathname.replace(/\/$/, "") === "/welcome" &&
-        //         (hostname === "localhost" ||
-        //             hostname === "127.0.0.1" ||
-        //             hostname === "calculusai.pro" ||
-        //             hostname === "www.calculusai.pro");
-        // })();
-        const isWelcomePage = false; //todo ??
+        const isWelcomePage = (() => {
+            const { hostname, pathname } = window.location;
+            return pathname.startsWith("/welcome")
+                // && (hostname === "localhost" || hostname === "127.0.0.1")
+                && window.location.protocol === 'chrome-extension:' && window.location.hostname === browser.runtime.id
+        })();
+
 
         let fabInstance = null;
         let isPanelOpen = false;
@@ -1261,6 +1319,9 @@ export class FloatingFab {
         let visibilityChangeHandler = null;
         let isQuerying = false;
         let queryTimeout = null;
+
+        // СОХРАНЯЕМ ССЫЛКУ НА СЛУШАТЕЛЬ ДЛЯ ВОЗМОЖНОСТИ УДАЛЕНИЯ
+        let messageListener = null;
 
         // Функция проверки состояния панели
         const queryPanelState = () => {
@@ -1330,6 +1391,13 @@ export class FloatingFab {
         // Обработчик очистки
         const cleanupHandler = () => {
             cleanupVisibilityHandler();
+
+            // УДАЛЯЕМ СЛУШАТЕЛЬ ПРИ ОЧИСТКЕ
+            if (messageListener && browser.runtime) {
+                browser.runtime.onMessage.removeListener(messageListener);
+                messageListener = null;
+            }
+
             fabInstance?.destroy();
             fabInstance = null;
             document.removeEventListener("FAB_CLEANUP", cleanupHandler);
@@ -1338,19 +1406,24 @@ export class FloatingFab {
         document.addEventListener("FAB_CLEANUP", cleanupHandler);
         window.addEventListener("beforeunload", cleanupVisibilityHandler);
 
-        // Слушаем сообщения от background
-        browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        // РЕГИСТРИРУЕМ СЛУШАТЕЛЬ СРАЗУ, ДО ВСЕХ АСИНХРОННЫХ ОПЕРАЦИЙ
+        messageListener = (message, sender, sendResponse) => {
+            console.log('Message received in FAB:', message);
+
             // PING для проверки активности
-            if (message.type === "PING_FAB") {
+            if (message.action === "PING_FAB") {
                 sendResponse({ success: true, message: "FAB is active" });
-                return false;
+                return false; // Синхронный ответ
             }
 
             // Переинициализация
-            if (message.type === "REINIT_FAB") {
+            if (message.action === "SAR__REINIT_FAB") {
                 (async () => {
+                    console.log('SAR__REINIT_FAB')
+
                     try {
                         cleanupVisibilityHandler();
+
                         fabInstance?.destroy();
                         fabInstance = null;
                         isPanelOpen = false;
@@ -1368,31 +1441,34 @@ export class FloatingFab {
                         queryPanelState();
 
                         sendResponse({ success: true, message: "FAB reinitialized" });
-                    } catch {
+                    } catch (error) {
+                        console.error('Reinit error:', error);
                         sendResponse({ success: false, error: "Failed to reinitialize FAB" });
                     }
                 })();
-                return true;
+                return true; // ВАЖНО: возвращаем true для асинхронного ответа
             }
 
             // Скрыть FAB когда панель открыта
-            if (message.type === "HIDE_FAB_PANEL_OPEN") {
+            if (message.action === "HIDE_FAB_PANEL_OPEN") {
                 isPanelOpen = true;
                 fabInstance?.hide();
+                sendResponse({ success: true });
                 return false;
             }
 
             // Показать FAB когда панель закрыта
-            if (message.type === "SHOW_FAB_PANEL_CLOSED") {
+            if (message.action === "SHOW_FAB_PANEL_CLOSED") {
                 isPanelOpen = false;
                 if (isFabEnabled) {
                     fabInstance?.show();
                 }
+                sendResponse({ success: true });
                 return false;
             }
 
             // Установка видимости FAB
-            if (message.type === "SET_FAB_VISIBILITY") {
+            if (message.action === "SET_FAB_VISIBILITY") {
                 isFabEnabled = message.visible;
                 if (!isPanelOpen) {
                     if (isFabEnabled) {
@@ -1406,8 +1482,16 @@ export class FloatingFab {
             }
 
             return false;
-        });
+        };
 
+        // РЕГИСТРИРУЕМ СЛУШАТЕЛЬ СРАЗУ
+        try{
+            browser.runtime.onMessage.addListener(messageListener);
+            console.log('Message listener registered');
+
+        } catch (error) {
+            
+        }
         // Инициализация при загрузке
         browser.storage.sync.get(["fabVisible"], async (result) => {
             isFabEnabled = result.fabVisible !== undefined ? result.fabVisible : true;
@@ -1424,7 +1508,8 @@ export class FloatingFab {
 
                 queryPanelState();
                 // setupVisibilityHandler();//отключил по отсутствию необходимости
-            } catch {
+            } catch (error) {
+                console.error('FAB init error:', error);
                 return;
             }
         });

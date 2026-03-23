@@ -280,22 +280,45 @@ export default defineBackground({
 
         browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
             const isValidRequest = request.action?.startsWith('SAR__');
-            
+
             const handleMessage = async () => {
                 try {
                     if (isValidRequest) {
                         console.log('📨 Получено сообщение:', request.action, request);
                     }
-                    
+
                     let success = false;
 
                     switch (request.action) {
                         case 'SAR__OPEN_FROM_FAB':
-                            await openMainWindow({id: null,});
+                            await openMainWindow({id: null});
+                            return {success: true};
+
+                        case 'SAR__REINIT_FAB_FOR_CONTENT':
+                            const tabs = await browser.tabs.query({ active: true });
+
+                            const promises = tabs.map(async (tab) => {
+                                try {
+                                    await browser.tabs.sendMessage(tab.id!, {
+                                        action: 'SAR__REINIT_FAB'
+                                    });
+                                    return { tabId: tab.id, success: true };
+                                } catch (error: any) {
+                                    return {
+                                        tabId: tab.id,
+                                        success: false,
+                                        error: error.message
+                                    };
+                                }
+                            });
+
+                            await Promise.all(promises);
+                            
                             return {success: true};
 
                         case 'SAR__GOOGLE_LOGIN':
                             return await GoogleCalendarService.instance().login()
+
                         case 'SAR__IMPORT_FROM_GOOGLE':
                             return await GoogleCalendarService.instance().importFromGoogle();
 
@@ -311,20 +334,20 @@ export default defineBackground({
 
                         case 'SAR__GOOGLE_UPDATE_EVENT':
                             const reminder = await ReminderService.instance().repository.getById(request.reminderId);
-                            
+
                             if (reminder && await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().updateEventByReminder(reminder);
                                 success = true;
                             }
-                            
+
                             return {success: success};
 
                         case 'SAR__GOOGLE_DELETE_EVENT':
                             if (await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
-                                success = true;   
+                                success = true;
                             }
-                          
+
                             return {success: success};
 
                         case 'SAR__GOOGLE_CREATE_EVENT':
@@ -364,7 +387,7 @@ export default defineBackground({
                         // Игнорируем
                     }
                 });
-            
+
             return true; // Для асинхронных обработчиков
         });
 
@@ -379,8 +402,17 @@ export default defineBackground({
         });
 
         // При установке/обновлении
-        browser.runtime.onInstalled?.addListener(async () => {
+        browser.runtime.onInstalled?.addListener(async (details) => {
             try {
+                try {
+                    if (details.reason === 'install') {
+                        const welcomeUrl = browser.runtime.getURL('/welcome.html');
+                        browser.tabs.create({ url: welcomeUrl, active: true});
+                    }
+                } catch (err) {
+                    console.error('Failed to register content script:', err);
+                }
+              
                 // Очищаем старые контекстные меню
                 await browser.contextMenus.removeAll();
 

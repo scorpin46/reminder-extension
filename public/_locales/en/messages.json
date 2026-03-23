@@ -181,6 +181,21 @@
   },
   "alertCompleteBtn": {
     "message": "✅ Mark as Done"
+  },
+  "welcomePageTitle": {
+    "message": "Extension installed!"
+  },
+  "welcomePageSubtitle": {
+    "message": "Try the interactive tutorial below"
+  },
+  "welcomePageClickThe": {
+    "message": "Click the"
+  },
+  "welcomePageButton": {
+    "message": "button"
+  },
+  "welcomePageForOpen": {
+    "message": "to open Set a Reminder"
   }
 }
 

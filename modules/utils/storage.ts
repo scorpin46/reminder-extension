@@ -39,7 +39,6 @@ export function getStoredGoogleAuthAlertId() {
     });
 }
 
-
 export function getStoredGoogleCalendarId() {
     return storage.defineItem<string|undefined>('local:googleCalendarId', {
         fallback: undefined
@@ -49,5 +48,17 @@ export function getStoredGoogleCalendarId() {
 export function getBroadcastErrorStore() {
     return storage.defineItem<string|undefined>('session:broadcastError', {
         fallback: undefined
+    });
+}
+
+export function getFabVoiceModeStore() {
+    return storage.defineItem<boolean|undefined>('local:fabVoiceMode', {
+        fallback: false
+    });
+}
+
+export function getFabTopPercentStore() {
+    return storage.defineItem<boolean|undefined>('local:fabTopPercent', {
+        fallback: false
     });
 }

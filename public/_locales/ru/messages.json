@@ -181,6 +181,21 @@
   },
   "alertCompleteBtn": {
     "message": "✅ Выполнено"
+  },
+  "welcomePageTitle": {
+    "message": "Расширение установлено!"
+  },
+  "welcomePageSubtitle": {
+    "message": "Чтобы начать, воспользуйтесь инструкцией ниже"
+  },
+  "welcomePageClickThe": {
+    "message": "Нажмите по такой"
+  },
+  "welcomePageButton": {
+    "message": "кнопке"
+  },
+  "welcomePageForOpen": {
+    "message": "чтобы создать напоминание"
   }
 }
 
