@@ -301,7 +301,7 @@ export class GoogleCalendarService {
     async logout(): Promise<{ success: boolean }> {
         try {
             browser.alarms.clear(GoogleCalendarService.syncAlarmName);
-
+            await this.#googleUserStore.removeValue();
             await this.#deleteCalendar();
 
             // Очищаем токены
@@ -309,7 +309,6 @@ export class GoogleCalendarService {
                 browser.identity.clearAllCachedAuthTokens(resolve);
             });
 
-            await this.#googleUserStore.removeValue();
             await this.#googleIsAuthenticatedStore.setValue(false);
 
             this.#isRefreshingToken = false;
@@ -323,22 +322,96 @@ export class GoogleCalendarService {
         }
     }
 
+    #chunkArray<T>(array: T[], size: number): T[][] {
+        const chunks: T[][] = [];
+        for (let i = 0; i < array.length; i += size) {
+            chunks.push(array.slice(i, i + size));
+        }
+        return chunks;
+    }
+
+    /**
+     * Выполняет batch-удаление событий (до 100 за раз)
+     */
+    async #executeBatchDelete(eventIds: string[]): Promise<void> {
+        if (eventIds.length === 0) return;
+
+        const boundary = `batch_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        let body = '';
+
+        // Формируем batch-запрос
+        for (const eventId of eventIds) {
+            body += `--${boundary}\r\n`;
+            body += `Content-Type: application/http\r\n`;
+            body += `Content-ID: ${eventId}\r\n\r\n`;
+            body += `DELETE /calendar/v3/calendars/primary/events/${eventId} HTTP/1.1\r\n`;
+            body += `Host: www.googleapis.com\r\n`;
+            body += `\r\n`;
+        }
+        body += `--${boundary}--`;
+
+        try {
+            const response = await this.#axiosInstance.post(
+                'https://www.googleapis.com/batch/calendar/v3',
+                body,
+                {
+                    headers: {
+                        'Content-Type': `multipart/mixed; boundary=${boundary}`,
+                    }
+                }
+            );
+
+            // Проверяем ответы на ошибки
+            this.#checkBatchResponse(response.data);
+
+        } catch (error) {
+            console.error('Batch delete failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Проверяет ответ batch-запроса на наличие ошибок
+     */
+    #checkBatchResponse(response: string): void {
+        const errors: string[] = [];
+        const parts = response.split(/--batch_.*?\r\n/);
+
+        for (const part of parts) {
+            const statusMatch = part.match(/HTTP\/\d\.\d (\d+)/);
+            const contentIdMatch = part.match(/Content-ID: (.*?)\r\n/);
+
+            if (statusMatch && contentIdMatch) {
+                const status = parseInt(statusMatch[1]);
+                if (status !== 200 && status !== 204) {
+                    errors.push(`${contentIdMatch[1]}: status ${status}`);
+                }
+            }
+        }
+
+        if (errors.length > 0) {
+            console.warn(`Batch delete partial errors: ${errors.join(', ')}`);
+        }
+    }
+    
     async #deleteCalendar() {
         const calendarId = await this.#getCalendarId();
         
         try {
             if (calendarId === 'primary'){
-                //todo но это будет долго выполняться если много событий и успешное логаует сообщение затянется на неопределенный срок, а асинхронно нельзя тк токены слетят
-                // один из вариантов сюда callback прокидывать извне с изменением токенов в нем, а снаруже проверять primary или нет или найти другой способ
-                const events = await this.#getEvents();
-                for (let event of events) {
-                    await this.deleteEvent(event.id!);
+                const eventsIds = (await this.#getEvents()).filter(event => event.status !== 'cancelled').map(event => event.id);
+                const chunks = this.#chunkArray(eventsIds, 100);
+
+                for (const chunk of chunks) {
+                    await this.#executeBatchDelete(chunk as Array<string>); 
                 }
+               
                 return;
             } else if (!calendarId){
                 return;
             }
             
+            //удаление всего календаря (для отдельно созданных)
             await this.#axiosInstance.delete(
                 `https://www.googleapis.com/calendar/v3/calendars/${calendarId}`
             );
@@ -360,7 +433,7 @@ export class GoogleCalendarService {
                     // Проверяем существование и обновляем настройки за один запрос
                     await this.#axiosInstance.patch(
                         `https://www.googleapis.com/calendar/v3/users/me/calendarList/${calendarId}`,
-                        { selected: true, hidden: false }
+                        { selected: true, hidden: false },
                     );
                     console.log('Календарь уже существует:', calendarId);
 
