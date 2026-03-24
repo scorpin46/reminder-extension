@@ -1,5 +1,5 @@
 <template>
-  <div class="panel panel--editing">
+  <div class="panel panel-editing">
     <div class="panel__title">
       <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminder')}}</template>
       <template v-else>
@@ -120,7 +120,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  isAuthenticatedEmail: {
+  authenticatedEmail: {
     type: String,
   },
 });
@@ -135,7 +135,7 @@ const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
-const isAuthenticated = computed(() => !!props.isAuthenticatedEmail)
+const isAuthenticated = computed(() => !!props.authenticatedEmail)
 const formInputInitData = {
   id: null,
   title: '',

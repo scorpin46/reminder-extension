@@ -108,13 +108,13 @@
   <EditPanel
       v-if="editingPanelVisible"
       v-model:initialFormData="initialFormData"
-      :isAuthenticatedEmail="isAuthenticatedEmail"
+      :authenticatedEmail="authenticatedEmail"
       @close="closeEditPanel"
   />
 
   <SettingsPanel
       v-if="settingsPanelVisible"
-      :isAuthenticatedEmail="isAuthenticatedEmail"
+      :authenticatedEmail="authenticatedEmail"
       @close="settingsPanelVisible = false"
   />
 
@@ -124,19 +124,18 @@
       <span>{{ browser.i18n.getMessage('settings') }}</span>
     </button>
     
-    <template v-if="isAuthenticatedEmail !== undefined">
+    <template v-if="authenticatedEmail !== undefined">
       <button
-          v-if="!isAuthenticatedEmail"
-          class="footer__google-btn"
+          v-if="!authenticatedEmail"
+          class="google-auth-btn"
           @click="sendGoogleLoginMessage"
-          :title="/*todo перевод*/''"
       >
         <IconGoogle/>
-        <!--      todo перевод -->
-        Sign in with Google
+        {{ browser.i18n.getMessage('signInWith', ['Google']) }}
       </button>
-      <button v-else @click="settingsPanelVisible = true">
-        Google Sync is active  <!--      todo перевод + мь иконка с галкой вместо текста?-->
+      <button v-else class="footer__connected-btn" v-title="browser.i18n.getMessage('providerConnected', ['Google Calendar']) + ` - ${authenticatedEmail}`" @click="settingsPanelVisible = true">
+        <IconGoogleCalendar height="26"/> 
+        <span>{{ browser.i18n.getMessage('providerConnected', ['']).trim() }}</span>
       </button>
     </template>
   </footer>
@@ -164,6 +163,8 @@ import {max, min} from "es-toolkit/compat";
 import IconTrash from "@/components/icons/IconTrash.vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
+import IconCheck from "@/components/icons/IconCheck.vue";
+import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -182,7 +183,7 @@ const recognitionService = RecognitionService.instance();
 const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
-const isAuthenticatedEmail = ref();
+const authenticatedEmail = ref();
 
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
 const broadcastErrorStore = getBroadcastErrorStore();
@@ -191,13 +192,13 @@ const googleUserStore = getStoredGoogleUser();
 const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
     googleIsAuthenticatedStore.setValue(!!response.authenticated);
-    isAuthenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
+    authenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
   })
 }
 
 googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
   if (oldValue && !newValue) {
-    isAuthenticatedEmail.value = '';
+    authenticatedEmail.value = '';
 
     if (!await googleUserStore.getValue()) {
       toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});

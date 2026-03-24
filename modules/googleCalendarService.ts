@@ -446,17 +446,14 @@ export class GoogleCalendarService {
         
         try {
             let calendarId = await this.#getCalendarId();
+            const response = await this.#axiosInstance.get(
+                'https://www.googleapis.com/calendar/v3/users/me/calendarList'
+            );
             
-            if (!calendarId) {
-                try{
-                    const response = await this.#axiosInstance.get(
-                        'https://www.googleapis.com/calendar/v3/users/me/calendarList'
-                    );
+            const calendars = response.data.items || [];
 
-                    calendarId = response.data.items?.find((cal: any) => cal.summary === defaultCalendarName)?.id;
-                    calendarId && console.log('Календарь найден по имени: ' + calendarId);
-                } catch (error: any){}
-            }
+            calendarId = calendars.find((cal: any) => cal.id === calendarId)?.id
+            calendarId ??= calendars.find((cal: any) => cal.summary === defaultCalendarName)?.id
 
             if (calendarId) {
                 try {
@@ -480,7 +477,6 @@ export class GoogleCalendarService {
                 await this.#googleCalendarIdStore.setValue(calendarId); //обязательно перед импортом
                 this.importFromGoogle();
             } else {
-                // 3. Создаем новый календарь (один запрос вместо двух)
                 const response = await this.#axiosInstance.post(
                     'https://www.googleapis.com/calendar/v3/calendars',
                     {
@@ -495,14 +491,14 @@ export class GoogleCalendarService {
                 calendarId = response.data.id;
                 console.log('Создан новый календарь:', calendarId);
                 await this.#googleCalendarIdStore.setValue(calendarId);
+
+                // Отображаем календарь 
+                await this.#axiosInstance.patch(
+                    `https://www.googleapis.com/calendar/v3/users/me/calendarList/${calendarId}`,
+                    { selected: true, hidden: false }
+                );
             }
 
-            // 4. Отображаем календарь (второй запрос)
-            await this.#axiosInstance.patch(
-                `https://www.googleapis.com/calendar/v3/users/me/calendarList/${calendarId}`,
-                { selected: true, hidden: false }
-            );
-            
             return true;
         } catch (error) {
             console.error('Ошибка при создании календаря:', error);

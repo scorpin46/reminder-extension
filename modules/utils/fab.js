@@ -25,7 +25,7 @@ const fabIconSvg = (withMic = false) => `<svg xmlns="http://www.w3.org/2000/svg"
 </svg>`;
 
 const fabStyles = `
-  *, *::before, *::after { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; user-select: none; outline: none; }
 
   @keyframes fabFadeIn {
     from { opacity: 0; }

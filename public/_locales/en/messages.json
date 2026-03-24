@@ -113,8 +113,29 @@
   "successLogout": {
     "message": "Google Calendar sync is off!"
   },
+  "syncOff": {
+    "message": "Disable synchronization"
+  },
   "signIn": {
     "message": "Sign in"
+  },
+  "signInWith": {
+    "message": "Sign in with $PROVIDER$",
+    "placeholders": {
+      "provider": {
+        "content": "$1",
+        "example": "Google"
+      }
+    }
+  },
+  "providerConnected": {
+    "message": "$PROVIDER$ connected",
+    "placeholders": {
+      "provider": {
+        "content": "$1",
+        "example": "Google Calendar"
+      }
+    }
   },
   "errorNoSpeech": {
     "message": "No speech detected. Try again."

@@ -113,8 +113,29 @@
   "successLogout": {
     "message": "Синхронизация с Google Calendar отключена!"
   },
+  "syncOff": {
+    "message": "Отключить синхронизацию"
+  },
   "signIn": {
     "message": "Авторизоваться"
+  },
+  "signInWith": {
+    "message": "Войти через $PROVIDER$",
+    "placeholders": {
+      "provider": {
+        "content": "$1",
+        "example": "Google"
+      }
+    }
+  },
+  "providerConnected": {
+    "message": "$PROVIDER$ подключен",
+    "placeholders": {
+      "provider": {
+        "content": "$1",
+        "example": "Google Calendar"
+      }
+    }
   },
   "errorNoSpeech": {
     "message": "Не обнаружена речь. Попробуйте еще раз."

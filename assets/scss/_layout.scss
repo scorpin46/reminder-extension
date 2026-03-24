@@ -8,7 +8,6 @@ html {
   background: var(--background);
   overflow-y: hidden;
   overflow-x: auto;
-  min-width: 320px;
 }
 
 body {
@@ -21,6 +20,7 @@ body {
   right: 0;
   margin: auto;
   z-index: 0;
+  min-width: 230px;
   font-family: "Segoe UI", apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
@@ -438,6 +438,7 @@ main {
   width: 100%;
   height: max-content;
   z-index: 50;
+  gap: 20px;
   font-size: 14px;
   font-weight: 600;
   padding: 5px 10px;
@@ -464,6 +465,10 @@ main {
     color: var(--color-default);
     opacity: .75;
     
+    @media (max-width: 350px){
+      font-size: 0;
+    }
+    
     svg {
       height: 26px;
       aspect-ratio: 1;
@@ -480,32 +485,34 @@ main {
     }
   }
   
-  &__google-btn{
+  .google-auth-btn{
+   
+  }
+  
+  &__connected-btn{
+    opacity: .85;
+
     display: inline-flex;
     align-items: center;
-    font-size: 13px;
-    gap: 7px;
-    background: var(--foreground-active);
-    padding: 6px 10px;
-    border-radius: 20px;
-    margin-top: -1px;
-    margin-right: 2px;
-    border: 1px solid var(--color-light);
-    transition: transform .2s ease;
-    opacity: .85;
-    
-    svg {
-      height: 18px;
-      aspect-ratio: 1;
+    gap: 5px;
+    color: var(--color-default);
+
+    &:hover{
+      color: var(--color-primary);
+      opacity: 1;
     }
     
-    &:hover{
-      opacity: 1;
-      transform: scale(1.1);
+    span {
+      &:first-letter{
+        text-transform: uppercase;
+      }
+    }
+
+    svg{
+      flex: 0 0 max-content;
     }
   }
 }
-
 
 @keyframes fade {
   0% {

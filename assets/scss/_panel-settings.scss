@@ -1,0 +1,20 @@
+.panel-settings{
+  &__auth-data{
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    line-height: 1;
+  }
+  
+  &__logout{
+    color: var(--color-red);
+    transition: all .2s ease;
+    margin-bottom: -1px;
+    opacity: .8;
+    
+    &:hover{
+      transform: scale(1.15);
+      opacity: 1;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 <template>
-  <div class="panel">
+  <div class="panel panel-settings">
     <button
         class="panel__close"
         type="button"
@@ -13,14 +13,23 @@
       <IconSettings />
       {{ browser.i18n.getMessage('settings') }}
     </div>
-    <div class="panel__body">
-<!--      todo перевод-->
+    <div class="panel__body settings">
       <section>
-        <header>Гугл-авторизация</header>
+        <header>Google Calendar</header>
         <div>
-          <button @click="sendGoogleLoginMessage()" v-if="!isAuthenticatedEmail">Авторизоваться в гугл</button>
-          <div v-else>авторизован , email: {{ isAuthenticatedEmail}} 
-            <button @click="logout">Отключить синхронизацию</button>
+          <button
+              v-if="!authenticatedEmail"
+              class="google-auth-btn mt-5"
+              @click="sendGoogleLoginMessage()"
+          >
+            <IconGoogle/>
+            {{ browser.i18n.getMessage('signInWith', ['Google']) }}
+          </button>
+          <div v-else class="panel-settings__auth-data">
+              <span>Email: <b>{{ authenticatedEmail}} </b></span>
+              <button @click="logout" class="panel-settings__logout" v-title="browser.i18n.getMessage('syncOff')">
+                <IconOff height="30" width="30"/>
+              </button>
           </div>
         </div>
       </section>
@@ -63,9 +72,12 @@ import IconSettings from "@/components/icons/IconSettings.vue";
 import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 import {getFabVoiceModeStore} from "@/modules/utils/storage.ts";
 import {onMounted} from "vue";
+import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
+import IconGoogle from "@/components/icons/IconGoogle.vue";
+import IconOff from "@/components/icons/IconOff.vue";
 
 const props = defineProps({
-  isAuthenticatedEmail: {
+  authenticatedEmail: {
     type: String,
   },
 });

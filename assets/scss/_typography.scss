@@ -189,6 +189,7 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   }
 }
 
+
 .form-control {
   display: inline-block;
   padding: 6px 10px;
@@ -278,3 +279,29 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   align-items: center;
 }
 
+
+.google-auth-btn{
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  gap: 7px;
+  background: var(--foreground-active);
+  padding: 6px 10px;
+  border-radius: 20px;
+  margin-top: -1px;
+  margin-right: 2px;
+  border: 1px solid var(--color-light);
+  transition: transform .2s ease;
+  font-weight: 500;
+  opacity: .85;
+
+  svg {
+    height: 18px;
+    aspect-ratio: 1;
+  }
+
+  &:hover{
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
