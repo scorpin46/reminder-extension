@@ -291,7 +291,7 @@ export default defineBackground({
 
                     switch (request.action) {
                         case 'SAR__OPEN_FROM_FAB':
-                            await openMainWindow({id: null});
+                            await openMainWindow({id: ''});
                             return {success: true};
 
                         case 'SAR__REINIT_FAB_FOR_CONTENT':

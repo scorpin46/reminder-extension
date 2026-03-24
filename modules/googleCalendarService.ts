@@ -44,6 +44,7 @@ export class GoogleCalendarService {
     #isRefreshingToken = false; // Флаг для предотвращения множественных запросов на обновление
 
     #reminderService: ReminderService;
+    #needCalendarGrants?: boolean;
     currentUser?: GoogleUser | null = null;
     #calendarId?: string | null = null; //не обращаться напрямую! или иначе придется делать instance асинхронным или не кешировать store
 
@@ -84,14 +85,26 @@ export class GoogleCalendarService {
             }
 
             if (oldValue && !newValue && user) {
-                const notificationId = await browser.notifications.create({
-                    type: "basic",
-                    iconUrl: browser.runtime.getURL("/icon/128.png"),
-                    title: "🔔 " + browser.i18n.getMessage('appName'),
-                    message: browser.i18n.getMessage('syncFailed', [user.email]),
-                    requireInteraction: true,
-                    buttons: [{title: browser.i18n.getMessage('signIn')}],
-                });
+                let notificationId;
+                
+                if (this.#needCalendarGrants){
+                    notificationId = await browser.notifications.create({
+                        type: "basic",
+                        iconUrl: browser.runtime.getURL("/icon/128.png"),
+                        title: '',
+                        priority: 2,
+                        message: browser.i18n.getMessage("errorNeedCalendarGrants"),
+                    });
+                } else {
+                    notificationId = await browser.notifications.create({
+                        type: "basic",
+                        iconUrl: browser.runtime.getURL("/icon/128.png"),
+                        title: '',
+                        message: browser.i18n.getMessage('syncFailed', [user.email]),
+                        requireInteraction: true,
+                        buttons: [{title: browser.i18n.getMessage('signIn')}],
+                    });
+                }
 
                 await this.#googleAuthAlertIdStore.setValue(notificationId);
             } else if (newValue) {
@@ -123,7 +136,7 @@ export class GoogleCalendarService {
                 return config;
             }
 
-            // Если это не повторный запрос после 401, получаем токен
+            // Если это первый (не повторный) запрос после 401, получаем токен неинтерактивно
             if (!config._retry && !this.#lastActiveToken) {
                 await this.#fetchToken(false);
             }
@@ -237,6 +250,8 @@ export class GoogleCalendarService {
         browser.alarms.create(GoogleCalendarService.syncAlarmName, {
             periodInMinutes: 1,
         });
+        console.log(await this.#getCalendarId());
+
         if (forceSync) {
             setTimeout(() => {
                 this.#syncUpdates();
@@ -244,12 +259,8 @@ export class GoogleCalendarService {
         }
     }
 
-    async login(forceNewAccount: boolean = false): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
+    async login(): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
         try {
-            // if (forceNewAccount) {
-            //     return this.#forceAccountSelection();
-            // }
-            
             // Сбрасываем флаг обновления токена
             this.#isRefreshingToken = false;
 
@@ -271,19 +282,22 @@ export class GoogleCalendarService {
             // Сохраняем оба идентификатора
             const user: GoogleUser = {
                 email: userInfoRes.user.email,
-                name: userInfoRes.user.name,
                 id: userInfoRes.user.id,
             };
+            
+            if (!this.#needCalendarGrants){
+                await this.#googleUserStore.setValue(user);
+                await this.#googleIsAuthenticatedStore.setValue(true);
 
-            await this.#googleUserStore.setValue(user);
-            await this.#googleIsAuthenticatedStore.setValue(true);
+                this.#createCalendar();
 
-            this.#createCalendar();
+                console.log(`✅ Аккаунт закреплен: ${user.email} (Chrome ID: ${user.id})`);
+                await this.run(true);
 
-            console.log(`✅ Аккаунт закреплен: ${user.email} (Chrome ID: ${user.id})`);
-            await this.run(true);
-
-            return {success: true, user};
+                return {success: true, user};
+            }
+            
+            return {success: false, user};
         } catch (error: any) {
             console.error('Ошибка входа:', error);
 
@@ -293,7 +307,12 @@ export class GoogleCalendarService {
             } else if (error.message.toLowerCase().includes('auth')) {
                 errorMessage = browser.i18n.getMessage('errorAuth');
             }
-
+            
+            if (this.#needCalendarGrants){
+                await this.#broadcastErrorStore.setValue(browser.i18n.getMessage("errorNeedCalendarGrants"));
+                await this.#googleIsAuthenticatedStore.setValue(false);
+            }
+            
             return {success: false, error: errorMessage};
         }
     }
@@ -304,15 +323,15 @@ export class GoogleCalendarService {
             await this.#googleUserStore.removeValue();
             await this.#deleteCalendar();
 
-            // Очищаем токены
-            await new Promise<void>((resolve) => {
-                browser.identity.clearAllCachedAuthTokens(resolve);
-            });
-
             await this.#googleIsAuthenticatedStore.setValue(false);
 
             this.#isRefreshingToken = false;
 
+            // Очищаем токены
+            await new Promise<void>((resolve) => {
+                browser.identity.clearAllCachedAuthTokens(resolve);
+            });
+            
             console.log('👋 Выход выполнен');
 
             return {success: true};
@@ -423,21 +442,29 @@ export class GoogleCalendarService {
     }
 
     async #createCalendar() {
+        const defaultCalendarName = 'Set a Reminder | Chrome Extension';
+        
         try {
-            // 1. Получаем ID календаря (один запрос)
             let calendarId = await this.#getCalendarId();
+            
+            if (!calendarId) {
+                try{
+                    const response = await this.#axiosInstance.get(
+                        'https://www.googleapis.com/calendar/v3/users/me/calendarList'
+                    );
 
-            // 2. Проверяем существование календаря
+                    calendarId = response.data.items?.find((cal: any) => cal.summary === defaultCalendarName)?.id;
+                    calendarId && console.log('Календарь найден по имени: ' + calendarId);
+                } catch (error: any){}
+            }
+
             if (calendarId) {
                 try {
-                    // Проверяем существование и обновляем настройки за один запрос
                     await this.#axiosInstance.patch(
                         `https://www.googleapis.com/calendar/v3/users/me/calendarList/${calendarId}`,
                         { selected: true, hidden: false },
                     );
-                    console.log('Календарь уже существует:', calendarId);
-
-                    return true;
+                    console.log('Календарь найден:', calendarId);
                 } catch (error: any) {
                     // Если календарь не найден (404), создаем новый
                     if (error.response?.status === 404) {
@@ -457,7 +484,7 @@ export class GoogleCalendarService {
                 const response = await this.#axiosInstance.post(
                     'https://www.googleapis.com/calendar/v3/calendars',
                     {
-                        summary: 'Set a Reminder | Chrome Extension',
+                        summary: defaultCalendarName,
                         timeZone: this.timeZone,
                         colorId: 5,
                     },
@@ -764,123 +791,80 @@ export class GoogleCalendarService {
         }
 
         return new Promise((resolve) => {
-            browser.identity.getAuthToken(params, (token) => {
+            browser.identity.getAuthToken(params, async (token) => {
                 if (browser.runtime.lastError) {
                     console.error('Auth error:', browser.runtime.lastError);
                     this.#lastActiveToken = null;
+                    
+                    const isNotSigned = browser.runtime.lastError.message && browser.runtime.lastError.message.includes('The user is not signed in');
+                    const isNotGrants = browser.runtime.lastError.message && browser.runtime.lastError.message.includes('OAuth2 not granted or revoked');
+                    
+                    if (isNotSigned){
+                        await this.#googleIsAuthenticatedStore.setValue(false); 
+                        //todo проверить этот кейс, когда вышли с аккаунта, а потом зашли, расширение автоматом подтянет данные? или делать логаут тут?
+                    } else if (isNotGrants && ! this.#needCalendarGrants){
+                        this.#needCalendarGrants = true;
+                        await this.login();
+                    }
+                    
                     resolve(null);
                 } else {
                     this.#lastActiveToken = token as string;
+                    this.#needCalendarGrants = false;
                     resolve(token as string);
                 }
             });
         });
     }
 
-    async #fetchUserInfo() {
-        try {
-            const response = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo');
-
-            return {
-                user: {
-                    email: response.data.email,
-                    name: response.data.name,
-                    id: response.data.id
-                },
-                error: null
-            };
-        } catch (error: any) {
-            console.error('Ошибка получения информации о пользователе:', error);
-
-            return {
-                user: {
-                    email: '',
-                    name: '',
-                    id: '',
-                },
-                error: error
-            };
-        }
-    }
-
-    async #forceAccountSelection(): Promise<{ success: boolean; error?: string; user?: GoogleUser }> {
-        try {
-            // Очищаем всё
-            await new Promise<void>((resolve) => {
-                browser.identity.clearAllCachedAuthTokens(resolve);
+    async #fetchUserInfo(): Promise<{user: GoogleUser, error: string|null}> {
+        return new Promise((resolve) => {
+            browser.identity.getProfileUserInfo({accountStatus: 'ANY'}, (userInfo) => {
+                console.log(userInfo);
+                if (browser.runtime.lastError) {
+                    console.error('Ошибка получения данных профиля:', browser.runtime.lastError);
+                    resolve({
+                        user: {
+                            email: '',
+                            id: '',
+                        },
+                        error: browser.runtime.lastError.toString()
+                    });
+                } else {
+                    // В Chrome и Яндекс.Браузере возвращает email профиля
+                    // Если email отсутствует, используем id
+                    // resolve(userInfo);
+                    resolve({
+                        user: {
+                            email: userInfo.email,
+                            id: userInfo.id
+                        },
+                        error: null
+                    });
+                }
             });
-
-            // Получаем client_id из манифеста
-            const manifest = browser.runtime.getManifest();
-            const clientId = (manifest as any).oauth2?.client_id;
-
-            if (!clientId) {
-                throw new Error('OAuth2 client_id not found in manifest');
-            }
-
-            // Формируем URL с prompt=select_account для принудительного выбора
-            const redirectUri = browser.identity.getRedirectURL();
-            const scopes = (manifest as any).oauth2?.scopes || ['https://www.googleapis.com/auth/calendar'];
-
-            const authUrl = new URL('https://accounts.google.com/o/oauth2/auth');
-            authUrl.searchParams.set('client_id', clientId);
-            authUrl.searchParams.set('response_type', 'token');
-            authUrl.searchParams.set('redirect_uri', redirectUri);
-            authUrl.searchParams.set('scope', scopes.join(' '));
-            authUrl.searchParams.set('prompt', 'select_account'); // КЛЮЧЕВОЙ ПАРАМЕТР!
-
-            console.log('Launching web auth flow with account selection prompt');
-
-            // Используем launchWebAuthFlow вместо getAuthToken
-            const responseUrl = await new Promise<string>((resolve, reject) => {
-                browser.identity.launchWebAuthFlow({
-                    url: authUrl.toString(),
-                    interactive: true
-                }, (responseUrl) => {
-                    if (browser.runtime.lastError) {
-                        reject(new Error(browser.runtime.lastError.message));
-                    } else {
-                        resolve(responseUrl!);
-                    }
-                });
-            });
-
-            // Извлекаем токен из responseUrl (он в хеше #access_token=...)
-            const hash = new URL(responseUrl).hash.substring(1);
-            const params = new URLSearchParams(hash);
-            const accessToken = params.get('access_token');
-
-            if (!accessToken) {
-                throw new Error('No access token in response');
-            }
-
-            this.#lastActiveToken = accessToken;
-
-            // Получаем информацию о пользователе
-            const userInfoRes = await this.#fetchUserInfo();
-            if (!userInfoRes.user.email) {
-                throw new Error(userInfoRes.error || 'Failed to get user info');
-            }
-
-            // Сохраняем пользователя
-            const user: GoogleUser = {
-                email: userInfoRes.user.email,
-                name: userInfoRes.user.name,
-                id: userInfoRes.user.id,
-            };
-
-            this.currentUser = user;
-            await this.#googleUserStore.setValue(user);
-            await this.#googleIsAuthenticatedStore.setValue(true);
-
-            console.log(`✅ Аккаунт закреплен: ${user.email}`);
-            await this.run(true);
-
-            return {success: true, user};
-        } catch (error: any) {
-            console.error('Ошибка принудительного выбора аккаунта:', error);
-            return {success: false, error: error.message};
-        }
+        });
+        // try {
+        //     const response = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo');
+        //
+        //     return {
+        //         user: {
+        //             email: response.data.email,
+        //             id: response.data.id
+        //         },
+        //         error: null
+        //     };
+        // } catch (error: any) {
+        //     console.error('Ошибка получения информации о пользователе:', error);
+        //
+        //     return {
+        //         user: {
+        //             email: '',
+        //             id: '',
+        //         },
+        //         error: error
+        //     };
+        // }
     }
 
     async checkUser() {
@@ -890,8 +874,9 @@ export class GoogleCalendarService {
                 return false;
             }
 
-            // Получаем токен для СОХРАНЕННОГО аккаунта (даже если активный аккаунт сменился)
+            // Получаем токен для СОХРАНЕННОГО аккаунта
             await this.#fetchToken(false);
+            
             if (!this.#lastActiveToken) {
                 await this.#googleIsAuthenticatedStore.setValue(false);
                 return false;
@@ -904,7 +889,8 @@ export class GoogleCalendarService {
             }
 
             // Если получили 401 ошибку при запросе userinfo
-            if (userInfoRes.error?.response?.status === 401) {
+            // if (userInfoRes.error?.response?.status === 401) {
+            if (userInfoRes.error) {
                 await this.#googleIsAuthenticatedStore.setValue(false);
                 return false;
             }

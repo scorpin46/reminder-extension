@@ -42,7 +42,8 @@ const toUI = (reminder: ReminderInterface): Reminder => ({
     datetime: new Date(reminder.datetime),
     createdAt: new Date(reminder.createdAt),
     updatedAt: new Date(reminder.updatedAt),
-    googleSyncDate: reminder.googleSyncDate ? new Date(reminder.googleSyncDate) : null
+    googleSyncDate: reminder.googleSyncDate ? new Date(reminder.googleSyncDate) : null,
+    googleSync: reminder.googleEventId && reminder.googleSync !== 0 ? 1 : 0,
 });
 
 export class ReminderRepository {
@@ -179,7 +180,7 @@ export class ReminderRepository {
 
     // Публичные методы
     async getById(id: number): Promise<Reminder | undefined> {
-        if (!isFinite(id)){
+        if (!Number.isFinite(id)){
             return undefined;
         }
         

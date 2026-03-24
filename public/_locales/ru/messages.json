@@ -137,6 +137,9 @@
   "errorWrongGoogleCalendarConnection": {
     "message": "Нестабильное интернет-соединение или Google Calendar недоступен"
   },
+  "errorNeedCalendarGrants": {
+    "message": "Для синхронизации необходимо разрешить доступ к Google Calendar!"
+  },
   "contextmenu_setReminder": {
     "message": "Создать новое напоминание"
   },

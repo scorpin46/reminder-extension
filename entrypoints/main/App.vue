@@ -151,7 +151,7 @@ import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 import {useToast} from "vue-toastification";
-import {getBroadcastErrorStore, getStoredGoogleIsAuthenticated} from "@/modules/utils/storage.ts";
+import {getBroadcastErrorStore, getStoredGoogleIsAuthenticated, getStoredGoogleUser} from "@/modules/utils/storage.ts";
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
@@ -185,19 +185,25 @@ const openedTab = ref(props.openedTab);
 const isAuthenticatedEmail = ref();
 
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
+const broadcastErrorStore = getBroadcastErrorStore();
+const googleUserStore = getStoredGoogleUser();
 
 const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
     googleIsAuthenticatedStore.setValue(!!response.authenticated);
-    isAuthenticatedEmail.value = response?.user?.email || ''; //возвращать значение отличное от undefined!
+    isAuthenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
   })
 }
 
-googleIsAuthenticatedStore.watch((newValue, oldValue) => {
-  checkAuth();
-  
+googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
   if (oldValue && !newValue) {
-    toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});
+    isAuthenticatedEmail.value = '';
+
+    if (!await googleUserStore.getValue()) {
+      toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});
+    }
+  } else if (newValue) {
+    checkAuth();
   }
 });
 
@@ -246,7 +252,7 @@ const daysGroupsReminders = computed(() => {
 
 const showEditPanel = async (reminder = null) => {
   if (reminder) {
-    initialFormData = isFinite(reminder)
+    initialFormData = Number.isFinite(reminder)
         ? await reminderService.repository.getById(reminder) || {}
         : reminder
     
@@ -283,12 +289,12 @@ const actualize = () => {
   if (settingsPanelVisible.value || editingPanelVisible.value) {
     return;
   }
-  console.log('actualize');
+  // console.log('actualize');
 
   now.value = new Date();
 
   if (openedTab.value === 'active') {
-    console.log('expired and soon checking');
+    // console.log('expired and soon checking');
 
     expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
     soon.value = reminderService.repository.state.active.filter(item => {
@@ -389,10 +395,12 @@ onMounted(async () => {
     );
   }
 
-  getBroadcastErrorStore().watch((value, oldValue) => {
+  broadcastErrorStore.watch((value, oldValue) => {
     if (value && value !== oldValue) {
-      toast.error(value)
+      toast.error(value);
     }
+
+    broadcastErrorStore.removeValue();
   })
 
   checkAuth();

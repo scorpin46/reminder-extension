@@ -120,8 +120,8 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  isAuthenticated: {
-    type: Boolean,
+  isAuthenticatedEmail: {
+    type: String,
   },
 });
 
@@ -135,7 +135,7 @@ const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
-
+const isAuthenticated = computed(() => !!props.isAuthenticatedEmail)
 const formInputInitData = {
   id: null,
   title: '',
@@ -170,7 +170,7 @@ const form = reactive({
     }
   },
   hasExtraFields: function(){
-    return Object.keys(this.input).some(key => ! ['id', 'title', 'datetime'].includes(key) && this.input[key]);
+    return Object.keys(this.input).some(key => ! ['id', 'title', 'datetime', 'googleSync'].includes(key) && this.input[key]);
   },
   reset: function ()  {
     emit('close', {savedId: this.saved, isCreating: this.isCreating()});
@@ -202,7 +202,7 @@ const textDatetime = computed(() => {
 
 
 const reminderGoogleSyncClickHandler = (event) => {
-  if (!props.isAuthenticated) {
+  if (!isAuthenticated.value) {
     sendGoogleLoginMessage((response) => {
       event.target.checked = response.success;
     });
@@ -230,7 +230,7 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
       focusingEl?.focus();
     }
     
-    if (form.isCreating() && props.isAuthenticated) {
+    if (form.isCreating() && isAuthenticated.value) {
       form.input.googleSync = 1;
       form.input.desc = null;
     }
@@ -240,6 +240,10 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
 onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
   emit('update:initialFormData', {});
+  
+  if (form.isCreating() && isAuthenticated.value && !Number.isFinite(form.input.googleSync)){
+    form.input.googleSync = 1;
+  }
   
   reminderTitleRef.value?.focus();
   

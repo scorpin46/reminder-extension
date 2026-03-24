@@ -6,10 +6,9 @@ export default defineContentScript({
   excludeMatches: [
     // '*://*.google.com/maps/*',  // пример исключения
   ],
-  runAt: 'document_start',
+  // runAt: 'document_start',
   matchAboutBlank: true,
-  world: 'MAIN',
-  // world: 'ISOLATED',
+  world: 'ISOLATED',
   
   async main() {
     FloatingFab.run();

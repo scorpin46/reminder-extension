@@ -1493,7 +1493,7 @@ export class FloatingFab {
             
         }
         // Инициализация при загрузке
-        browser.storage.sync.get(["fabVisible"], async (result) => {
+        browser.storage && browser.storage.local.get(["fabVisible"], async (result) => {
             isFabEnabled = result.fabVisible !== undefined ? result.fabVisible : true;
 
             try {

@@ -3,7 +3,6 @@ import {detectLocale} from "./helpers";
 
 export interface GoogleUser {
     email: string;
-    name?: string;
     id: string;
 }
 
@@ -52,13 +51,8 @@ export function getBroadcastErrorStore() {
 }
 
 export function getFabVoiceModeStore() {
-    return storage.defineItem<boolean|undefined>('local:fabVoiceMode', {
-        fallback: false
-    });
-}
-
-export function getFabTopPercentStore() {
-    return storage.defineItem<boolean|undefined>('local:fabTopPercent', {
+    return storage.defineItem<boolean|undefined>('local:fabVoiceMode', { 
+        //возможно sync лучше сделать, но вопрос по доступу/наличию микрофона встает на другом девайсе
         fallback: false
     });
 }

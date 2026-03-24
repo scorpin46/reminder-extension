@@ -137,6 +137,9 @@
   "errorWrongGoogleCalendarConnection": {
     "message": "Unstable internet connection or Google Calendar is unavailable"
   },
+  "errorNeedCalendarGrants": {
+    "message": "Please grant Google Calendar access to enable sync"
+  },
   "contextmenu_setReminder": {
     "message": "Set a Reminder"
   },
