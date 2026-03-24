@@ -17,13 +17,19 @@ import {onMounted, ref} from "vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 
+const props = defineProps({
+  autostart: {
+    type: Boolean,
+    default: false
+  },
+});
+
 const toast = useToast();
 const recognitionService = RecognitionService.instance();
 
 const supportsRecording = ref(recognitionService.isSupported())
 
 const recordClickHandler = () => {
-  
   recognitionService.state.isRecording
       ? recognitionService.stop()
       : recognitionService.start()
@@ -43,6 +49,10 @@ const recordClickHandler = () => {
 
 
 onMounted(async () => {
+  if (props.autostart) {
+    recordClickHandler();
+  }
+  
   if (!supportsRecording.value) {
     toast.error(browser.i18n.getMessage('unsupportedSpeech'));
   }

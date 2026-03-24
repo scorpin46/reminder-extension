@@ -35,31 +35,32 @@
       </section>
       
       <section>
-        <header>Прочие</header>
+        <header>{{ browser.i18n.getMessage('Other') }}</header>
         <div>
           <div class="mb-15">
-            <label class="form-check">
-              <span>Автоматически включать(клик) голосовую запись при добавлении</span>
-              <input type="checkbox">
+            <label class="form-label">
+              <!--        todo перевод-->
+              <span class="form-label__title">Режим быстрого запуска</span>
+              <select v-model="fastMode">
+                <option value="activeReminders">Открывать список актуальных напоминаний</option>
+                <option value="text">Открывать текстовый ввод</option>
+                <option value="voice">Запускать голосовой ввод</option>
+              </select>
             </label>
           </div>
-
-          <div class="mb-15">
-            <div>Вкладка по умолчанию (default tab)</div>
-            <label class="form-check">
-              <span>Add Reminder</span>
-              <input type="checkbox">
-              <span>Reminders</span>
-            </label>
-          </div>
-
-          <div class="mb-15">
-            <!-- todo на галочка очистки (и теоретиечского удаления должна быть активна)-->
-            <label class="form-check">
-              <span>Режим автосохранения изменений (без подтверждения)</span>
-              <input type="checkbox">
-            </label>
-          </div>
+<!--          <div class="mb-15">-->
+<!--            <label class="form-check">-->
+<!--              <span>Автоматически включать(клик) голосовую запись при добавлении</span>-->
+<!--              <input type="checkbox">-->
+<!--            </label>-->
+<!--          </div>-->
+<!--          <div class="mb-15">-->
+<!--            &lt;!&ndash; todo на галочка очистки (и теоретиечского удаления должна быть активна)&ndash;&gt;-->
+<!--            <label class="form-check">-->
+<!--              <span>Режим автосохранения изменений (без подтверждения)</span>-->
+<!--              <input type="checkbox">-->
+<!--            </label>-->
+<!--          </div>-->
         </div>
       </section>
     </div>
@@ -70,8 +71,8 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
-import {getFabVoiceModeStore} from "@/modules/utils/storage.ts";
-import {onMounted} from "vue";
+import {getFastModeStore} from "@/modules/utils/storage.ts";
+import {computed, onMounted, ref, watch} from "vue";
 import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
@@ -83,18 +84,22 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
+const fastMode = ref();
 
 const logout = () => {
   sendGoogleLogoutMessage()
 }
 
-const fabVoiceModeStore = getFabVoiceModeStore();
+const fastModeStore = getFastModeStore();
 
-fabVoiceModeStore.watch((newValue, oldValue) => {
-  //todo Триггерить update иконки
-  // fabVoiceModeStore.setValue(newValue)
+onMounted(async () => {
+  fastMode.value = await fastModeStore.getValue();
+})
 
-  browser.runtime.sendMessage({ action: 'SAR__REINIT_FAB_FOR_CONTENT' });
+watch(() => fastMode.value, async (value) => {
+  await fastModeStore.setValue(value);
+
+  browser.runtime.sendMessage({action: 'SAR__REINIT_FAB_FOR_CONTENT'});
 })
 
 </script>

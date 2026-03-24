@@ -220,6 +220,9 @@
   },
   "welcomePageForOpen": {
     "message": "чтобы создать напоминание"
+  },
+  "other": {
+    "message": "Прочее"
   }
 }
 

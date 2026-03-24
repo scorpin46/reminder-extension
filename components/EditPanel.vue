@@ -15,7 +15,7 @@
 <!--         "Завтра в 15:00 важная встреча с партнером"-->
 <!--       </div>-->
         <div class="text-center">
-          <RecordBtn  :data-locale="recognitionLocale"/>
+          <RecordBtn :data-locale="recognitionLocale" :autostart="autostartRecording"/>
         </div>
 <!--        <label class="language-selector form-label">-->
 <!--          <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>-->
@@ -279,6 +279,10 @@ onMounted(async () => {
 
   if (form.hasExtraFields()){
     showExtraFields.value = true
+  }
+  
+  if (props.autostartRecording){
+    emit('update:autostartRecording', false);
   }
 })
 

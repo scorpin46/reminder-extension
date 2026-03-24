@@ -50,9 +50,8 @@ export function getBroadcastErrorStore() {
     });
 }
 
-export function getFabVoiceModeStore() {
-    return storage.defineItem<boolean|undefined>('local:fabVoiceMode', { 
-        //возможно sync лучше сделать, но вопрос по доступу/наличию микрофона встает на другом девайсе
-        fallback: false
+export function getFastModeStore() {
+    return storage.defineItem<'activeReminders'|'voice'|'text'>('local:fastMode', { 
+        fallback: 'text',
     });
 }

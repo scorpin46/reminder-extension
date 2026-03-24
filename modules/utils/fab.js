@@ -19,6 +19,21 @@ const fabIconSvg = (withMic = false) => `<svg xmlns="http://www.w3.org/2000/svg"
     <line fill="none" class="stroke-primary" stroke="#1D5D8E" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" x1="284.77" y1="78.02" x2="284.77" y2= "162.36" />
     <line fill="none" class="stroke-primary" stroke="#1D5D8E" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" x1="242.6" y1="120.19" x2="326.94" y2= "120.19" />
   </g>
+  <g class="fill-primary fab-clock" style="transform: scale(.038)">
+   <path d="M7374.81 5548.17c-1342.98,0 -2435.65,-1092.67 -2435.65,-2435.66 0,-1342.98 1092.68,-2435.65 2435.65,-2435.65 1342.98,0 2435.66,1092.68 2435.66,2435.66 0,1342.98 -1092.67,2435.65 -2435.66,2435.65zm0 -4309.24c-1033.09,0 -1873.58,840.49 -1873.58,1873.58 0,1033.09 840.49,1873.58 1873.58,1873.58 1033.1,0 1873.59,-840.49 1873.59,-1873.58 0,-1033.09 -840.49,-1873.58 -1873.59,-1873.58z"/>
+   <path d="M7374.83 1495.21c-124.08,0 -224.85,100.63 -224.85,224.86 0,124.22 100.77,224.85 224.85,224.85 124.07,0 224.81,-100.65 224.81,-224.85 0,-124.21 -100.6,-224.86 -224.81,-224.86z"/>
+   <path d="M8991.37 3111.91c0,-124.06 -100.63,-224.82 -224.84,-224.82 -124.21,0 -224.82,100.77 -224.82,224.82 0,124.06 100.63,224.79 224.82,224.79 124.2,0 224.84,-100.59 224.84,-224.79z"/>
+   <path d="M7374.69 4728.48c124.08,0 224.84,-100.64 224.84,-224.86 0,-124.22 -100.78,-224.85 -224.84,-224.85 -124.08,0 -224.82,100.64 -224.82,224.85 0,124.21 100.61,224.86 224.82,224.86z"/>
+   <path d="M5758.15 3111.77c0,124.07 100.62,224.83 224.83,224.83 124.21,0 224.83,-100.77 224.83,-224.83 0,-124.06 -100.64,-224.79 -224.83,-224.79 -124.19,0 -224.83,100.6 -224.83,224.79z"/>
+   <g>
+    <path d="M8364.75 2169.67c-115.26,-96.72 -288.61,-81.62 -385.26,33.57l-823.69 981.63c-96.99,115.59 -81.75,288.9 33.52,385.63 115.27,96.72 288.65,81.66 385.63,-33.92l823.68 -981.64c96.66,-115.19 81.39,-288.55 -33.88,-385.27l0 0z"/>
+    <path d="M6443.75 2568.37c-96.72,115.27 -81.62,288.61 33.56,385.26l732.86 614.95c115.59,96.99 288.9,81.74 385.63,-33.52 96.72,-115.28 81.66,-288.65 -33.92,-385.63l-732.86 -614.94c-115.19,-96.65 -288.55,-81.39 -385.28,33.89l0.01 -0.01z"/>
+   </g>
+   <path d="M6231.68 1968.65c-87.74,87.75 -87.83,230.15 0,318 87.84,87.83 230.26,87.73 317.98,0 87.74,-87.74 87.81,-230.14 -0.02,-317.96 -87.83,-87.83 -230.14,-87.87 -317.96,-0.04z"/>
+   <path d="M8517.84 4255.03c87.74,-87.74 87.83,-230.15 -0.01,-317.99 -87.84,-87.84 -230.25,-87.73 -317.98,0 -87.74,87.73 -87.81,230.13 0.02,317.96 87.83,87.82 230.14,87.86 317.97,0.03z"/>
+   <path d="M6231.58 4254.91c87.73,87.73 230.14,87.82 317.97,-0.01 87.83,-87.83 87.72,-230.23 0,-317.96 -87.73,-87.72 -230.12,-87.79 -317.94,0.03 -87.82,87.82 -87.85,230.12 -0.03,317.94z"/>
+   <path d="M4564.44 9670.06c-775.6,-1.04 -1404.14,-629.59 -1405.17,-1405.18 0.01,-155.21 125.85,-281.06 281.04,-281.06 155.19,0 281.03,125.85 281.03,281.04 0,465.02 378.47,843.11 843.12,843.11 464.64,0 843.11,-378.09 843.11,-843.11 -0.02,-155.19 125.82,-281.04 281.01,-281.04 155.19,0 281.04,125.85 281.04,281.04 -1.03,775.61 -629.57,1404.16 -1405.15,1405.18l-0.03 0.02z"/>
+  </g>
 <!--  <path fill="none" stroke="#1D5D8E" class="stroke-primary" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" d="M47.71 170.9c0,-62.23 46.12,-114.83 107.82,-122.96"/>-->
 <!--  <path fill="none" stroke="#1D5D8E" class="stroke-primary" stroke-width="21" stroke-linecap="round" stroke-miterlimit="22.9256" d="M10.5 170.9c0,-82.72 62.61,-152.02 144.9,-160.4"/>-->
   </g>
@@ -355,7 +370,7 @@ class FabStorage {
             fabTopPercent: DEFAULT_POSITION_PERCENT,
             fabCollapsed: false,
             fabSide: "right",
-            fabVoiceMode: false
+            fastMode: 'text'
         };
     }
 
@@ -383,12 +398,8 @@ class FabStorage {
         await this.set({ fabSide: value });
     }
 
-    async getVoiceMode() {
-        return this.get('fabVoiceMode');
-    }
-
-    async setVoiceMode(value) {
-        await this.set({ fabVoiceMode: value });
+    async getFastMode() {
+        return this.get('fastMode');
     }
 
     async getAll() {
@@ -1105,16 +1116,21 @@ export class FloatingFab {
             this.root.classList.add("collapsed");
         }
 
-        const voiceMode = !! await this.storage.getVoiceMode();
+        const fastMode = await this.storage.getFastMode();
         const plusEl = this.root.querySelector('.fab-plus');
         const micEl = this.root.querySelector('.fab-mic');
+        const remindersEl = this.root.querySelector('.fab-clock');
+        
+        if (remindersEl){
+            remindersEl.style.display = fastMode === 'activeReminders' ? "block" : "none";
+        }
         
         if (plusEl){
-            plusEl.style.display = voiceMode ? "none" : "block";
+            plusEl.style.display = fastMode === 'text' ? "block" : "none";
         }
 
         if (micEl){
-            micEl.style.display = voiceMode ? "block" : "none";
+            micEl.style.display = fastMode === 'voice' ? "block" : "none";
         }
         
         await this.startOptionalFeatures();

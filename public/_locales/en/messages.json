@@ -225,6 +225,10 @@
   "welcomePageForOpen": {
     "message": "to set a reminder",
     "description": "DO_NOT_TRANSLATE"
+  },
+  "other": {
+    "message": "Other",
+    "description": "Title \"Other settings\""
   }
 }
 

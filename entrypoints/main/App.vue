@@ -108,6 +108,7 @@
   <EditPanel
       v-if="editingPanelVisible"
       v-model:initialFormData="initialFormData"
+      v-model:autostartRecording="autostartRecording"
       :authenticatedEmail="authenticatedEmail"
       @close="closeEditPanel"
   />
@@ -150,7 +151,12 @@ import IconSettings from "@/components/icons/IconSettings.vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
 import {useToast} from "vue-toastification";
-import {getBroadcastErrorStore, getStoredGoogleIsAuthenticated, getStoredGoogleUser} from "@/modules/utils/storage.ts";
+import {
+  getBroadcastErrorStore,
+  getFastModeStore,
+  getStoredGoogleIsAuthenticated,
+  getStoredGoogleUser
+} from "@/modules/utils/storage.ts";
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
@@ -188,6 +194,7 @@ const authenticatedEmail = ref();
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
 const broadcastErrorStore = getBroadcastErrorStore();
 const googleUserStore = getStoredGoogleUser();
+const fastModeStore = getFastModeStore();
 
 const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
@@ -208,6 +215,7 @@ googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
   }
 });
 
+const autostartRecording = ref(false);
 const dateAdapter = useDate()
 const toast = useToast();
 const filterQuery = ref('');
@@ -251,7 +259,7 @@ const daysGroupsReminders = computed(() => {
   return groups;
 });
 
-const showEditPanel = async (reminder = null) => {
+const showEditPanel = async (reminder = null, forceRunRecording = false) => {
   if (reminder) {
     initialFormData = Number.isFinite(reminder)
         ? await reminderService.repository.getById(reminder) || {}
@@ -259,8 +267,10 @@ const showEditPanel = async (reminder = null) => {
     
     initialFormData ??= {}
   }
-  console.log(initialFormData, reminder);
+  
+  autostartRecording.value = forceRunRecording;
   editingPanelVisible.value = true;
+  
   await nextTick();
 }
 
@@ -382,10 +392,15 @@ watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVis
 const url = new URL(window.location.href);
 let initialFormData = Object.fromEntries(url.searchParams.entries());
 
+
 onMounted(async () => {
-  if (Object.keys(initialFormData).length) {
+  const fastMode = await fastModeStore.getValue();
+  
+  if (fastMode === 'activeReminders'){
+    openedTab.value = 'active';
+  } else if (Object.keys(initialFormData).length) {
     const id = (+initialFormData.id || null); //нужно!
-    await showEditPanel(id);
+    await showEditPanel(id, fastMode === 'voice');
 
     url.search = '';
 
@@ -395,7 +410,7 @@ onMounted(async () => {
         url.toString()
     );
   }
-
+  
   broadcastErrorStore.watch((value, oldValue) => {
     if (value && value !== oldValue) {
       toast.error(value);
