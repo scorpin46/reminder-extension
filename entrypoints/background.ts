@@ -14,102 +14,81 @@ export default defineBackground({
     type: 'module',
 
     main: () => {
-        let popupWindowId: number | null = null;
-        let isWindowOpening = false;
-        let boundsChangeListener: ((windowInfo: Browser.windows.Window) => void) | null = null;
-        
-        // Функция для фокусировки существующего окна и обновления параметров
-        const focusExistingWindow = async (urlParams: Record<string, any>) => {
-            if (!popupWindowId) return;
-
-            try {
-                const window = await browser.windows.get(popupWindowId, {populate: true});
-
-                const tab = window.tabs ? window.tabs[0] : null;
-                if (!tab?.url) return;
-
-                // Обновляем URL с новыми параметрами
-                const url = new URL(tab.url);
-                url.search = new URLSearchParams(urlParams).toString();
-
-                await browser.tabs.update(tab.id, {url: url.toString()});
-                await browser.windows.update(popupWindowId, {focused: true});
-            } catch (error) {
-                console.error('Error focusing existing window:', error);
-                popupWindowId = null;
-                await createNewWindow(urlParams);
+        const checkNotificationPermission = async ()=> {
+            // Проверяем разрешение на уведомления
+            if (Notification.permission === 'granted') {
+                return true;
             }
-        };
 
-        // Функция создания нового окна
-        const createNewWindow = async (urlParams: Record<string, any>) => {
-            isWindowOpening = true;
+            // Если разрешение не запрошено, запрашиваем
+            if (Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                return permission === 'granted';
+            }
+           
+            return false;
+        }
 
-            try {
-                const lastWindow = await browser.windows.getLastFocused();
+        let pendingOpen: Promise<void> | null = null;
 
-                const width = 450;
-                const CHROME_UI_OFFSET = 95;
-                const height = lastWindow.height! - CHROME_UI_OFFSET;
-                const left = lastWindow.left! + lastWindow.width! - width;
-                const top = CHROME_UI_OFFSET;
+        const openMainWindow = async (urlParams: Record<string, any> = {}): Promise<void> => {
+            // Предотвращаем параллельные вызовы
+            if (pendingOpen) {
+                return pendingOpen;
+            }
 
-                const window = await browser.windows.create({
-                    url: browser.runtime.getURL("/main.html") + '?' + new URLSearchParams(urlParams).toString(),
-                    type: "popup",
-                    width: width,
-                    height: height,
-                    left: left,
-                    top: top,
-                    focused: true,
+            pendingOpen = (async () => {
+                const pageUrl = browser.runtime.getURL('/main.html');
+                const url = pageUrl + (Object.keys(urlParams).length ? '?' + new URLSearchParams(urlParams).toString() : '');
+
+                // Ищем существующее окно
+                const popups = await browser.windows.getAll({
+                    populate: true,
+                    windowTypes: ['popup']
                 });
 
-                popupWindowId = window?.id!;
+                const existingWindow = popups.find(w =>
+                    w.tabs?.some(tab => tab.url?.includes(pageUrl))
+                );
 
-                // Удаляем старый слушатель, если он есть
-                if (boundsChangeListener) {
-                    browser.windows.onBoundsChanged.removeListener(boundsChangeListener);
+                if (existingWindow) {
+                    // Обновляем существующее окно
+                    const tab = existingWindow.tabs![0];
+                    if (urlParams && Object.keys(urlParams).length){
+                        await browser.tabs.update(tab.id!, { url });
+                    }
+                    await browser.windows.update(existingWindow.id!, { focused: true });
+                    return;
                 }
 
-                // Добавляем обработчик изменения размеров
-                boundsChangeListener = (windowInfo: Browser.windows.Window) => {
-                    if (windowInfo.id !== popupWindowId) return;
-                    // Логика обработки изменения размеров
-                };
-
-                browser.windows.onBoundsChanged.addListener(boundsChangeListener);
-            } catch (error) {
-                console.error('Failed to create window:', error);
-            } finally {
-                isWindowOpening = false;
-            }
-        };
-
-        const openMainWindow = async (urlParams = {}): Promise<void> => {
-            // Предотвращаем параллельное открытие окон
-            if (isWindowOpening) {
-                if (popupWindowId) {
-                    await focusExistingWindow(urlParams);
-                }
-                return;
-            }
-
-            // Проверяем, существует ли окно и активно ли оно
-            if (popupWindowId) {
+                // Создаем новое окно
                 try {
-                    await browser.windows.get(popupWindowId, {populate: true});
-                    // Окно существует — обновляем URL и фокусируем
-                    await focusExistingWindow(urlParams);
+                    const lastWindow = await browser.windows.getLastFocused();
+                    const topOffset = 95;
+                    const width = 450;
+
+                    await browser.windows.create({
+                        url,
+                        type: "popup",
+                        width,
+                        height: lastWindow.height! - topOffset,
+                        left: lastWindow.left! + lastWindow.width! - width,
+                        top: topOffset,
+                        focused: true,
+                    });
                 } catch (error) {
-                    // Окно не существует (было закрыто) — создаём новое
-                    await createNewWindow(urlParams);
+                    console.error('Failed to create window:', error);
                 }
-            } else {
-                // ID окна не установлен — создаём новое
-                await createNewWindow(urlParams);
+            })();
+
+            try {
+                await pendingOpen;
+            } finally {
+                pendingOpen = null;
             }
         };
-
+        
+        
         const openPostponeWindow = async (reminderId: number | string): Promise<void> => {
             try {
                 const lastWindow = await browser.windows.getLastFocused();
@@ -131,22 +110,10 @@ export default defineBackground({
                 console.error('Failed to open postpone window:', error);
             }
         };
-
+        
         // Обработчики событий с использованием Promise API
-        browser.action.onClicked?.addListener(() => {
-            openMainWindow();
-        });
-
-        // Очищаем ID окна при его закрытии
-        browser.windows.onRemoved?.addListener((windowId) => {
-            if (windowId === popupWindowId) {
-                popupWindowId = null;
-                // Удаляем слушатель изменений размеров
-                if (boundsChangeListener) {
-                    browser.windows.onBoundsChanged.removeListener(boundsChangeListener);
-                    boundsChangeListener = null;
-                }
-            }
+        browser.action.onClicked?.addListener(async () => {
+            await openMainWindow();
         });
 
         browser.alarms.onAlarm?.addListener(async (alarm: Alarm) => {
@@ -157,6 +124,7 @@ export default defineBackground({
                 const reminder = await reminderService.repository.getById(reminderId);
 
                 if (reminder?.id && !reminder.completed) {
+                    const notificationsEnabled = await checkNotificationPermission();
                     const notifyParams: NotificationCreateOptions = {
                         type: "basic",
                         iconUrl: browser.runtime.getURL("/icon/128.png"),
@@ -183,12 +151,12 @@ export default defineBackground({
                     } else if (reminder.repeatAfterMin) {
                         notifyParams.buttons = [{title: '✅ ОК'}];
                     }
-                    
-                    const notificationId = await browser.notifications.create(notifyParams);
+
+                    const notificationId = notificationsEnabled ? await browser.notifications.create(notifyParams) : null;
 
                     const newReminderParams:Partial<Reminder> = {notificationId};
                     
-                    if (reminder.repeatAfterMin) {
+                    if (reminder.repeatAfterMin) { //todo этот кейс не доделан, если его использовать в связке с fallback notification
                         let nextDatetime = +reminder.datetime;
                         while (nextDatetime <= Date.now()) {
                             nextDatetime += reminder.repeatAfterMin * 60000;
@@ -201,6 +169,12 @@ export default defineBackground({
                     }
                     
                     await reminderService.repository.update(reminder.id, newReminderParams);
+
+                    if (!notificationsEnabled) {
+                        //todo fallback 
+                        await openMainWindow(); 
+                        return;
+                    }
                 }
             }
         });
@@ -239,23 +213,6 @@ export default defineBackground({
         browser.action.setBadgeBackgroundColor({color: "rgb(29,93,142)"});
         browser.action.setBadgeTextColor({color: "white"});
 
-        browser.tabs.onUpdated?.addListener(async (tabId, changeInfo, tab) => {
-            // Проверяем, относится ли эта вкладка к нашему popup-окну
-            if (popupWindowId && tab.windowId === popupWindowId) {
-                // Если страница стала about:blank или загружен другой URL
-                if (changeInfo.url === 'about:blank' ||
-                    (changeInfo.url && !changeInfo.url.startsWith(browser.runtime.getURL('')))) {
-
-                    try {
-                        browser.windows.remove(popupWindowId);
-                        popupWindowId = null;
-                    } catch (error) {
-                        console.error('Error removing window:', error);
-                    }
-                }
-            }
-        });
-
         watch(() => ReminderService.instance().repository.state.active.length, async (value) => {
             try {
                 browser.action.setBadgeText({text: (value || "").toString()});
@@ -281,7 +238,7 @@ export default defineBackground({
         });
 
         browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
-            const isValidRequest = request.action?.startsWith('SAR__');
+            const isValidRequest = request.action?.startsWith('');
 
             const handleMessage = async () => {
                 try {
@@ -292,17 +249,17 @@ export default defineBackground({
                     let success = false;
 
                     switch (request.action) {
-                        case 'SAR__OPEN_FROM_FAB':
+                        case 'OPEN_FROM_FAB':
                             await openMainWindow({id: ''});
                             return {success: true};
 
-                        case 'SAR__REINIT_FAB_FOR_CONTENT':
+                        case 'REINIT_FAB_FOR_CONTENT':
                             const tabs = await browser.tabs.query({ active: true });
 
                             const promises = tabs.map(async (tab) => {
                                 try {
                                     await browser.tabs.sendMessage(tab.id!, {
-                                        action: 'SAR__REINIT_FAB'
+                                        action: 'REINIT_FAB'
                                     });
                                     return { tabId: tab.id, success: true };
                                 } catch (error: any) {
@@ -318,23 +275,23 @@ export default defineBackground({
                             
                             return {success: true};
 
-                        case 'SAR__GOOGLE_LOGIN':
+                        case 'GOOGLE_LOGIN':
                             return await GoogleCalendarService.instance().login()
 
-                        case 'SAR__IMPORT_FROM_GOOGLE':
+                        case 'IMPORT_FROM_GOOGLE':
                             return await GoogleCalendarService.instance().importFromGoogle();
 
-                        case 'SAR__GOOGLE_LOGOUT':
+                        case 'GOOGLE_LOGOUT':
                             return await GoogleCalendarService.instance().logout();
 
-                        case 'SAR__GOOGLE_CHECK_STATUS':
+                        case 'GOOGLE_CHECK_STATUS':
                             const isValidUser = await GoogleCalendarService.instance().checkUser();
                             return {
                                 authenticated: isValidUser,
                                 user: GoogleCalendarService.instance().currentUser,
                             };
 
-                        case 'SAR__GOOGLE_UPDATE_EVENT':
+                        case 'GOOGLE_UPDATE_EVENT':
                             const reminder = await ReminderService.instance().repository.getById(request.reminderId);
 
                             if (reminder && await GoogleCalendarService.instance().checkUser()){
@@ -344,7 +301,7 @@ export default defineBackground({
 
                             return {success: success};
 
-                        case 'SAR__GOOGLE_DELETE_EVENT':
+                        case 'GOOGLE_DELETE_EVENT':
                             if (await GoogleCalendarService.instance().checkUser()){
                                 await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
                                 success = true;
@@ -352,7 +309,7 @@ export default defineBackground({
 
                             return {success: success};
 
-                        case 'SAR__GOOGLE_CREATE_EVENT':
+                        case 'GOOGLE_CREATE_EVENT':
                             const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
 
                             if (newReminder && await GoogleCalendarService.instance().checkUser()){

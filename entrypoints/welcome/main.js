@@ -8,8 +8,8 @@ window.addEventListener('message', (event) => {
 
         // Обрабатываем разные типы сообщений
         switch (event.data.action) {
-            case 'SAR__FAB_READY':
-            case 'SAR__FAB_POSITION_CHANGED':
+            case 'FAB_READY':
+            case 'FAB_POSITION_CHANGED':
                 const arrow = document.getElementById('watcher-arrow');
                 if (!arrow) {
                     return;

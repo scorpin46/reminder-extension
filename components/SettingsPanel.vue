@@ -102,7 +102,7 @@ onMounted(async () => {
 watch(() => fastMode.value, async (value) => {
   await fastModeStore.setValue(value);
 
-  browser.runtime.sendMessage({action: 'SAR__REINIT_FAB_FOR_CONTENT'});
+  browser.runtime.sendMessage({action: 'REINIT_FAB_FOR_CONTENT'});
 })
 
 </script>

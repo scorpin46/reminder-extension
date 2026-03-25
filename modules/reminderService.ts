@@ -66,12 +66,12 @@ export class ReminderService {
         if (shouldSendMessage) {
             if (reminderParams.googleSync === 0){
                 browser.runtime.sendMessage({
-                    action : 'SAR__GOOGLE_DELETE_EVENT',
+                    action : 'GOOGLE_DELETE_EVENT',
                     googleEventId: reminderParams.googleEventId
                 })
             } else {
                 browser.runtime.sendMessage({
-                    action : isUpdated ? 'SAR__GOOGLE_UPDATE_EVENT' : 'SAR__GOOGLE_CREATE_EVENT',
+                    action : isUpdated ? 'GOOGLE_UPDATE_EVENT' : 'GOOGLE_CREATE_EVENT',
                     reminderId: id
                 })
             }
@@ -83,13 +83,13 @@ export class ReminderService {
     async delete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'SAR__GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
     }
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'SAR__GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
     }
 
     async getAllGoogleEventsIds(){
