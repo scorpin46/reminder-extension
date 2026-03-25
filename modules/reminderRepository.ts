@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import Dexie, { liveQuery, Table } from 'dexie';
 import {uniq} from "es-toolkit";
+import {isNumeric} from "@/modules/utils/helpers";
 
 const DB_NAME = 'ReminderDatabase';
 
@@ -180,7 +181,7 @@ export class ReminderRepository {
 
     // Публичные методы
     async getById(id: number): Promise<Reminder | undefined> {
-        if (!Number.isFinite(id)){
+        if (!isNumeric(id)){
             return undefined;
         }
         

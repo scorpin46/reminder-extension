@@ -24,7 +24,7 @@ window.addEventListener('message', (event) => {
                 
                 let scaleX = event.data.side === 'left' ? -1 : 1;
                 
-                const correctPercent = 5;
+                const correctPercent = 4.5;
                 // const correctPercent = 3 * scaleFactor;
 
                 deg -= deg / 100 * scaleFactor;

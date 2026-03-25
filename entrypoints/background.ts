@@ -171,11 +171,13 @@ export default defineBackground({
                         ],
                     };
                     
-                    if (reminder.url) { //тут Url в приоритете, т.к. он может быть повторяемым
+                    const url = reminder.url  || '';
+                    
+                    if (url.length > 7) { //тут Url в приоритете, т.к. он может быть повторяемым
                         notifyParams.buttons = [{title: '✅ ОК'}];
                         notifyParams.title = '🔗 ' + browser.i18n.getMessage('linkIsOpened');
                         notifyParams.message = reminder.title;
-                        notifyParams.contextMessage = reminder.url;
+                        notifyParams.contextMessage = reminder.url!;
                         // notifyParams.requireInteraction = false;
                         //todo Добавить повтор и в гугл
                     } else if (reminder.repeatAfterMin) {

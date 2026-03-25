@@ -156,7 +156,7 @@ import {
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
-import {localDateFormat} from "@/modules/utils/helpers.ts";
+import {isNumeric, localDateFormat} from "@/modules/utils/helpers.ts";
 import {useIntervalFn} from "@vueuse/core";
 import {useDate} from "vuetify/framework";
 import Header from "@/components/Header.vue";
@@ -165,7 +165,6 @@ import {max, min} from "es-toolkit/compat";
 import IconTrash from "@/components/icons/IconTrash.vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
-import IconCheck from "@/components/icons/IconCheck.vue";
 import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
 import IconLogo from "@/components/icons/IconLogo.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
@@ -260,7 +259,7 @@ const daysGroupsReminders = computed(() => {
 
 const showEditPanel = async (reminder = null, forceRunRecording = false) => {
   if (reminder) {
-    initialFormData = Number.isFinite(reminder)
+    initialFormData = isNumeric(reminder)
         ? await reminderService.repository.getById(reminder) || {}
         : reminder
     

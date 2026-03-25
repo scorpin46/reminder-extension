@@ -232,3 +232,7 @@ export const blockPageScaling = () => {
         }
     }, { passive: false, capture: true });
 }
+
+export const isNumeric = (value: any): boolean => {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+}

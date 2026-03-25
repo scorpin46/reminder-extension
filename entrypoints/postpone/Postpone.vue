@@ -88,11 +88,12 @@ const reminderOptions = computed(() => {
     };
   });
 });
+
 onMounted(async () => {
   const url = new URL(location.href);
   const reminderId = url.searchParams.get('id');
   reminderItem.value = await reminderService.repository.getById(reminderId);
-  
+
   if (!reminderItem.value){
     console.error(`Reminder ${reminderId} not found`);
     window.close();

@@ -105,6 +105,7 @@ import {browser} from 'wxt/browser';
 import IconDown from "@/components/icons/IconDown.vue";
 import {sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 import IconInfo from "@/components/icons/IconInfo.vue";
+import {isNumeric} from "@/modules/utils/helpers.ts";
 
 const props = defineProps({
   backToPanel: {
@@ -239,7 +240,7 @@ onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
   emit('update:initialFormData', {});
   
-  if (form.isCreating() && isAuthenticated.value && !Number.isFinite(form.input.googleSync)){
+  if (form.isCreating() && isAuthenticated.value && !isNumeric(form.input.googleSync)){
     form.input.googleSync = 1;
   }
   
