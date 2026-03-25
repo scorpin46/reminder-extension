@@ -4,6 +4,10 @@
   user-select: none;
   --transition-fn: cubic-bezier(.4, 0, .2, 1);
   margin-bottom: 20px;
+  
+  &:empty{
+    display: none;
+  }
 
   &-day {
     line-height: 1;
@@ -276,4 +280,62 @@
       }
     }
   }
+  
+  &__empty{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 14px;
+    justify-content: center;
+    text-align: center;
+    
+    b {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .logo{
+      filter: grayscale(1);
+      opacity: .5;
+    }
+    
+    &-create{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      aspect-ratio: 1;
+      font-weight: 500;
+      border: 1px solid;
+      border-radius: 100%;
+      padding: 10px;
+      background: var(--color-primary);
+      color: var(--foreground-active);
+      transition: transform 0.2s ease;
+      
+      &:hover{
+        transform: scale(1.15);
+      }
+    }
+    
+    &-reset{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid;
+      color: var(--color-primary);
+      border-radius: 20px;
+      padding: 6px 19px 6px 15px;
+
+      &:hover{
+        background: var(--color-primary);
+        color: var(--foreground-active)
+      }
+    }
+  }
+  
 }

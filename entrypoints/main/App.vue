@@ -16,32 +16,29 @@
       :searchVisible="searchVisible"
   />
   <main>
-    <div v-if="filterQuery && ! Object.keys(daysGroupsReminders).length">
-      <b>{{ browser.i18n.getMessage('noResults') }}</b>
-      <div>
+    <div class="reminders__empty" v-if="filterQuery && ! Object.keys(daysGroupsReminders).length">
+      <IconLogo class="logo mb-20" :mode="'info'" width="40"/>
+      <div><b>{{ browser.i18n.getMessage('noResults') }}</b></div>
+      <div class="mt-15 color-light">
         {{ browser.i18n.getMessage('changeQuery') }} "{{ filterQuery }}"
       </div>
+      <button class="reminders__empty-reset mt-20" @click="resetSearch">
+        <IconXmark height="20" width="20"/>
+        <span>
+          {{ browser.i18n.getMessage('reset') }}
+        </span>
+      </button>
+    </div>
 
-      <div>
-        <button type="button" @click="resetSearch">{{ browser.i18n.getMessage('reset') }}</button>
+    <div class="reminders__empty" v-else-if="!reminders.length">
+      <IconLogo class="logo mb-20" :mode="openedTab === 'completed' ? 'clockWithEars' : 'info'" width="40"/>
+      <div><b>{{ browser.i18n.getMessage('noReminders') }}</b></div>
+      <div class="mt-15 color-light">
+        {{ openedTab === 'completed' ? browser.i18n.getMessage('noRemindersCompletedHere') : browser.i18n.getMessage('noRemindersCreateNew') }}
       </div>
-    </div>
-
-    <div v-else-if="openedTab === 'active' && !reminderService.repository.state.active.length">
-      <!--      todo Добавить перевод и текст стилизовать -->
-      Иконка <br>
-      Нет активных напоминаний
-
-      Создать напоминание
-    </div>
-
-    <div v-else-if="openedTab === 'completed' && !reminderService.repository.state.completed.length">
-      <!--      todo Добавить перевод и текст стилизовать -->
-      Иконка <br>
-      Нет прошедших напоминаний
-      Здесь будут отображаться выполненные напоминания
-
-      Создать напоминание
+      <button class="reminders__empty-create mt-20" @click="showEditPanel(null)">
+        <IconPlus height="50" width="50"/>
+      </button>
     </div>
 
     <div class="reminders">
@@ -54,7 +51,6 @@
           <template v-else>
             <span class="color-red">
               {{ group.label }} <span> ({{ group.items.length }})</span>
-              <!--              {{ group.label }} <span class="danger-label ml-5">{{ group.items.length }}</span>-->
             </span>
           </template>
         </div>
@@ -171,6 +167,9 @@ import IconGoogle from "@/components/icons/IconGoogle.vue";
 import {sendGoogleCheckStatusMessage, sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 import IconCheck from "@/components/icons/IconCheck.vue";
 import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
+import IconLogo from "@/components/icons/IconLogo.vue";
+import IconPlus from "@/components/icons/IconPlus.vue";
+import IconXmark from "@/components/icons/IconXmark.vue";
 
 const props = defineProps({
   editingPanelVisible: {

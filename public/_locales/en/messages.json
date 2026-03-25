@@ -229,6 +229,29 @@
   "other": {
     "message": "Other",
     "description": "Title \"Other settings\""
+  },
+  "fastModeRun": {
+    "message": "Quick launch mode"
+  },
+  "fastModeRunText": {
+    "message": "Open text input"
+  },
+  "fastModeRunVoice": {
+    "message": "Open voice input"
+  },
+  "fastModeRunActiveReminders": {
+    "message": "Open reminders list"
+  },
+  "noReminders": {
+    "message": "No reminders"
+  },
+  "noRemindersCreateNew": {
+    "message": "Create a new reminder to get started",
+    "description": "Description when no active reminders exist"
+  },
+  "noRemindersCompletedHere": {
+    "message": "Your completed reminders will appear here",
+    "description": "Description when no past reminders exist"
   }
 }
 

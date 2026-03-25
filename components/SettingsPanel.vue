@@ -39,12 +39,14 @@
         <div>
           <div class="mb-15">
             <label class="form-label">
-              <!--        todo перевод-->
-              <span class="form-label__title">Режим быстрого запуска</span>
-              <select v-model="fastMode">
-                <option value="activeReminders">Открывать список актуальных напоминаний</option>
-                <option value="text">Открывать текстовый ввод</option>
-                <option value="voice">Запускать голосовой ввод</option>
+              <span class="form-label__title">
+                {{ browser.i18n.getMessage('fastModeRun') }}
+<!--                <IconInfo v-title="`Нажатие по плавающей иконке`" width="15" height="15" class="color-light cursor-help"/>-->
+              </span>
+              <select v-model="fastMode" class="form-control">
+                <option value="text">{{ browser.i18n.getMessage('fastModeRunText') }}</option>
+                <option value="voice">{{ browser.i18n.getMessage('fastModeRunVoice') }}</option>
+                <option value="activeReminders">{{ browser.i18n.getMessage('fastModeRunActiveReminders') }}</option>
               </select>
             </label>
           </div>
@@ -76,6 +78,7 @@ import {computed, onMounted, ref, watch} from "vue";
 import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
+import IconInfo from "@/components/icons/IconInfo.vue";
 
 const props = defineProps({
   authenticatedEmail: {

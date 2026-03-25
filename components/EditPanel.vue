@@ -7,8 +7,6 @@
       </template>
     </div>
     <div class="panel__body">
-   
-
       <div class="record-box">
 <!--       <div>-->
 <!--         <b>Тапни и произнеси что-то вроде:</b> <br>-->

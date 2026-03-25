@@ -223,6 +223,27 @@
   },
   "other": {
     "message": "Прочее"
+  },
+  "fastModeRun": {
+    "message": "Режим быстрого запуска"
+  },
+  "fastModeRunText": {
+    "message": "Открывать текстовый ввод"
+  },
+  "fastModeRunVoice": {
+    "message": "Открывать голосовой ввод"
+  },
+  "fastModeRunActiveReminders": {
+    "message": "Открывать список напоминаний"
+  },
+  "noReminders": {
+    "message": "Напоминания отсутствуют"
+  },
+  "noRemindersCreateNew": {
+    "message": "Создайте новое напоминание"
+  },
+  "noRemindersCompletedHere": {
+    "message": "Здесь будут отображаться завершенные напоминания"
   }
 }
 
