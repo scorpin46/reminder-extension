@@ -36,7 +36,7 @@
       <div class="mt-15 color-light">
         {{ openedTab === 'completed' ? browser.i18n.getMessage('noRemindersCompletedHere') : browser.i18n.getMessage('noRemindersCreateNew') }}
       </div>
-      <button class="reminders__empty-create mt-20" @click="showEditPanel(null)">
+      <button class="reminders__empty-create mt-20" @click="showEditPanel(null)" :title="browser.i18n.getMessage('addNewReminder')">
         <IconPlus height="50" width="50"/>
       </button>
     </div>

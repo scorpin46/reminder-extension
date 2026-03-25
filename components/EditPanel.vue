@@ -1,9 +1,9 @@
 <template>
   <div class="panel panel-editing">
     <div class="panel__title">
-      <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminder')}}</template>
+      <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminderTitle')}}</template>
       <template v-else>
-        {{ browser.i18n.getMessage('editReminder')}}
+        {{ browser.i18n.getMessage('editReminderTitle')}}
       </template>
     </div>
     <div class="panel__body">

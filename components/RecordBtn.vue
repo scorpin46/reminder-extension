@@ -4,7 +4,7 @@
       type="button" 
       @click="recordClickHandler" 
       :disabled="!supportsRecording" 
-      :title="!supportsRecording ? browser.i18n.getMessage('unsupportedSpeech') : null"
+      :title="!supportsRecording ? browser.i18n.getMessage('unsupportedSpeech') : browser.i18n.getMessage('dictateNewReminder')"
   >
     <IconMic />
   </button>

@@ -5,7 +5,7 @@
       <button
           :class="{'header__add': true, '--active': editingPanelVisible}"
           type="button"
-          :title="editingPanelVisible ? browser.i18n.getMessage('close') : browser.i18n.getMessage('addReminder')"
+          :title="editingPanelVisible ? browser.i18n.getMessage('close') : browser.i18n.getMessage('addNewReminder')"
           @click="editingPanelVisible = !editingPanelVisible"
           @dblclick="editingPanelVisible = !editingPanelVisible"
       >

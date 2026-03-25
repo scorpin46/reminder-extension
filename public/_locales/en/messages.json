@@ -11,11 +11,11 @@
   "postponeTitle": {
     "message": "Postpone the reminder"
   },
-  "addReminder": {
+  "addReminderTitle": {
     "message": "New Reminder"
   },
-  "editReminder": {
-    "message": "Edit reminder"
+  "editReminderTitle": {
+    "message": "Edit Reminder"
   },
   "reminders": {
     "message": "Reminders"
@@ -252,6 +252,12 @@
   "noRemindersCompletedHere": {
     "message": "Your completed reminders will appear here",
     "description": "Description when no past reminders exist"
+  },
+  "addNewReminder": {
+    "message": "Create a new reminder"
+  },
+  "dictateNewReminder": {
+    "message": "Dictate a reminder"
   }
 }
 

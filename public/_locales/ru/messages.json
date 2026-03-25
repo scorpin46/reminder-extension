@@ -11,10 +11,10 @@
   "postponeTitle": {
     "message": "Отложить напоминание"
   },
-  "addReminder": {
-    "message": "Добавить напоминание"
+  "addReminderTitle": {
+    "message": "Создать напоминание"
   },  
-  "editReminder": {
+  "editReminderTitle": {
     "message": "Изменить напоминание"
   },
   "reminders": {
@@ -244,6 +244,12 @@
   },
   "noRemindersCompletedHere": {
     "message": "Здесь будут отображаться завершенные напоминания"
+  },
+  "addNewReminder": {
+    "message": "Создать новое напоминание"
+  },
+  "dictateNewReminder": {
+    "message": "Надиктовать напоминание"
   }
 }
 
