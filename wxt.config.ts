@@ -48,6 +48,34 @@ export default defineConfig({
                 "resources": ["icon/*.png"]
             }
         ],
+        "commands": {
+            "_execute_action": {
+                "suggested_key": {
+                    "default": "Alt+Shift+R",
+                }
+            }
+        //     "reminders_list": {
+        //         "suggested_key": {
+        //             "default": "Ctrl+Shift+3",
+        //             "mac": "Command+Shift+3"
+        //         },
+        //         "description": "__MSG_fastModeRunActiveReminders__"
+        //     },
+        //     "create_by_voice": {
+        //         "suggested_key": {
+        //             "default": "Ctrl+Shift+2",
+        //             "mac": "Command+Shift+2"
+        //         },
+        //         "description": "__MSG_fastModeRunVoice__"
+        //     },
+        //     "create_by_text": {
+        //         "suggested_key": {
+        //             "default": "Ctrl+Shift+1",
+        //             "mac": "Command+Shift+1"
+        //         },
+        //         "description": "__MSG_fastModeRunText__"
+        //     }
+        }
     }),
     modules: [
         '@wxt-dev/module-vue',
@@ -72,7 +100,6 @@ export default defineConfig({
             config.build.rollupOptions.output = {
                 ...(typeof config.build.rollupOptions.output === 'object' ? config.build.rollupOptions.output : {}),
                 chunkFileNames: 'chunks/chunk-[hash].js',
-
                 entryFileNames: (chunkInfo) => {
                     if (chunkInfo.name === 'background') {
                         return 'background.js';

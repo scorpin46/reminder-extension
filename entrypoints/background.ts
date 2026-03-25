@@ -407,8 +407,12 @@ export default defineBackground({
         browser.runtime.onInstalled?.addListener(async (details) => {
             try {
                 try {
+                    const installId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+                    const manifest = browser.runtime.getManifest();
+                    const version = manifest.version;
+
                     if (details.reason === 'install') {
-                        const welcomeUrl = browser.runtime.getURL('/welcome.html');
+                        const welcomeUrl = browser.runtime.getURL('/welcome.html') + `?install_id=${installId}&version=${version}`;
                         browser.tabs.create({ url: welcomeUrl, active: true});
                     }
                 } catch (err) {
@@ -457,6 +461,8 @@ export default defineBackground({
                     documentUrlPatterns,
                 });
 
+                browser.runtime.setUninstallURL('https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform');
+
                 GoogleCalendarService.instance().run();
             } catch (error) {
                 console.error('Error during installation:', error);
@@ -486,5 +492,35 @@ export default defineBackground({
                 }
             }
         });
+
+        // browser.commands.onCommand.addListener(async (command: string) => {
+        //     console.log(`[Background] Получена команда: ${command}`);
+        //
+        //     // Получаем активную вкладку
+        //     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        //     if (tab?.id) {
+        //         await browser.tabs.sendMessage(tab.id, {
+        //             type: "CREATE_BY_VOICE"
+        //         });
+        //     }
+        //    
+        //     switch (command) {
+        //         case "create_by_text":
+        //             await openMainWindow();
+        //             break;
+        //
+        //         case "create_by_voice":
+        //            
+        //             break;
+        //
+        //         case "reminders_list":
+        //             // Это уже обрабатывается браузером автоматически (открытие popup)
+        //             console.log("Popup открыт через клавишу");
+        //             break;
+        //
+        //         default:
+        //             console.log(`Неизвестная команда: ${command}`);
+        //     }
+        // });
     }
 });

@@ -68,6 +68,6 @@ function localizePage() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    FloatingFab.run();
     localizePage();
+    FloatingFab.run();
 })

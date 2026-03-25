@@ -467,7 +467,7 @@ export class GoogleCalendarService {
                     if (error.response?.status === 404) {
                         calendarId = undefined;
                     } else if (error.response?.status !== 409) {
-                        calendarId = 'primary'; //todo чисто на всякий случай, хотя конечно лучше повторно пытаться создать
+                        calendarId = 'primary'; //чисто на всякий случай, хотя конечно лучше повторно пытаться создать
                         console.error(error);
                     }
                 }
@@ -797,7 +797,6 @@ export class GoogleCalendarService {
                     
                     if (isNotSigned){
                         await this.#googleIsAuthenticatedStore.setValue(false); 
-                        //todo проверить этот кейс, когда вышли с аккаунта, а потом зашли, расширение автоматом подтянет данные? или делать логаут тут?
                     } else if (isNotGrants && ! this.#needCalendarGrants){
                         this.#needCalendarGrants = true;
                         await this.login();

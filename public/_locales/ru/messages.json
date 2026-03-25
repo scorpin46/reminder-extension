@@ -225,16 +225,16 @@
     "message": "Прочее"
   },
   "fastModeRun": {
-    "message": "Режим быстрого запуска"
+    "message": "Выбор режима быстрого запуска"
   },
   "fastModeRunText": {
-    "message": "Открывать текстовый ввод"
+    "message": "Открыть текстовый ввод"
   },
   "fastModeRunVoice": {
-    "message": "Открывать голосовой ввод"
+    "message": "Открыть голосовой ввод"
   },
   "fastModeRunActiveReminders": {
-    "message": "Открывать список напоминаний"
+    "message": "Открыть список напоминаний"
   },
   "noReminders": {
     "message": "Напоминания отсутствуют"

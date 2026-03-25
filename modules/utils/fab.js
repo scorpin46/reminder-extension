@@ -38,7 +38,7 @@ const fabIconSvg = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3
 
 const fabStyles = `
   *, *::before, *::after { box-sizing: border-box; user-select: none; outline: none; }
-
+  
   @keyframes fabFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -1053,12 +1053,15 @@ export class FloatingFab {
 
         const root = document.createElement("div");
         root.className = "fab-root";
-
+        
         const closeButton = this.createCloseButton();
         const mainButton = this.createMainButton();
-
-        root.appendChild(closeButton);
         root.appendChild(mainButton);
+        root.appendChild(closeButton);
+
+        if (this.options.isWelcomePage && window.location.protocol === 'chrome-extension:') {
+            closeButton.style.display = "none";
+        }
 
         this.shadow.append(style, root);
 
