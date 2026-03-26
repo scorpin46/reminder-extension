@@ -36,7 +36,7 @@
       <div class="mt-15 color-light">
         {{ openedTab === 'completed' ? browser.i18n.getMessage('noRemindersCompletedHere') : browser.i18n.getMessage('noRemindersCreateNew') }}
       </div>
-      <button class="reminders__empty-create mt-20" @click="showEditPanel(null)" :title="browser.i18n.getMessage('addNewReminder')">
+      <button class="reminders__empty-create mt-20" v-if="openedTab === 'active'" @click="bigBtnCreateHandler" :title="browser.i18n.getMessage('addNewReminder')">
         <IconPlus height="50" width="50"/>
       </button>
     </div>
@@ -387,9 +387,18 @@ watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVis
   }
 })
 
+const bigBtnCreateHandler = (event) => {
+  const btn = event.currentTarget;
+  btn.classList.add('--clicked');
+  
+  setTimeout(() => {
+    btn.classList.remove('--clicked');
+    showEditPanel(null);
+  }, 300)
+}
+
 const url = new URL(window.location.href);
 let initialFormData = Object.fromEntries(url.searchParams.entries());
-
 
 onMounted(async () => {
   const fastMode = await fastModeStore.getValue();

@@ -312,7 +312,22 @@
       padding: 10px;
       background: var(--color-primary);
       color: var(--foreground-active);
-      transition: transform 0.2s ease;
+      transition: all 0.2s ease;
+      
+      &.--clicked{
+        position: fixed;
+        top: 10px;
+        padding: 0;
+        left: 10px;
+        margin: 0 !important;
+        //transform: scale(.9);
+        border: 0;
+        
+        svg{
+          width: 32px;
+          height: 32px;
+        }
+      }
       
       &:hover{
         transform: scale(1.15);
