@@ -250,7 +250,7 @@ export class GoogleCalendarService {
         browser.alarms.create(GoogleCalendarService.syncAlarmName, {
             periodInMinutes: 1,
         });
-        console.log(await this.#getCalendarId());
+        console.log('Selected calendar - ' +await this.#getCalendarId());
 
         if (forceSync) {
             setTimeout(() => {

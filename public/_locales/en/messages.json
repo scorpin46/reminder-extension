@@ -92,6 +92,9 @@
   "close": {
     "message": "Close"
   },
+  "hasOverdueReminders": {
+    "message": "There are overdue reminders!"
+  },
   "syncFailed": {
     "message": "Google Calendar sync failed for $EMAIL$. Please sign in again.",
     "placeholders": {

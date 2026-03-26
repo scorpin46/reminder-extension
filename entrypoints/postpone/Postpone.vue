@@ -7,7 +7,11 @@
       <div class="notranslate postpone__desc">{{ reminderItem.desc }}</div>
     </div>
     <hr class="mt-10">
-    <div>
+    <div v-if="notificationMode" class="postpone__actions mt-10">
+      <button class="postpone__toggle" @click="notificationMode = false">{{ browser.i18n.getMessage('alertPostponeBtn') }}</button>
+      <button class="postpone__complete" @click="complete">{{ browser.i18n.getMessage('alertCompleteBtn') }}</button>
+    </div>
+    <div v-else>
       <div v-for="option in reminderOptions" :key="option.minutes" class="postpone__option" @click="sendNewTime(option.targetDate)" role="button">
         <span>{{ option.label }}</span>
         <span v-if="option.labelUntil"> — {{ option.labelUntil }}</span>
@@ -33,6 +37,7 @@ import IconCheck from "@/components/icons/IconCheck.vue";
 const now = useNow({interval: 1000});
 const inputDatetime = ref();
 const reminderItem = ref({});
+const notificationMode = ref();
 const minutes = ref([5, 10, 15, 30, 45, 60, 120, 240, 60 * 24]);
 const reminderService = ReminderService.instance();
 
@@ -98,6 +103,8 @@ onMounted(async () => {
     console.error(`Reminder ${reminderId} not found`);
     window.close();
   }
+
+  notificationMode.value = url.searchParams.get('notificationMode') === 'true';
 })
 
 const sendNewTime = async (value) => {
@@ -111,6 +118,11 @@ const changeCustomTime = async (event) => {
   if (event.target.reportValidity()) {
     sendNewTime(inputDatetime.value)
   }
+}
+
+const complete = async () => {
+  await reminderService.complete(reminderItem.value.id);
+  window.close();
 }
 
 </script>

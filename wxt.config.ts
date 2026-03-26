@@ -20,7 +20,7 @@ export default defineConfig({
             "notifications",
             "identity",
             "identity.email",
-            // "offscreen",
+            "offscreen",
             "scripting"
         ],
         "action": {
@@ -45,7 +45,7 @@ export default defineConfig({
         "web_accessible_resources": [
             {
                 "matches": ["*://*.google.com/*"],
-                "resources": ["icon/*.png"]
+                "resources": ["icon/*.png", "audio/*"]
             }
         ],
         "commands": {

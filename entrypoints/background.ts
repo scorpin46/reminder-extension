@@ -6,29 +6,17 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
-import {getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
+import {getExpiredCountStore, getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
 import {Reminder} from "@/modules/reminderRepository";
 import NotificationCreateOptions = Browser.notifications.NotificationCreateOptions;
+import {OffscreenManager} from "@/modules/offscreenManager";
 
 export default defineBackground({
     type: 'module',
 
     main: () => {
-        const checkNotificationPermission = async ()=> {
-            // Проверяем разрешение на уведомления
-            if (Notification.permission === 'granted') {
-                return true;
-            }
-
-            // Если разрешение не запрошено, запрашиваем
-            if (Notification.permission === 'default') {
-                const permission = await Notification.requestPermission();
-                return permission === 'granted';
-            }
-           
-            return false;
-        }
-
+        const offscreenManager = new OffscreenManager();
+       
         let pendingOpen: Promise<void> | null = null;
 
         const openMainWindow = async (urlParams: Record<string, any> = {}): Promise<void> => {
@@ -89,7 +77,7 @@ export default defineBackground({
         };
         
         
-        const openPostponeWindow = async (reminderId: number | string): Promise<void> => {
+        const openPostponeWindow = async (reminderId: number | string, notificationMode: boolean = false): Promise<void> => {
             try {
                 const lastWindow = await browser.windows.getLastFocused();
                 const width = 370;
@@ -98,7 +86,7 @@ export default defineBackground({
                 const top = lastWindow.height! - height;
 
                 await browser.windows.create({
-                    url: browser.runtime.getURL(`/postpone.html`) + `?id=${reminderId}`,
+                    url: browser.runtime.getURL(`/postpone.html`) + `?id=${reminderId}&${notificationMode}`,
                     type: "popup",
                     width: width,
                     height: height,
@@ -117,14 +105,25 @@ export default defineBackground({
         });
 
         browser.alarms.onAlarm?.addListener(async (alarm: Alarm) => {
+            if (alarm.name === GoogleCalendarService.syncAlarmName) {
+                const isAuth = await GoogleCalendarService.instance().isAuthenticated();
+
+                if (isAuth){
+                    await GoogleCalendarService.instance().run(true);
+                } else {
+                    browser.alarms.clear(GoogleCalendarService.syncAlarmName);
+                }
+                
+                return;
+            }
+            
             const reminderId = getReminderIdFromAlarmName(alarm.name);
             const reminderService = ReminderService.instance();
-
+            
             if (reminderId) {
                 const reminder = await reminderService.repository.getById(reminderId);
 
                 if (reminder?.id && !reminder.completed) {
-                    const notificationsEnabled = await checkNotificationPermission();
                     const notifyParams: NotificationCreateOptions = {
                         type: "basic",
                         iconUrl: browser.runtime.getURL("/icon/128.png"),
@@ -133,6 +132,7 @@ export default defineBackground({
                         contextMessage: reminder.desc!,
                         requireInteraction: true,
                         priority: 2,
+                        silent: true, //todo?
                         buttons: [
                             {title: browser.i18n.getMessage('alertPostponeBtn')},
                             {title: browser.i18n.getMessage('alertCompleteBtn')}
@@ -152,7 +152,19 @@ export default defineBackground({
                         notifyParams.buttons = [{title: '✅ ОК'}];
                     }
 
-                    const notificationId = notificationsEnabled ? await browser.notifications.create(notifyParams) : null;
+                    let notificationId = null;
+                    
+                    try {
+                        notificationId = await browser.notifications.create(notifyParams);
+                        //@ts-ignore
+                        if (reminder.priority) {
+                            await offscreenManager.playPriorityAlarmSound(reminder.id);
+                        } else {
+                            await offscreenManager.playAlarmSound();
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
 
                     const newReminderParams:Partial<Reminder> = {notificationId};
                     
@@ -169,12 +181,6 @@ export default defineBackground({
                     }
                     
                     await reminderService.repository.update(reminder.id, newReminderParams);
-
-                    if (!notificationsEnabled) {
-                        //todo fallback 
-                        await openMainWindow(); 
-                        return;
-                    }
                 }
             }
         });
@@ -186,6 +192,10 @@ export default defineBackground({
                 await openMainWindow()
             }
         });
+
+        browser.notifications.onClosed.addListener(async (notificationId) => {
+            console.log('closed', notificationId);
+        })
 
         browser.notifications.onButtonClicked?.addListener(async (notificationId: string, buttonIndex: number) => {
             //Уведомление о необходимости авторизоваться
@@ -210,33 +220,7 @@ export default defineBackground({
             }
         });
 
-        browser.action.setBadgeBackgroundColor({color: "rgb(29,93,142)"});
-        browser.action.setBadgeTextColor({color: "white"});
-
-        watch(() => ReminderService.instance().repository.state.active.length, async (value) => {
-            try {
-                browser.action.setBadgeText({text: (value || "").toString()});
-            } catch (error) {
-                console.error('Error updating badge text:', error);
-            }
-        }, {immediate: true});
-
-        browser.alarms.onAlarm?.addListener(async (alarm) => {
-            browser.action.setBadgeText({
-                text: (ReminderService.instance().repository.state.active.length || "").toString()
-            });
-
-            if (alarm.name === GoogleCalendarService.syncAlarmName) {
-                const isAuth = await GoogleCalendarService.instance().isAuthenticated();
-                
-                if (isAuth){
-                    await GoogleCalendarService.instance().run(true);
-                } else {
-                    browser.alarms.clear(GoogleCalendarService.syncAlarmName);
-                }
-            }
-        });
-
+        
         browser.runtime.onMessage?.addListener((request, sender, sendResponse) => {
             const isValidRequest = request.action?.startsWith('');
 
@@ -352,12 +336,7 @@ export default defineBackground({
 
         // При старте браузера
         browser.runtime.onStartup?.addListener(() => {
-            GoogleCalendarService.instance().run()
-        });
-
-        // При старте браузера
-        browser.runtime.onStartup?.addListener(() => {
-            GoogleCalendarService.instance().run()
+            GoogleCalendarService.instance().run();
         });
 
         // При установке/обновлении
@@ -479,5 +458,24 @@ export default defineBackground({
         //             console.log(`Неизвестная команда: ${command}`);
         //     }
         // });
+
+        const expiredStore = getExpiredCountStore();
+
+        expiredStore.watch((value) => {
+            if (value > 0) {
+                browser.action.setBadgeBackgroundColor({color: "rgb(219,84,97)"});
+                browser.action.setBadgeTextColor({color: "white"});
+                // browser.action.setBadgeText({text: (value || '').toString()});
+                browser.action.setBadgeText({text: '!'});
+                browser.action.setTitle({title: browser.i18n.getMessage('hasOverdueReminders')});
+            } else{
+                browser.action.setBadgeText({text: ''});
+                browser.action.setTitle({title: browser.i18n.getMessage('appName')});
+            }
+        });
+        
+        watch(() => ReminderService.instance().repository.state.active.length, async (value) => {
+            expiredStore.setValue(ReminderService.instance().getExpiredReminders().length)
+        });
     }
 });

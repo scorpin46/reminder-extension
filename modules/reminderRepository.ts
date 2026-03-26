@@ -89,6 +89,7 @@ export class ReminderRepository {
 
                 if (updates.datetime >= Date.now()) {
                     updates.completed = 0;
+                    updates.notificationId = null;
                 }
             }
 

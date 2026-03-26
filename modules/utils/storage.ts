@@ -55,3 +55,9 @@ export function getFastModeStore() {
         fallback: 'text',
     });
 }
+
+export function getExpiredCountStore() {
+    return storage.defineItem<number>('session:expiredCount', { 
+        fallback: 0,
+    });
+}

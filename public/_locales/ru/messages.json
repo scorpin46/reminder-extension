@@ -92,6 +92,9 @@
   "close": {
     "message": "Закрыть"
   },
+  "hasOverdueReminders": {
+    "message": "Имеются просроченные напоминания!"
+  },
   "syncFailed": {
     "message": "Сбой синхронизации с Google Calendar для $EMAIL$. Пожалуйста, авторизуйтесь снова.",
     "placeholders": {

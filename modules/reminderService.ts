@@ -1,6 +1,7 @@
 import { localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale} from "./utils/helpers";
 import {Reminder, ReminderRepository} from "./reminderRepository.js";
 import {browser} from 'wxt/browser';
+import {getExpiredCountStore} from "@/modules/utils/storage";
 
 export class ReminderService {
     readonly repository: ReminderRepository;
@@ -16,6 +17,14 @@ export class ReminderService {
 
     get regionLocale(): string {
         return detectLocale();
+    }
+
+    async #updatedCallback(reminder?: Reminder){
+        try{
+            await getExpiredCountStore().setValue(this.getExpiredReminders().length);
+        } catch (error){
+            console.error(error);
+        }
     }
 
     async save(params: Partial<Reminder>, sendMessage?: boolean): Promise<number>;
@@ -76,6 +85,8 @@ export class ReminderService {
                 })
             }
         }
+        
+        await this.#updatedCallback();
 
         return id;
     }
@@ -84,12 +95,14 @@ export class ReminderService {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
         sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        await this.#updatedCallback();
     }
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
         sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        await this.#updatedCallback();
     }
 
     async getAllGoogleEventsIds(){
@@ -111,5 +124,13 @@ export class ReminderService {
 
     getTimeUntil(reminderItem: Reminder, now = new Date()) {
         return localTimeUntil(reminderItem.datetime, this.regionLocale, now);
+    }
+
+    getExpiredReminders(now = new Date()) {
+        return this.repository.state.active.filter(item => !item.completed && item.datetime < now);
+    }
+
+    hasExpiredReminders(now = new Date()) {
+        return this.repository.state.active.some(item => !item.completed && item.datetime < now);
     }
 }

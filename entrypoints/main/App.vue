@@ -305,7 +305,7 @@ const actualize = () => {
   if (openedTab.value === 'active') {
     // console.log('expired and soon checking');
 
-    expired.value = reminderService.repository.state.active.filter(item => !item.completed && item.datetime < now.value).map(item => item.id);
+    expired.value = reminderService.getExpiredReminders(now.value).map(item => item.id);
     soon.value = reminderService.repository.state.active.filter(item => {
       const diff = item.datetime - now.value;
       return !item.completed && diff > 0 && diff < SOON_MINUTES * 60 * 1000
