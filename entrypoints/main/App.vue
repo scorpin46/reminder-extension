@@ -81,19 +81,21 @@
 
           <div class="reminders-item__actions" @click="showEditPanel(item)">
             <div class="reminders-item__actions-inner" title="">
-              <span role="button" class="reminders-item__edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
+              <button class="reminders-item__action reminders-item__action--edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
                 <IconEdit/>
-              </span>
-                <span role="button" v-if="expired.includes(item.id)" class="reminders-item__complete" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+              </button>
+<!--              <div class="reminders-item__actions-fin">-->
+<!--              </div>-->
+              <button class="reminders-item__action reminders-item__action--complete" v-if="expired.includes(item.id) || group.isToday" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
                 <IconChecks/>
-              </span>
-                <span v-else role="button"
-                      class="reminders-item__delete"
-                      :title="browser.i18n.getMessage('delete')"
-                      @click.stop="deleteItem(item)"
-                >
+              </button>
+              <button v-else
+                  class="reminders-item__action reminders-item__action--delete"
+                  :title="browser.i18n.getMessage('delete')"
+                  @click.stop="deleteItem(item)"
+              >
                 <IconTrash/>
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -233,8 +235,10 @@ const daysGroupsReminders = computed(() => {
       return true;
     }
 
-    let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true)
+    let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true);
+    let isToday = dateAdapter.isSameDay(dateAdapter.date(now.value), dateAdapter.date(item.datetime));
 
+    // Теперь сравнение будет корректным
     if (expired.value.includes(item.id)) {
       groupKey = 'expired';
       label = browser.i18n.getMessage('missed')
@@ -242,7 +246,8 @@ const daysGroupsReminders = computed(() => {
 
     groups[groupKey] ??= {
       items: [],
-      label: label
+      label: label,
+      isToday: isToday 
     }
 
     const extendedItem = {...item};

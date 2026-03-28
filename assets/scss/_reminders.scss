@@ -1,11 +1,11 @@
 @use './mixins' as *;
 
-.reminders{
+.reminders {
   user-select: none;
   --transition-fn: cubic-bezier(.4, 0, .2, 1);
   margin-bottom: 20px;
-  
-  &:empty{
+
+  &:empty {
     display: none;
   }
 
@@ -34,22 +34,22 @@
       align-items: center;
       padding: 5px 5px 6px;
       transition: opacity .2s linear;
-      
-      &:first-child + *{
+
+      &:first-child + * {
         opacity: 0;
       }
-      
-      &:first-child:hover + *{
+
+      &:first-child:hover + * {
         opacity: 1;
       }
     }
   }
 
-  &-item{
+  &-item {
     $reminderItem: &;
-    
+
     border-radius: 10px;
-    overflow: hidden;
+    //overflow: hidden;
     font-size: 14px;
     margin-bottom: 8px;
     padding: 10px;
@@ -73,46 +73,46 @@
         background: initial;
       }
     }
-    
-    &.--saved{
+
+    &.--saved {
       //animation: blink-saved 1500ms forwards;
       //animation-iteration-count: 1;
       animation: blink-saved 1500ms forwards;
       animation-iteration-count: 1;
     }
-    
-    &.--moving{
+
+    &.--moving {
       font-size: 0;
       opacity: 0;
     }
-    
-    &.--expired{
+
+    &.--expired {
       color: var(--color-red);
     }
-    
+
     &.--expired & {
-      &__title{
+      &__title {
         font-weight: normal;
       }
     }
-    
-    &.--soon{
-      #{$reminderItem}__day{
+
+    &.--soon {
+      #{$reminderItem}__day {
 
         color: var(--color-orange);
       }
     }
-    
-    &.--completed{
-      #{$reminderItem}__day{
+
+    &.--completed {
+      #{$reminderItem}__day {
         color: var(--color-green);
 
-        .icon-checks{
+        .icon-checks {
           color: inherit;
         }
       }
-      
-      #{$reminderItem}__title{
+
+      #{$reminderItem}__title {
         opacity: .8;
       }
     }
@@ -122,17 +122,17 @@
       box-shadow: var(--box-shadow-hovered);
     }
 
-    &:hover &__actions{
+    &:hover &__actions {
       pointer-events: all;
       opacity: 1;
       z-index: 1;
     }
-    
-    &__text-box{
+
+    &__text-box {
       flex: 1 1 auto;
     }
 
-    &__title{
+    &__title {
       line-height: 1.3;
       display: -webkit-box;
       text-overflow: ellipsis;
@@ -142,7 +142,7 @@
       font-weight: 500;
     }
 
-    &__desc{
+    &__desc {
       font-size: 11px;
       display: -webkit-box;
       text-overflow: ellipsis;
@@ -152,14 +152,14 @@
       color: var(--color-light);
       line-height: 1.2;
       margin-top: 6px;
-      
-      &:empty{
+
+      &:empty {
         display: none;
       }
     }
 
     &__time {
-      
+
       border-radius: 20px;
       font-size: 12px;
       color: var(--color-primary);
@@ -170,19 +170,19 @@
       max-width: max-content;
       margin-left: auto;
       position: relative;
-      
-      &:before{
+
+      &:before {
         @include beforeBg;
         background: var(--foreground);
         opacity: .6;
       }
-      
-      span{
+
+      span {
         position: relative;
         z-index: 1;
       }
     }
-    
+
     &__day {
       display: inline-flex;
       align-items: center;
@@ -195,12 +195,12 @@
       white-space: nowrap;
     }
 
-    &__time-box{
+    &__time-box {
       display: inline-flex;
       flex-direction: column;
     }
-    
-    &__actions{
+
+    &__actions {
       color: var(--color-default);
       cursor: help;
       transition: inherit;
@@ -213,8 +213,8 @@
       width: 100%;
       height: 100%;
       z-index: -1;
-      
-      &-inner{
+
+      &-inner {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -223,65 +223,82 @@
         width: 40%;
         margin: 0 auto;
         cursor: default;
+      }
 
-        > * {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 5px;
-          cursor: pointer;
-          border-radius: 100%;
-          background: var(--foreground-active);
-          transition: transform 0.2s ease;
-          //box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
-          //box-shadow: 0 0 3px var(--color-default);
-          box-shadow: 0 0 3px currentColor;
-          //box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-          aspect-ratio: 1;
-          height: 34px;
-          position: relative;
+      &-fin {
+        position: relative;
+
+        #{$reminderItem}__action--complete ~ #{$reminderItem}__action--delete {
+          pointer-events: none;
+          visibility: hidden;
+          position: absolute;
+          z-index: -1;
+        }
+
+        &:hover #{$reminderItem}__action--delete {
+          pointer-events: auto;
+          visibility: visible;
+          left: 0;
+          top: 100%;
           z-index: 1;
-
-          &:hover{
-            transform: scale(1.1);
-          }
         }
       }
     }
 
-
-    &__complete {
+    &__action {
       display: inline-flex;
-      color: var(--color-green);
-
-      svg {
-        width: 25px;
-      }
-    }
-
-
-    &__edit {
-      color: var(--color-primary);
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      cursor: pointer;
+      border-radius: 100%;
+      background: var(--foreground-active);
+      transition: transform 0.2s ease;
+      //box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+      //box-shadow: 0 0 3px var(--color-default);
+      box-shadow: 0 0 3px currentColor;
+      //box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       aspect-ratio: 1;
-      
-      svg {
-        width: 18px;
+      height: 34px;
+      position: relative;
+      z-index: 1;
+
+      &:hover {
+        transform: scale(1.1);
       }
-    }
 
-    &__delete{
-      background: var(--color-red);
-      color: #fff;
-      aspect-ratio: 1;
-      box-shadow: 0 0 0 1px var(--color-red);
+      &--complete {
+        display: inline-flex;
+        color: var(--color-green);
 
-      svg {
-        height: 20px;
+        svg {
+          width: 25px;
+        }
+      }
+
+      &--edit {
+        color: var(--color-primary);
+        aspect-ratio: 1;
+
+        svg {
+          width: 18px;
+        }
+      }
+
+      &--delete {
+        background: var(--color-red);
+        color: #fff;
+        aspect-ratio: 1;
+        box-shadow: 0 0 0 1px var(--color-red);
+
+        svg {
+          height: 20px;
+        }
       }
     }
   }
-  
-  &__empty{
+
+  &__empty {
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -289,18 +306,18 @@
     font-size: 14px;
     justify-content: center;
     text-align: center;
-    
+
     b {
       font-size: 16px;
       font-weight: 600;
     }
-    
-    .logo{
+
+    .logo {
       filter: grayscale(1);
       opacity: .5;
     }
-    
-    &-create{
+
+    &-create {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -313,8 +330,8 @@
       background: var(--color-primary);
       color: var(--foreground-active);
       transition: all 0.2s ease;
-      
-      &.--clicked{
+
+      &.--clicked {
         position: fixed;
         top: 10px;
         padding: 0;
@@ -322,19 +339,19 @@
         margin: 0 !important;
         //transform: scale(.9);
         border: 0;
-        
-        svg{
+
+        svg {
           width: 32px;
           height: 32px;
         }
       }
-      
-      &:hover{
+
+      &:hover {
         transform: scale(1.15);
       }
     }
-    
-    &-reset{
+
+    &-reset {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -346,11 +363,11 @@
       border-radius: 20px;
       padding: 6px 19px 6px 15px;
 
-      &:hover{
+      &:hover {
         background: var(--color-primary);
         color: var(--foreground-active)
       }
     }
   }
-  
+
 }
