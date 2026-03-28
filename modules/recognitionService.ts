@@ -115,7 +115,7 @@ export class RecognitionService {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
                 const transcript = result[0].transcript;
-
+       
                 if (result.isFinal) {
                     // Финальный результат - заменяем весь текст
                     // (или можно добавить, если хочешь накапливать предложения)
@@ -125,9 +125,9 @@ export class RecognitionService {
                         const parsedData = this.#textParser!.parse(transcript);
                         this.state.parsedData = parsedData;
                         this.state.error = parsedData.error ?? this.state.error;
-                        
+
                         // setTimeout(() => {
-                            this.state.streamRecordingText = '';
+                        recordingText = '';
                         // }, 1000)
                     }
                 } else {

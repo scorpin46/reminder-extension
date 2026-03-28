@@ -45,20 +45,21 @@ const msLocaleMap: Record<string, string> = {
     'da': 'da-dk',
     'fi': 'fi-fi',
     'no': 'nb-no',
+    'ru': 'ru-RU',
 };
 
 // Триггеры для удаления командных слов
 const TRIGGER_PATTERNS = {
     russian: [
-        'напомн(и|ить|ишь|ит|им|ите|ят|ю)',
-        'напомина(ние|ния|ю|ешь|ет|ем|ете|ют)',
-        'напомни мне',
+        '(на)?помн(и|ить|ишь|ит|им|ите|ят|ю)( мне)?',
+        '(на)?помина(ние|ния|ю|ешь|ет|ем|ете|ют)',
         '(установи|создай|добавь|поставь) напоминание',
         'не забудь',
         'нужно напомнить',
         'хочу напомнить',
         'про( то)?',
         'о( том,? что)?',
+        'что',
     ].join('|'),
 
     english: [
@@ -178,6 +179,7 @@ export class TextParserProvider {
         }
 
         let result = this.#tryChronoParse(text) ?? this.#tryMicrosoftParse(text);
+        // let result = this.#tryMicrosoftParse(text);
 
         if (result?.date && result.date.getTime() < Date.now()) {
             result = null; //защита от прошлых дат и "вчера" и прочих слов
@@ -193,12 +195,12 @@ export class TextParserProvider {
 
     #tryChronoParse(text: string): TextParsedData | null {
         try {
-            const localeChrono = chrono[this.shortLocale as keyof typeof chrono];
+            const localeChrono: typeof chrono = chrono[this.shortLocale as keyof typeof chrono] as unknown as typeof chrono;
 
-            // @ts-ignore
-            const results = localeChrono.parse(text);
+            const results = localeChrono.parse(text, new Date, {forwardDate: true});
 
             if (results?.length > 0) {
+                console.log(results);
                 const result = results[0];
                 const date = result?.start?.date();
 
@@ -225,6 +227,7 @@ export class TextParserProvider {
             const msCulture = msLocaleMap[this.shortLocale];
 
             const msResults = Recognizers.recognizeDateTime(text, msCulture);
+            console.log(msCulture, msResults);
 
             if (msResults?.length > 0) {
                 for (const msResult of msResults) {
@@ -279,7 +282,10 @@ export class TextParserProvider {
         const triggerPattern = this.#getTriggerPattern(locale);
         if (triggerPattern) {
             const triggerRegex = new RegExp(`^(${triggerPattern})\\s+`, 'gi');
-            cleaned = cleaned.replace(triggerRegex, '');
+            cleaned = cleaned.replace(triggerRegex, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(triggerRegex, ''); //применяем дважды (актуально для русских формулировок)
         }
 
         // Финальная очистка
