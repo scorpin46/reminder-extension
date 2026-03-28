@@ -42,7 +42,10 @@
     "message": "Advanced"
   },
   "reminderUrlInfo": {
-    "message": "(Optional) Enter a website to open when this reminder triggers"
+    "message": "(Optional) Enter a website to open when this reminder triggers."
+  },
+  "browserMustBeRun": {
+    "message": "For proper operation, the browser must be running!"
   },
   "syncWithGoogleCalendar": {
     "message": "Sync with Google Calendar"

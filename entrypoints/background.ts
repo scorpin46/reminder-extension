@@ -132,7 +132,6 @@ export default defineBackground({
                         contextMessage: reminder.desc!,
                         requireInteraction: true,
                         priority: 2,
-                        silent: true, //todo?
                         buttons: [
                             {title: browser.i18n.getMessage('alertPostponeBtn')},
                             {title: browser.i18n.getMessage('alertCompleteBtn')}

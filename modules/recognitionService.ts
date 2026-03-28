@@ -21,6 +21,8 @@ export class RecognitionService {
 
     readonly localeStore: ReturnType<typeof getStoredLocale>;
 
+    #silenceTimer: NodeJS.Timeout|null = null;
+
     private constructor() {
         this.localeStore = getStoredLocale();
 
@@ -32,7 +34,7 @@ export class RecognitionService {
             error: null
         });
 
-        this.initRecognition();
+        this.#initRecognition();
     }
 
     static instance() {
@@ -41,7 +43,7 @@ export class RecognitionService {
         return RecognitionService.#instance;
     }
 
-    async initRecognition() {
+    async #initRecognition() {
         const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (!speechRecognition) {
@@ -54,7 +56,7 @@ export class RecognitionService {
 
         const recognition = new speechRecognition();
 
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
         recognition.lang = locale;
@@ -66,6 +68,7 @@ export class RecognitionService {
             this.state.streamRecordingText = ''; // Сбрасываем при старте
 
             this.state.isRecording = true;
+            this.#resetSilenceTimer(5000);
         }
 
         recognition.onend = (event: object) => {
@@ -75,12 +78,14 @@ export class RecognitionService {
             this.#currentAudioStream?.getTracks().forEach(track => {
                 track.stop(); //освобождение микрофона
             });
+            this.#clearSilenceTimer();
         }
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.log('onerror');
             this.state.streamRecordingText = '';
             this.state.isRecording = false;
+            this.#clearSilenceTimer();
 
             let customError: string = event.error;
 
@@ -104,6 +109,7 @@ export class RecognitionService {
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log('onresult');
             let recordingText: string = '';
+            this.#resetSilenceTimer();
             
             // Проходим по всем новым результатам
             for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -206,7 +212,7 @@ export class RecognitionService {
 
     async changeLocale(locale: string) {
         await this.localeStore.setValue(locale);
-        await this.initRecognition();
+        await this.#initRecognition();
     }
 
     get allowedLocaleLanguages(): object {
@@ -221,5 +227,20 @@ export class RecognitionService {
             "zh-CN": "中文",
             "ja-JP": "日本語",
         };
+    }
+
+    #resetSilenceTimer(delay = 1500) {
+        this.#clearSilenceTimer();
+        this.#silenceTimer = setTimeout(() => {
+            console.log(`Пауза ${delay} ms - останавливаю...`);
+            this.stop();
+        }, delay);
+    }
+
+    #clearSilenceTimer() {
+        if (this.#silenceTimer) {
+            clearTimeout(this.#silenceTimer);
+            this.#silenceTimer = null;
+        }
     }
 }

@@ -47,7 +47,7 @@ app.use(
         componentSingleton: 'tippy-singleton', // => <tippy-singleton/>,
         defaultProps: {
             placement: 'auto-end',
-            allowHTML: false,
+            allowHTML: true,
         }, 
     }
 )

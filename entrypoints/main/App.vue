@@ -379,6 +379,10 @@ watch(() => searchVisible.value, (value, oldValue) => {
 
 watch(() => recognitionService.state.isRecording, (value, oldValue) => {
   document.documentElement.classList.toggle('--recording', value);
+  
+  if (!value && oldValue && !recognitionService.state.streamRecordingText){
+    //todo notify "вас не слышно"...
+  }
 })
 
 watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVisible], [settingsVisibleOld, editingVisibleOld]) => {

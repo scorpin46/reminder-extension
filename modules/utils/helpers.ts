@@ -129,7 +129,7 @@ export const detectLocale = () => {
         results.push(browser.i18n.getUILanguage());
     }
 
-    results = [navigator.language, ... navigator.languages].filter(Boolean);
+    results = [...results, navigator.language, ...navigator.languages].filter(Boolean);
 
     let locale = results[0] || 'en-US';
 
