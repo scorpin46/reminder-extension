@@ -259,5 +259,8 @@
   },
   "dictateNewReminder": {
     "message": "Надиктовать напоминание"
+  },
+  "hotkeys": {
+    "message": "Горячие клавиши"
   }
 }

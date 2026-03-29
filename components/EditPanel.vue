@@ -33,7 +33,7 @@
             <div class="form-label mb-15 reminder-datetime-wrapper">
               <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
-              <InputDatetime required class="form-control w-100" v-model="form.input.datetime" :rewritePastTime="!form.isCreating()"/>
+              <InputDatetime required id="input-datetime" class="form-control w-100" v-model="form.input.datetime" :rewritePastTime="!form.isCreating()"/>
               <IconCheck class="date-confirm-icon"/>
             </div>
           </div>
@@ -272,6 +272,18 @@ onMounted(async () => {
     form.input.datetime = value?.date || form.input.datetime;
     form.input.title = value?.cleanText || form.input.title;
     reminderTitleRef.value?.focus();
+
+    if (value?.date && value.date !== oldValue?.date){
+      const inputDatetimeEl = document.getElementById('input-datetime');
+      
+      if (inputDatetimeEl){
+        inputDatetimeEl.classList.add('--changed');
+        
+        setTimeout(() => {
+          inputDatetimeEl.classList.remove('--changed');
+        }, 1000)
+      }
+    }
   }, {
     deep: true,
     immediate: true,

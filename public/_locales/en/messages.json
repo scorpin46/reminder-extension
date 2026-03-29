@@ -267,5 +267,8 @@
   },
   "dictateNewReminder": {
     "message": "Dictate a reminder"
+  },
+  "hotkeys": {
+    "message": "Hotkeys"
   }
 }

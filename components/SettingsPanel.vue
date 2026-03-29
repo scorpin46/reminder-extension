@@ -65,6 +65,19 @@
 <!--          </div>-->
         </div>
       </section>
+      <section>
+        <header>
+          {{ browser.i18n.getMessage('hotkeys') }}
+          <button @click="editHotkeys" v-if="isChrome" class="v-a-m ml-10" v-title="browser.i18n.getMessage('edit')">
+            <IconPen height="15"/>
+          </button>
+        </header>
+        <div>
+          <div class="mb-5" v-for="hotkey in hotkeys">
+            <b>{{ hotkey.shortcut }}</b> — {{ hotkey.description }}
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -74,11 +87,10 @@ import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 import {getFastModeStore} from "@/modules/utils/storage.ts";
-import {computed, onMounted, ref, watch} from "vue";
-import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
+import { onMounted, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
-import IconInfo from "@/components/icons/IconInfo.vue";
+import IconPen from "@/components/icons/IconPen.vue";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -89,14 +101,31 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 const fastMode = ref();
 
+const hotkeys = ref([]);
+const isChrome = navigator.userAgent.includes("Chrome");
+
+
 const logout = () => {
   sendGoogleLogoutMessage()
+}
+
+const editHotkeys = () => {
+  browser.runtime.sendMessage({ action : 'OPEN_HOTKEYS'}, async (response) => {
+  });
 }
 
 const fastModeStore = getFastModeStore();
 
 onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();
+
+  browser.commands.getAll((commands) => {
+    commands.forEach((command) => {
+      if (command.shortcut){
+        hotkeys.value.push(command);
+      }
+    });
+  });
 })
 
 watch(() => fastMode.value, async (value) => {

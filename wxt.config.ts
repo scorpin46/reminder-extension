@@ -52,32 +52,30 @@ export default defineConfig({
             }
         ],
         "commands": {
-            "_execute_action": {
+            "open_create_by_text": {
                 "suggested_key": {
-                    "default": "Alt+Shift+R",
-                }
-            }
-        //     "reminders_list": {
-        //         "suggested_key": {
-        //             "default": "Ctrl+Shift+3",
-        //             "mac": "Command+Shift+3"
-        //         },
-        //         "description": "__MSG_fastModeRunActiveReminders__"
-        //     },
-        //     "create_by_voice": {
-        //         "suggested_key": {
-        //             "default": "Ctrl+Shift+2",
-        //             "mac": "Command+Shift+2"
-        //         },
-        //         "description": "__MSG_fastModeRunVoice__"
-        //     },
-        //     "create_by_text": {
-        //         "suggested_key": {
-        //             "default": "Ctrl+Shift+1",
-        //             "mac": "Command+Shift+1"
-        //         },
-        //         "description": "__MSG_fastModeRunText__"
-        //     }
+                    "default": "Ctrl+Shift+1",
+                    "mac": "Command+Shift+1"
+                },
+                "description": "__MSG_fastModeRunText__",
+                // "global": true //плохая идея навверн
+            },
+            "open_create_by_voice": {
+                "suggested_key": {
+                    "default": "Ctrl+Shift+2",
+                    "mac": "Command+Shift+2"
+                },
+                "description": "__MSG_fastModeRunVoice__",
+                // "global": true //плохая идея навверн
+            },
+            "open_reminders_list": {
+                "suggested_key": {
+                    "default": "Ctrl+Shift+3",
+                    "mac": "Command+Shift+3"
+                },
+                "description": "__MSG_fastModeRunActiveReminders__",
+                // "global": true //плохая идея навверн
+            },
         }
     }),
     modules: [

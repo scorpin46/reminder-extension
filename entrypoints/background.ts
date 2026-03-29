@@ -18,6 +18,7 @@ export default defineBackground({
         const offscreenManager = new OffscreenManager();
        
         let pendingOpen: Promise<void> | null = null;
+        let openedExtensionTabId: number|null|undefined = null;
 
         const openMainWindow = async (urlParams: Record<string, any> = {}): Promise<void> => {
             // Предотвращаем параллельные вызовы
@@ -39,13 +40,14 @@ export default defineBackground({
                     w.tabs?.some(tab => tab.url?.includes(pageUrl))
                 );
 
-                if (existingWindow) {
+                if (existingWindow?.tabs) {
                     // Обновляем существующее окно
                     const tab = existingWindow.tabs![0];
                     if (urlParams && Object.keys(urlParams).length){
                         await browser.tabs.update(tab.id!, { url });
                     }
                     await browser.windows.update(existingWindow.id!, { focused: true });
+                    openedExtensionTabId = tab.id;
                     return;
                 }
 
@@ -55,7 +57,7 @@ export default defineBackground({
                     const topOffset = 95;
                     const width = 450;
 
-                    await browser.windows.create({
+                    const window = await browser.windows.create({
                         url,
                         type: "popup",
                         width,
@@ -64,6 +66,11 @@ export default defineBackground({
                         top: topOffset,
                         focused: true,
                     });
+
+                    if (window){
+                        const tabs = await browser.tabs.query({ windowId: window.id });
+                        openedExtensionTabId = tabs.length ? tabs[0].id : null;
+                    }
                 } catch (error) {
                     console.error('Failed to create window:', error);
                 }
@@ -232,6 +239,13 @@ export default defineBackground({
                     let success = false;
 
                     switch (request.action) {
+                        case 'OPEN_HOTKEYS':
+                            await browser.tabs.create({
+                                url: "chrome://extensions/shortcuts"
+                            });
+                            
+                            return {success: true};
+                            
                         case 'OPEN_FROM_FAB':
                             await openMainWindow({id: ''});
                             return {success: true};
@@ -428,35 +442,35 @@ export default defineBackground({
             }
         });
 
-        // browser.commands.onCommand.addListener(async (command: string) => {
-        //     console.log(`[Background] Получена команда: ${command}`);
-        //
-        //     // Получаем активную вкладку
-        //     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-        //     if (tab?.id) {
-        //         await browser.tabs.sendMessage(tab.id, {
-        //             type: "CREATE_BY_VOICE"
-        //         });
-        //     }
-        //    
-        //     switch (command) {
-        //         case "create_by_text":
-        //             await openMainWindow();
-        //             break;
-        //
-        //         case "create_by_voice":
-        //            
-        //             break;
-        //
-        //         case "reminders_list":
-        //             // Это уже обрабатывается браузером автоматически (открытие popup)
-        //             console.log("Popup открыт через клавишу");
-        //             break;
-        //
-        //         default:
-        //             console.log(`Неизвестная команда: ${command}`);
-        //     }
-        // });
+        browser.commands.onCommand.addListener(async (command: string) => {
+            console.log(`[Background] Получена команда: ${command}`);
+
+            // Получаем активную вкладку
+            // todo check open voice
+            
+            if (command.startsWith("open")) {
+                await openMainWindow();
+            }
+
+            switch (command) {
+                case "open_reminders_list":
+                    break;
+                    
+                case "open_create_by_text":
+                    break;
+
+                case "open_create_by_voice":
+                    if (openedExtensionTabId) {
+                        await browser.tabs.sendMessage(openedExtensionTabId, {
+                            type: "CREATE_BY_VOICE"
+                        });
+                    }
+                    break;
+
+                default:
+                    console.log(`Неизвестная команда: ${command}`);
+            }
+        });
 
         const expiredStore = getExpiredCountStore();
 
