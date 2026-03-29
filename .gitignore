@@ -26,3 +26,4 @@ stats-*.json
 *.sw?
 .env
 .env.publish
+tests/reports

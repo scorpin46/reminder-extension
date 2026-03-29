@@ -1,0 +1,1630 @@
+{
+  "description": "Полные тесты для TextParserProvider - все языки по 5-7 фраз",
+  "referenceDate": "2026-03-29T10:00:00+03:00",
+  "tests": [
+    {
+      "id": "ru_001",
+      "locale": "ru-RU",
+      "text": "сделать перерыв через 30 минут",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "minutes": 30
+        },
+        "cleanText": "сделать перерыв"
+      }
+    },
+    {
+      "id": "ru_002",
+      "locale": "ru-RU",
+      "text": "напомни позвонить другу завтра в 11 утра",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "позвонить другу"
+      }
+    },
+    {
+      "id": "ru_003",
+      "locale": "ru-RU",
+      "text": "совещание через 2 дня в 14:30",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "совещание"
+      }
+    },
+    {
+      "id": "ru_004",
+      "locale": "ru-RU",
+      "text": "напомни в воскресенье в 12, что сестра приедет в понедельник в 5 вечера",
+      "expected": {
+        "hasDate": true,
+        "weekday": 0,
+        "hours": 12,
+        "cleanText": "сестра приедет в понедельник в 5 вечера"
+      }
+    },
+    {
+      "id": "ru_005",
+      "locale": "ru-RU",
+      "text": "собеседование, вторник 15:00",
+      "expected": {
+        "hasDate": true,
+        "weekday": 2,
+        "hours": 15,
+        "cleanText": "собеседование"
+      }
+    },
+    {
+      "id": "ru_006",
+      "locale": "ru-RU",
+      "text": "напомни в четверг в 8 утра – заехать к маме",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "заехать к маме"
+      }
+    },
+    {
+      "id": "ru_007",
+      "locale": "ru-RU",
+      "text": "завтра к 15:30 заехать в гараж",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 15,
+          "minutes": 30
+        },
+        "cleanText": "заехать в гараж"
+      }
+    },
+    {
+      "id": "ru_008",
+      "locale": "ru-RU",
+      "text": "во вторник к 12 подготовить отчет по работе",
+      "expected": {
+        "hasDate": true,
+        "weekday": 2,
+        "hours": 12,
+        "cleanText": "подготовить отчет по работе"
+      }
+    },
+    {
+      "id": "ru_009",
+      "locale": "ru-RU",
+      "text": "через час двадцать минут позвонить",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1,
+          "minutes": 20
+        },
+        "cleanText": "позвонить"
+      }
+    },
+    {
+      "id": "ru_010",
+      "locale": "ru-RU",
+      "text": "послезавтра в 9 утра купить продукты",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "купить продукты"
+      }
+    },
+    {
+      "id": "ru_011",
+      "locale": "ru-RU",
+      "text": "не забудь в субботу в 12 дня сходить в спортзал",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12
+      },
+      "cleanText": "сходить в спортзал"
+    },
+    {
+      "id": "ru_012",
+      "locale": "ru-RU",
+      "text": "через полчаса встреча",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "minutes": 30
+        },
+        "cleanText": "встреча"
+      }
+    },
+    {
+      "id": "en_001",
+      "locale": "en-US",
+      "text": "take a break in 30 minutes",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "minutes": 30
+        },
+        "cleanText": "take a break"
+      }
+    },
+    {
+      "id": "en_002",
+      "locale": "en-US",
+      "text": "remind me to call my friend tomorrow at 11 am",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "call my friend"
+      }
+    },
+    {
+      "id": "en_003",
+      "locale": "en-US",
+      "text": "meeting in 2 days at 2:30 pm",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "meeting"
+      }
+    },
+    {
+      "id": "en_004",
+      "locale": "en-US",
+      "text": "next Thursday at 8 am meeting",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "meeting"
+      }
+    },
+    {
+      "id": "en_005",
+      "locale": "en-US",
+      "text": "don't forget to buy groceries on Saturday at noon",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "buy groceries"
+      }
+    },
+    {
+      "id": "en_006",
+      "locale": "en-US",
+      "text": "call mom in 20 minutes",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "minutes": 20
+        },
+        "cleanText": "call mom"
+      }
+    },
+    {
+      "id": "en_007",
+      "locale": "en-US",
+      "text": "reminder: dentist appointment this Friday at 3",
+      "expected": {
+        "hasDate": true,
+        "weekday": 5,
+        "hours": 15,
+        "cleanText": "dentist appointment"
+      }
+    },
+    {
+      "id": "en_008",
+      "locale": "en-US",
+      "text": "set a reminder for tomorrow evening to water the plants",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 18
+        },
+        "cleanText": "water the plants"
+      }
+    },
+    {
+      "id": "en_009",
+      "locale": "en-US",
+      "text": "pick up dry cleaning on Wednesday after work",
+      "expected": {
+        "hasDate": true,
+        "weekday": 3,
+        "hours": 18,
+        "cleanText": "pick up dry cleaning"
+      }
+    },
+    {
+      "id": "en_010",
+      "locale": "en-US",
+      "text": "in an hour and a half, submit the report",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1,
+          "minutes": 30
+        },
+        "cleanText": "submit the report"
+      }
+    },
+    {
+      "id": "de_001",
+      "locale": "de-DE",
+      "text": "nächsten Donnerstag um 8 Uhr Meeting",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "Meeting"
+      }
+    },
+    {
+      "id": "de_002",
+      "locale": "de-DE",
+      "text": "erinnere mich morgen um 11 Uhr an den Arzttermin",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "Arzttermin"
+      }
+    },
+    {
+      "id": "de_003",
+      "locale": "de-DE",
+      "text": "in 2 Tagen um 14:30 Besprechung",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "Besprechung"
+      }
+    },
+    {
+      "id": "de_004",
+      "locale": "de-DE",
+      "text": "bitte erinnere mich am Samstag um 12 an den Einkauf",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "Einkauf"
+      }
+    },
+    {
+      "id": "de_005",
+      "locale": "de-DE",
+      "text": "in einer Stunde Mutter anrufen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "Mutter anrufen"
+      }
+    },
+    {
+      "id": "de_006",
+      "locale": "de-DE",
+      "text": "übermorgen früh um 9 Uhr einkaufen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "einkaufen"
+      }
+    },
+    {
+      "id": "de_007",
+      "locale": "de-DE",
+      "text": "vergiss nicht, am Montag um 15 Uhr den Chef anzurufen",
+      "expected": {
+        "hasDate": true,
+        "weekday": 1,
+        "hours": 15
+      },
+      "cleanText": "Chef anzurufen"
+    },
+    {
+      "id": "fr_001",
+      "locale": "fr-FR",
+      "text": "jeudi prochain à 8h réunion",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "réunion"
+      }
+    },
+    {
+      "id": "fr_002",
+      "locale": "fr-FR",
+      "text": "rappelle moi demain à 11h d'appeler le médecin",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "appeler le médecin"
+      }
+    },
+    {
+      "id": "fr_003",
+      "locale": "fr-FR",
+      "text": "dans 2 jours à 14h30 réunion importante",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "réunion importante"
+      }
+    },
+    {
+      "id": "fr_004",
+      "locale": "fr-FR",
+      "text": "n'oublie pas d'acheter du pain samedi à midi",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "acheter du pain"
+      }
+    },
+    {
+      "id": "fr_005",
+      "locale": "fr-FR",
+      "text": "dans une heure appeler maman",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "appeler maman"
+      }
+    },
+    {
+      "id": "fr_006",
+      "locale": "fr-FR",
+      "text": "après-demain matin à 9h courses",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "courses"
+      }
+    },
+    {
+      "id": "es_001",
+      "locale": "es-ES",
+      "text": "el próximo jueves a las 8 reunión",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "reunión"
+      }
+    },
+    {
+      "id": "es_002",
+      "locale": "es-ES",
+      "text": "recuérdame mañana a las 11 llamar al médico",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "llamar al médico"
+      }
+    },
+    {
+      "id": "es_003",
+      "locale": "es-ES",
+      "text": "en 2 días a las 2:30 pm reunión importante",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "reunión importante"
+      }
+    },
+    {
+      "id": "es_004",
+      "locale": "es-ES",
+      "text": "no olvides comprar pan el sábado al mediodía",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "comprar pan"
+      }
+    },
+    {
+      "id": "es_005",
+      "locale": "es-ES",
+      "text": "en una hora llamar a mamá",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "llamar a mamá"
+      }
+    },
+    {
+      "id": "es_006",
+      "locale": "es-ES",
+      "text": "pasado mañana a las 9 de la mañana hacer la compra",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "hacer la compra"
+      }
+    },
+    {
+      "id": "it_001",
+      "locale": "it-IT",
+      "text": "giovedì prossimo alle 8 riunione",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "riunione"
+      }
+    },
+    {
+      "id": "it_002",
+      "locale": "it-IT",
+      "text": "ricordami domani alle 11 di chiamare il dottore",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "chiamare il dottore"
+      }
+    },
+    {
+      "id": "it_003",
+      "locale": "it-IT",
+      "text": "tra 2 giorni alle 14:30 riunione importante",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "riunione importante"
+      }
+    },
+    {
+      "id": "it_004",
+      "locale": "it-IT",
+      "text": "non dimenticare di comprare il pane sabato a mezzogiorno",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "comprare il pane"
+      }
+    },
+    {
+      "id": "it_005",
+      "locale": "it-IT",
+      "text": "tra un'ora chiamare mamma",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "chiamare mamma"
+      }
+    },
+    {
+      "id": "it_006",
+      "locale": "it-IT",
+      "text": "dopodomani mattina alle 9 fare la spesa",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "fare la spesa"
+      }
+    },
+    {
+      "id": "pt_001",
+      "locale": "pt-PT",
+      "text": "próxima quinta-feira às 8h reunião",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "reunião"
+      }
+    },
+    {
+      "id": "pt_002",
+      "locale": "pt-PT",
+      "text": "lembra-me amanhã às 11 de ligar ao médico",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "ligar ao médico"
+      }
+    },
+    {
+      "id": "pt_003",
+      "locale": "pt-PT",
+      "text": "daqui a 2 dias às 14:30 reunião importante",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "reunião importante"
+      }
+    },
+    {
+      "id": "pt_004",
+      "locale": "pt-PT",
+      "text": "não te esqueças de comprar pão no sábado ao meio-dia",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "comprar pão"
+      }
+    },
+    {
+      "id": "pt_005",
+      "locale": "pt-PT",
+      "text": "daqui a uma hora ligar à mãe",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "ligar à mãe"
+      }
+    },
+    {
+      "id": "nl_001",
+      "locale": "nl-NL",
+      "text": "volgende donderdag om 8 uur vergadering",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "vergadering"
+      }
+    },
+    {
+      "id": "nl_002",
+      "locale": "nl-NL",
+      "text": "herinner me morgen om 11 uur om de dokter te bellen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "dokter te bellen"
+      }
+    },
+    {
+      "id": "nl_003",
+      "locale": "nl-NL",
+      "text": "over 2 dagen om 14:30 belangrijke vergadering",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "belangrijke vergadering"
+      }
+    },
+    {
+      "id": "nl_004",
+      "locale": "nl-NL",
+      "text": "vergeet niet om zaterdag om 12 uur boodschappen te doen",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "boodschappen te doen"
+      }
+    },
+    {
+      "id": "nl_005",
+      "locale": "nl-NL",
+      "text": "over een uur moeder bellen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "moeder bellen"
+      }
+    },
+    {
+      "id": "zh_001",
+      "locale": "zh-CN",
+      "text": "提醒我周四早上8点开会",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "开会"
+      }
+    },
+    {
+      "id": "zh_002",
+      "locale": "zh-CN",
+      "text": "明天上午11点记得给医生打电话",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "给医生打电话"
+      }
+    },
+    {
+      "id": "zh_003",
+      "locale": "zh-CN",
+      "text": "两天后下午两点半有个重要会议",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "重要会议"
+      }
+    },
+    {
+      "id": "zh_004",
+      "locale": "zh-CN",
+      "text": "周六中午别忘了买菜",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "买菜"
+      }
+    },
+    {
+      "id": "zh_005",
+      "locale": "zh-CN",
+      "text": "一小时后给妈妈打电话",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "给妈妈打电话"
+      }
+    },
+    {
+      "id": "zh_006",
+      "locale": "zh-CN",
+      "text": "后天早上9点去买东西",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "去买东西"
+      }
+    },
+    {
+      "id": "ja_001",
+      "locale": "ja-JP",
+      "text": "次の木曜日の午前8時に会議",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "会議"
+      }
+    },
+    {
+      "id": "ja_002",
+      "locale": "ja-JP",
+      "text": "明日の午前11時に医者に電話するのを忘れないで",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "医者に電話する"
+      }
+    },
+    {
+      "id": "ja_003",
+      "locale": "ja-JP",
+      "text": "2日後の午後2時半に大事な会議",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "大事な会議"
+      }
+    },
+    {
+      "id": "ja_004",
+      "locale": "ja-JP",
+      "text": "土曜日の正午に買い物を思い出して",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "買い物"
+      }
+    },
+    {
+      "id": "ja_005",
+      "locale": "ja-JP",
+      "text": "1時間後に母に電話する",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "母に電話する"
+      }
+    },
+    {
+      "id": "ja_006",
+      "locale": "ja-JP",
+      "text": "明後日の朝9時に買い物",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "買い物"
+      }
+    },
+    {
+      "id": "ko_001",
+      "locale": "ko-KR",
+      "text": "다음주 목요일 오전 8시에 회의",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "회의"
+      }
+    },
+    {
+      "id": "ko_002",
+      "locale": "ko-KR",
+      "text": "내일 오전 11시에 의사한테 전화해",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "의사한테 전화해"
+      }
+    },
+    {
+      "id": "ko_003",
+      "locale": "ko-KR",
+      "text": "2일 후 오후 2시 30분에 중요한 회의",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "중요한 회의"
+      }
+    },
+    {
+      "id": "ko_004",
+      "locale": "ko-KR",
+      "text": "토요일 정오에 장보기",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "장보기"
+      }
+    },
+    {
+      "id": "ko_005",
+      "locale": "ko-KR",
+      "text": "1시간 후에 엄마한테 전화해",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "엄마한테 전화해"
+      }
+    },
+    {
+      "id": "tr_001",
+      "locale": "tr-TR",
+      "text": "Perşembe sabah 8'de toplantı",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "toplantı"
+      }
+    },
+    {
+      "id": "tr_002",
+      "locale": "tr-TR",
+      "text": "yarın saat 11'de doktoru aramayı unutma",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "doktoru aramayı"
+      }
+    },
+    {
+      "id": "tr_003",
+      "locale": "tr-TR",
+      "text": "2 gün sonra saat 14:30'da önemli toplantı",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "önemli toplantı"
+      }
+    },
+    {
+      "id": "tr_004",
+      "locale": "tr-TR",
+      "text": "cumartesi öğlen 12'de alışveriş yap",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "alışveriş yap"
+      }
+    },
+    {
+      "id": "tr_005",
+      "locale": "tr-TR",
+      "text": "1 saat sonra annemi ara",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "annemi ara"
+      }
+    },
+    {
+      "id": "tr_006",
+      "locale": "tr-TR",
+      "text": "öbür gün sabah 9'da markete git",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 9
+        },
+        "cleanText": "markete git"
+      }
+    },
+    {
+      "id": "hi_001",
+      "locale": "hi-IN",
+      "text": "गुरुवार सुबह 8 बजे मीटिंग",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "मीटिंग"
+      }
+    },
+    {
+      "id": "hi_002",
+      "locale": "hi-IN",
+      "text": "कल सुबह 11 बजे डॉक्टर को फोन करना याद रखना",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "डॉक्टर को फोन करना"
+      }
+    },
+    {
+      "id": "hi_003",
+      "locale": "hi-IN",
+      "text": "2 दिन बाद दोपहर 2:30 बजे अहम बैठक",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "अहम बैठक"
+      }
+    },
+    {
+      "id": "hi_004",
+      "locale": "hi-IN",
+      "text": "शनिवार दोपहर 12 बजे सामान खरीदना",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "सामान खरीदना"
+      }
+    },
+    {
+      "id": "hi_005",
+      "locale": "hi-IN",
+      "text": "1 घंटे बाद माँ को फोन करना",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "माँ को फोन करना"
+      }
+    },
+    {
+      "id": "pl_001",
+      "locale": "pl-PL",
+      "text": "w czwartek o 8 rano spotkanie",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "spotkanie"
+      }
+    },
+    {
+      "id": "pl_002",
+      "locale": "pl-PL",
+      "text": "przypomnij mi jutro o 11 zadzwonić do lekarza",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "zadzwonić do lekarza"
+      }
+    },
+    {
+      "id": "pl_003",
+      "locale": "pl-PL",
+      "text": "za 2 dni o 14:30 ważne spotkanie",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "ważne spotkanie"
+      }
+    },
+    {
+      "id": "pl_004",
+      "locale": "pl-PL",
+      "text": "nie zapomnij w sobotę w południe zrobić zakupy",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "zrobić zakupy"
+      }
+    },
+    {
+      "id": "pl_005",
+      "locale": "pl-PL",
+      "text": "za godzinę zadzwoń do mamy",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "zadzwoń do mamy"
+      }
+    },
+    {
+      "id": "uk_001",
+      "locale": "uk-UA",
+      "text": "наступного четверга о 8 ранку зустріч",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "зустріч"
+      }
+    },
+    {
+      "id": "uk_002",
+      "locale": "uk-UA",
+      "text": "нагадай завтра об 11 подзвонити лікарю",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "подзвонити лікарю"
+      }
+    },
+    {
+      "id": "uk_003",
+      "locale": "uk-UA",
+      "text": "через 2 дні о 14:30 важлива нарада",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "важлива нарада"
+      }
+    },
+    {
+      "id": "uk_004",
+      "locale": "uk-UA",
+      "text": "не забудь у суботу опівдні купити продукти",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "купити продукти"
+      }
+    },
+    {
+      "id": "uk_005",
+      "locale": "uk-UA",
+      "text": "за годину подзвонити мамі",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "hours": 1
+        },
+        "cleanText": "подзвонити мамі"
+      }
+    },
+    {
+      "id": "ar_001",
+      "locale": "ar-AE",
+      "text": "الخميس الساعة 8 صباحًا اجتماع",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "اجتماع"
+      }
+    },
+    {
+      "id": "ar_002",
+      "locale": "ar-AE",
+      "text": "ذكرني غدًا الساعة 11 بالاتصال بالطبيب",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "الاتصال بالطبيب"
+      }
+    },
+    {
+      "id": "ar_003",
+      "locale": "ar-AE",
+      "text": "بعد يومين الساعة 2:30 مساءً اجتماع مهم",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "اجتماع مهم"
+      }
+    },
+    {
+      "id": "ar_004",
+      "locale": "ar-AE",
+      "text": "لا تنس شراء الخبز يوم السبت ظهرًا",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "شراء الخبز"
+      }
+    },
+    {
+      "id": "sv_001",
+      "locale": "sv-SE",
+      "text": "nästa torsdag klockan 8 möte",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "möte"
+      }
+    },
+    {
+      "id": "sv_002",
+      "locale": "sv-SE",
+      "text": "påminn mig imorgon klockan 11 att ringa doktorn",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "ringa doktorn"
+      }
+    },
+    {
+      "id": "sv_003",
+      "locale": "sv-SE",
+      "text": "om 2 dagar klockan 14:30 viktigt möte",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "viktigt möte"
+      }
+    },
+    {
+      "id": "sv_004",
+      "locale": "sv-SE",
+      "text": "glöm inte att handla på lördag vid lunchtid",
+      "expected": {
+        "hasDate": true,
+        "weekday": 6,
+        "hours": 12,
+        "cleanText": "handla"
+      }
+    },
+    {
+      "id": "th_001",
+      "locale": "th-TH",
+      "text": "วันพฤหัสบดีเวลา 8 โมงเช้าประชุม",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "ประชุม"
+      }
+    },
+    {
+      "id": "th_002",
+      "locale": "th-TH",
+      "text": "พรุ่งนี้เวลา 11 โมงเช้าโทรหาหมอ",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "โทรหาหมอ"
+      }
+    },
+    {
+      "id": "th_003",
+      "locale": "th-TH",
+      "text": "อีก 2 วันเวลา 14:30 น. ประชุมสำคัญ",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "ประชุมสำคัญ"
+      }
+    },
+    {
+      "id": "vi_001",
+      "locale": "vi-VN",
+      "text": "thứ Năm lúc 8 giờ sáng họp",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "họp"
+      }
+    },
+    {
+      "id": "vi_002",
+      "locale": "vi-VN",
+      "text": "nhắc tôi ngày mai lúc 11 giờ gọi bác sĩ",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "gọi bác sĩ"
+      }
+    },
+    {
+      "id": "vi_003",
+      "locale": "vi-VN",
+      "text": "2 ngày nữa lúc 14:30 cuộc họp quan trọng",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 2,
+          "hours": 14,
+          "minutes": 30
+        },
+        "cleanText": "cuộc họp quan trọng"
+      }
+    },
+    {
+      "id": "he_001",
+      "locale": "he-il",
+      "text": "יום חמישי בשעה 8 בבוקר פגישה",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "פגישה"
+      }
+    },
+    {
+      "id": "he_002",
+      "locale": "he-il",
+      "text": "תזכיר לי מחר ב-11 בבוקר להתקשר לרופא",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "להתקשר לרופא"
+      }
+    },
+    {
+      "id": "cs_001",
+      "locale": "cs-cz",
+      "text": "příští čtvrtek v 8 hodin schůzka",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "schůzka"
+      }
+    },
+    {
+      "id": "cs_002",
+      "locale": "cs-cz",
+      "text": "připomeň mi zítra v 11 zavolat lékaři",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "zavolat lékaři"
+      }
+    },
+    {
+      "id": "hu_001",
+      "locale": "hu-hu",
+      "text": "jövő csütörtökön 8 órakor megbeszélés",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "megbeszélés"
+      }
+    },
+    {
+      "id": "hu_002",
+      "locale": "hu-hu",
+      "text": "emlékeztess holnap 11-kor, hogy hívjam fel az orvost",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "hívjam fel az orvost"
+      }
+    },
+    {
+      "id": "ro_001",
+      "locale": "ro-ro",
+      "text": "joi la ora 8 dimineața întâlnire",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "întâlnire"
+      }
+    },
+    {
+      "id": "ro_002",
+      "locale": "ro-ro",
+      "text": "amintește-mi mâine la 11 să sun la doctor",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "să sun la doctor"
+      }
+    },
+    {
+      "id": "bg_001",
+      "locale": "bg-bg",
+      "text": "следващия четвъртък в 8 часа среща",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "среща"
+      }
+    },
+    {
+      "id": "bg_002",
+      "locale": "bg-bg",
+      "text": "напомни ми утре в 11 да се обадя на лекаря",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "да се обадя на лекаря"
+      }
+    },
+    {
+      "id": "el_001",
+      "locale": "el-gr",
+      "text": "την επόμενη Πέμπτη στις 8 το πρωί συνάντηση",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "συνάντηση"
+      }
+    },
+    {
+      "id": "el_002",
+      "locale": "el-gr",
+      "text": "θύμισέ μου αύριο στις 11 να καλέσω τον γιατρό",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "να καλέσω τον γιατρό"
+      }
+    },
+    {
+      "id": "ca_001",
+      "locale": "ca-es",
+      "text": "dijous vinent a les 8 del matí reunió",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "reunió"
+      }
+    },
+    {
+      "id": "ca_002",
+      "locale": "ca-es",
+      "text": "recorda'm demà a les 11 trucar al metge",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "trucar al metge"
+      }
+    },
+    {
+      "id": "id_001",
+      "locale": "id-id",
+      "text": "Kamis depan jam 8 pagi rapat",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "rapat"
+      }
+    },
+    {
+      "id": "id_002",
+      "locale": "id-id",
+      "text": "ingatkan saya besok jam 11 telepon dokter",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "telepon dokter"
+      }
+    },
+    {
+      "id": "ms_001",
+      "locale": "ms-my",
+      "text": "Khamis depan jam 8 pagi mesyuarat",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "mesyuarat"
+      }
+    },
+    {
+      "id": "ms_002",
+      "locale": "ms-my",
+      "text": "ingatkan saya esok jam 11 panggil doktor",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "panggil doktor"
+      }
+    },
+    {
+      "id": "da_001",
+      "locale": "da-dk",
+      "text": "næste torsdag klokken 8 møde",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "møde"
+      }
+    },
+    {
+      "id": "da_002",
+      "locale": "da-dk",
+      "text": "påmind mig i morgen klokken 11 om at ringe til lægen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "ringe til lægen"
+      }
+    },
+    {
+      "id": "fi_001",
+      "locale": "fi-fi",
+      "text": "ensi torstaina klo 8 kokous",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "kokous"
+      }
+    },
+    {
+      "id": "fi_002",
+      "locale": "fi-fi",
+      "text": "muistuta minua huomenna klo 11 soittaa lääkärille",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "soittaa lääkärille"
+      }
+    },
+    {
+      "id": "no_001",
+      "locale": "nb-no",
+      "text": "neste torsdag klokken 8 møte",
+      "expected": {
+        "hasDate": true,
+        "weekday": 4,
+        "hours": 8,
+        "cleanText": "møte"
+      }
+    },
+    {
+      "id": "no_002",
+      "locale": "nb-no",
+      "text": "påminn meg i morgen klokken 11 om å ringe legen",
+      "expected": {
+        "hasDate": true,
+        "dateOffset": {
+          "days": 1,
+          "hours": 11
+        },
+        "cleanText": "ringe legen"
+      }
+    }
+  ]
+}
