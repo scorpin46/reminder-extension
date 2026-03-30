@@ -15,8 +15,12 @@ export default defineBackground({
     type: 'module',
 
     main: () => {
+        let startupCbNotificationsTimeout: string | number | NodeJS.Timeout | undefined = undefined; 
+        let isStartupInstance = false; 
+        const startupNotificationId = 'startupMissingNotification';
+        let startupCbNotifications: (() => Promise<any>)[] = [];
         const offscreenManager = new OffscreenManager();
-       
+        
         let pendingOpen: Promise<void> | null = null;
         let openedExtensionTabId: number|null|undefined = null;
 
@@ -144,59 +148,92 @@ export default defineBackground({
                             {title: browser.i18n.getMessage('alertCompleteBtn')}
                         ],
                     };
-                    
+
                     const url = reminder.url  || '';
-                    
+                    let isUrlNotify = false;
+
                     if (url.length > 7) { //тут Url в приоритете, т.к. он может быть повторяемым
                         notifyParams.buttons = [{title: '✅ ОК'}];
                         notifyParams.title = '🔗 ' + browser.i18n.getMessage('linkIsOpened');
                         notifyParams.message = reminder.title;
                         notifyParams.contextMessage = reminder.url!;
                         // notifyParams.requireInteraction = false;
+                        isUrlNotify = true;
                         //todo Добавить повтор и в гугл
                     } else if (reminder.repeatAfterMin) {
-                        notifyParams.buttons = [{title: '✅ ОК'}];
+                        notifyParams.buttons = [{title: '✅ OK'}];
                     }
 
-                    let notificationId = null;
-                    
-                    try {
-                        notificationId = await browser.notifications.create(notifyParams);
-                        //@ts-ignore
-                        if (reminder.priority) {
-                            await offscreenManager.playPriorityAlarmSound(reminder.id);
-                        } else {
-                            await offscreenManager.playAlarmSound();
+                    const handler = async () => {
+                        let notificationId = null;
+
+                        try {
+                            notificationId = await browser.notifications.create(notifyParams);
+                            //@ts-ignore
+                            if (reminder.priority) {
+                                await offscreenManager.playPriorityAlarmSound(reminder.id);
+                            } else {
+                                await offscreenManager.playAlarmSound();
+                            }
+                        } catch (error) {
+                            console.error(error);
                         }
-                    } catch (error) {
-                        console.error(error);
-                    }
 
-                    const newReminderParams:Partial<Reminder> = {notificationId};
-                    
-                    if (reminder.repeatAfterMin) { //todo этот кейс не доделан, если его использовать в связке с fallback notification
-                        let nextDatetime = +reminder.datetime;
-                        while (nextDatetime <= Date.now()) {
-                            nextDatetime += reminder.repeatAfterMin * 60000;
+                        const newReminderParams:Partial<Reminder> = {notificationId};
+
+                        if (reminder.repeatAfterMin) { //todo этот кейс не доделан, если его использовать в связке с fallback notification
+                            let nextDatetime = +reminder.datetime;
+                            while (nextDatetime <= Date.now()) {
+                                nextDatetime += reminder.repeatAfterMin * 60000;
+                            }
+                            newReminderParams.datetime = new Date(nextDatetime);
+                        } else if (reminder.url) { // если не повторяемый url
+                            newReminderParams.completed = 1;
+
+                            browser.tabs.create({ url: reminder.url, active: true });
                         }
-                        newReminderParams.datetime = new Date(nextDatetime);
-                    } else if (reminder.url) { // если не повторяемый url
-                        newReminderParams.completed = 1;
 
-                        browser.tabs.create({ url: reminder.url, active: true });
+                        await reminderService.repository.update(reminder.id!, newReminderParams);
                     }
-                    
-                    await reminderService.repository.update(reminder.id, newReminderParams);
+
+                    if (isStartupInstance && ! isUrlNotify) {
+                        clearTimeout(startupCbNotificationsTimeout);
+                        startupCbNotifications.push(async () => {
+                            return await handler();
+                        });
+                        
+                        startupCbNotificationsTimeout = setTimeout(async () => {
+                            const missingAlarmsLen = startupCbNotifications.length;
+                            
+                            if (missingAlarmsLen > 2) {
+                                await browser.notifications.create(startupNotificationId, {
+                                    type: "basic",
+                                    iconUrl: browser.runtime.getURL("/icon/128.png"),
+                                    title: '',
+                                    message: browser.i18n.getMessage(`missedReminders`, [missingAlarmsLen.toString()]),
+                                    requireInteraction: true,
+                                    buttons: [
+                                        {title: browser.i18n.getMessage('open')},
+                                    ],
+                                });
+                                await offscreenManager.playAlarmSound();
+                            } else {
+                                for (const cb of startupCbNotifications) {
+                                    await cb();
+                                }
+                            }
+
+                            startupCbNotifications = [];
+                        })
+                    } else {
+                        await handler();
+                    }
                 }
             }
         });
         
         browser.notifications.onClicked.addListener(async (notificationId) => {
-            const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
-
-            if (reminder?.id) {
-                await openMainWindow()
-            }
+            await openMainWindow()
         });
 
         browser.notifications.onClosed.addListener(async (notificationId) => {
@@ -214,6 +251,12 @@ export default defineBackground({
             
             const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
 
+            if (notificationId === startupNotificationId){
+                await openMainWindow();
+
+                return;
+            }
+            
             if (!reminder || reminder.url || reminder.repeatAfterMin){
                 return;
             }
@@ -349,6 +392,7 @@ export default defineBackground({
 
         // При старте браузера
         browser.runtime.onStartup?.addListener(() => {
+            isStartupInstance = true;
             GoogleCalendarService.instance().run();
         });
 

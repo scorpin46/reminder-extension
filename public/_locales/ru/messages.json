@@ -262,5 +262,20 @@
   },
   "hotkeys": {
     "message": "Горячие клавиши"
+  },
+  "open": {
+    "message": "Открыть"
+  },
+  "missedReminders": {
+    "message": "Пропущенных напоминаний — $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "lastSync": {
+    "message": "Последняя синхронизация"
   }
 }

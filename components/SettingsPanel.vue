@@ -25,12 +25,18 @@
             <IconGoogle/>
             {{ browser.i18n.getMessage('signInWith', ['Google']) }}
           </button>
-          <div v-else class="panel-settings__auth-data">
-              <span>Email: <b>{{ authenticatedEmail}} </b></span>
+          <div v-else>
+            <div class="panel-settings__auth-data">
+              <div>Email:  <b>{{ authenticatedEmail }}</b></div>
               <button @click="logout" class="panel-settings__logout" v-title="browser.i18n.getMessage('syncOff')">
                 <IconOff height="30" width="30"/>
               </button>
+            </div>
+            <div class="panel-settings__auth-data mt-5" v-if="lastGoogleSync">
+              <div>{{ browser.i18n.getMessage('lastSync') }}:  {{ new Date(lastGoogleSync).toLocaleString() }}</div>
+            </div>
           </div>
+          
         </div>
       </section>
       
@@ -86,7 +92,7 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
-import {getFastModeStore} from "@/modules/utils/storage.ts";
+import {getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
 import { onMounted, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
@@ -103,7 +109,13 @@ const fastMode = ref();
 
 const hotkeys = ref([]);
 const isChrome = navigator.userAgent.includes("Chrome");
+const lastGoogleSync = ref();
 
+const googleLastSyncStore = getStoredGoogleLastSyncTs();
+
+googleLastSyncStore.watch((value) => {
+  lastGoogleSync.value = value;
+})
 
 const logout = () => {
   sendGoogleLogoutMessage()
@@ -118,6 +130,7 @@ const fastModeStore = getFastModeStore();
 
 onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();
+  lastGoogleSync.value = await googleLastSyncStore.getValue();
 
   browser.commands.getAll((commands) => {
     commands.forEach((command) => {

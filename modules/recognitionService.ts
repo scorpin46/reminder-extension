@@ -161,7 +161,7 @@ export class RecognitionService {
         this.stop();
         
         this.state.streamRecordingText = '';
-        this.state.isRecording = true;
+        // this.state.isRecording = true; //чтобы не создавать иллюзию, что запись уже идет
 
         this.#currentAudioStream = await navigator.mediaDevices.getUserMedia({
             audio: {
