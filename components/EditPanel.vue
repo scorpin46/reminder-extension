@@ -70,7 +70,7 @@
                   type="checkbox"
                   v-model="form.input.googleSync"
                   :true-value="1"
-                  :false-value="isAuthenticated ? 0 : undefined"
+                  :false-value="0"
                   class="form-control w-100" 
                   @click="reminderGoogleSyncClickHandler"
               >
@@ -157,9 +157,11 @@ const form = reactive({
     if (! formRef.value.reportValidity()){
       return
     }
-    
+
     if (this.input.url){
       this.input.googleSync = 0;
+    } else if(!isAuthenticated && ! this.input.googleSync){
+      this.input.googleSync = null;
     }
     
     const id = await reminderService.save({...this.input});
@@ -234,8 +236,7 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
       focusingEl?.focus();
     }
     
-    if (form.isCreating() && isAuthenticated.value) {
-      form.input.googleSync = 1;
+    if (form.isCreating()) {
       form.input.desc = null;
     }
   }
@@ -245,7 +246,7 @@ onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
   emit('update:initialFormData', {});
   
-  if (form.isCreating() && isAuthenticated.value && !isNumeric(form.input.googleSync)){
+  if (isAuthenticated.value && !isNumeric(form.input.googleSync)){
     form.input.googleSync = 1;
   }
   

@@ -44,7 +44,7 @@ const toUI = (reminder: ReminderInterface): Reminder => ({
     createdAt: new Date(reminder.createdAt),
     updatedAt: new Date(reminder.updatedAt),
     googleSyncDate: reminder.googleSyncDate ? new Date(reminder.googleSyncDate) : null,
-    googleSync: reminder.googleEventId && reminder.googleSync !== 0 ? 1 : 0,
+    googleSync: reminder.googleEventId && reminder.googleSync !== 0 ? 1 : reminder.googleSync,
 });
 
 export class ReminderRepository {
