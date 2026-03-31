@@ -85,9 +85,9 @@ const TRIGGER_PATTERNS = {
     german: [
         'erinnere\\s+mich',
         'erinnerung',
-        'stelle\\s+erinnerung',
+        '(eine|stelle)\\s+erinnerung',
         'nicht\\s+vergessen',
-        'bitte'
+        'bitte',
     ].join('|'),
 
     french: [
