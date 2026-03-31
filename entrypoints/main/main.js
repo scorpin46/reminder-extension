@@ -11,7 +11,7 @@ import {detectLocale, blockPageScaling} from "@/modules/utils/helpers.ts";
 import { plugin as VueTippy } from 'vue-tippy'
 
 blockPageScaling();
-document.title = browser.i18n.getMessage('mainTitle'); //todo или appName все-таки?
+document.title = browser.i18n.getMessage('appName');
 
 const locale = detectLocale();
 document.documentElement.lang = locale;
