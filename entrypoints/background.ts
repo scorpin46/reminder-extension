@@ -1,5 +1,5 @@
 import {watch} from "vue";
-import {getReminderIdFromAlarmName} from "@/modules/utils/helpers";
+import {getReminderIdFromAlarmName, IMPROVE_EXPERIENCE_FORM_LINK} from "@/modules/utils/helpers";
 import {browser, Browser} from 'wxt/browser';
 import {ReminderService} from "@/modules/reminderService.js";
 
@@ -282,6 +282,29 @@ export default defineBackground({
                     let success = false;
 
                     switch (request.action) {
+                        case 'TEST_NOTIFICATION':
+                            try{
+                                await browser.notifications.create(startupNotificationId, {
+                                    type: "basic",
+                                    iconUrl: browser.runtime.getURL("/icon/128.png"),
+                                    title: '',
+                                    message: browser.i18n.getMessage(`test_notification_message`),
+                                    requireInteraction: true,
+                                    buttons: [
+                                        {title: "✅ OK"},
+                                    ],
+                                });
+                                return {success: true};
+                            } catch (error) {
+                                console.error(error);
+                            }
+                            return {success: false};
+                        case 'OPEN_IMPROVE_EXP_FORM':
+                            await browser.tabs.create({
+                                url: IMPROVE_EXPERIENCE_FORM_LINK
+                            });
+                            
+                            return {success: true};
                         case 'OPEN_GOOGLE_CALENDAR':
                             await browser.tabs.create({
                                 url: `https://calendar.google.com/calendar?authuser=${request.email}`
@@ -460,7 +483,7 @@ export default defineBackground({
                     documentUrlPatterns,
                 });
 
-                browser.runtime.setUninstallURL('https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform');
+                browser.runtime.setUninstallURL(IMPROVE_EXPERIENCE_FORM_LINK);
 
                 GoogleCalendarService.instance().run();
             } catch (error) {

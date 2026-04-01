@@ -295,5 +295,58 @@
   },
   "troubleshooting": {
     "message": "Troubleshooting"
+  },
+  "faq_no_notifications": {
+    "message": "Notifications are not received"
+  },
+  "faq_no_mobile_sync": {
+    "message": "Google Calendar sync not working on smartphone"
+  },
+  "test_notification": {
+    "description": "Description for the test notification feature",
+    "message": "Send test notification"
+  },
+  "test_notification_error": {
+    "description": "Error message when test notification fails",
+    "message": "Failed to send test notification. Please check your browser settings."
+  },
+  "test_notification_message": {
+    "description": "Message body for test notification",
+    "message": "This is a test notification from extension. If you see this, notifications are working correctly!"
+  },
+  "test_notification_sending": {
+    "description": "Loading text when sending test notification",
+    "message": "Sending..."
+  },
+  "test_notification_success": {
+    "description": "Success message after sending test notification",
+    "message": "Test notification sent! Check your system notifications."
+  },
+  "troubleshooting_instructions": {
+    "description": "Instructions header for notification troubleshooting",
+    "message": "If you don't see the test notification, please check:"
+  },
+  "troubleshooting_step_browser": {
+    "description": "First troubleshooting step for browser notifications",
+    "message": "• Chrome notifications are enabled in browser settings"
+  },
+  "troubleshooting_step_extension": {
+    "description": "Fourth troubleshooting step for extension permissions",
+    "message": "• This extension has notification permissions enabled"
+  },
+  "troubleshooting_step_macos": {
+    "description": "Third troubleshooting step specifically for macOS",
+    "message": "• On macOS: Enable 'Google Chrome Helper (Alerts)' in System Preferences"
+  },
+  "troubleshooting_step_system": {
+    "description": "Second troubleshooting step for system notifications",
+    "message": "• System notifications are allowed for Chrome"
+  },
+  "troubleshooting_power_save_mode_off": {
+    "message": "• Disable battery optimization and background restrictions for the Google Calendar app."
+  },
+  "reportIssue": {
+    "description": "Text for feedback link",
+    "message": "Report an issue / Request a feature"
   }
 }

@@ -1,5 +1,6 @@
 :root{
   --color-default: #434343;
+  --color-default-deep: #333;
   --color-primary: #1d5d8e;
   --color-red: #db5461;
   --color-green: #67b279;
@@ -10,7 +11,7 @@
   --foreground-active: #ffffff;
   --border-color: rgba(29 93 142 / .4);
   --box-shadow: 0 1px 4px 1px rgb(0 0 0 / .06);
-  --box-shadow-hovered: 0 2px 4px 1px rgb(0 0 0 / .2);
+  --box-shadow-hovered: 0 2px 4px 1px rgb(0 0 0 / .25);
 
 
   --tippy-background-color: #ff6b6b;  /* Цвет фона */

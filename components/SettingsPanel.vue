@@ -16,10 +16,8 @@
     <div class="panel__body settings">
       <section>
         <header>
-          Google Calendar 
-          <span role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar">
-            🔗
-          </span>
+          Google Calendar 
+          <IconExternalOpen height="14" class="ml-5"  role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar"/>
         </header>
         <div>
           <button
@@ -34,7 +32,7 @@
             <div class="panel-settings__auth-data">
               <div>Email:  <b>{{ authenticatedEmail }}</b></div>
               <button @click="logout" class="panel-settings__logout" v-title="browser.i18n.getMessage('syncOff')">
-                <IconOff height="30" width="30"/>
+                <IconOff height="26" width="30"/>
               </button>
             </div>
             <div class="panel-settings__auth-data mt-5" v-if="lastGoogleSync">
@@ -47,7 +45,7 @@
       <section>
         <header>{{ browser.i18n.getMessage('Other') }}</header>
         <div>
-          <div class="mb-15">
+          <div class="mb-5">
             <label class="form-label">
               <span class="form-label__title">
                 {{ browser.i18n.getMessage('fastModeRun') }}
@@ -83,7 +81,7 @@
           </button>
         </header>
         <div>
-          <div class="mb-5" v-for="hotkey in hotkeys">
+          <div class="" v-for="hotkey in hotkeys">
             <b>{{ hotkey.shortcut }}</b> — {{ hotkey.description }}
           </div>
         </div>
@@ -93,13 +91,53 @@
           <IconWarning height="15"/>
           <span>{{ browser.i18n.getMessage('troubleshooting') }}</span>
         </header>
-        <div class="faq-item">
-          <div class="faq-item__title">❓Не приходят уведомления</div>
-          <div class="faq-item__body"></div>
+        <div class="faq-list">
+          <template v-for="(faqItem) in faqItems" :key="faqItem.id">
+            <div :class="['faq-item', {'--opened': faqItemOpenedId === faqItem.id}]">
+              <div class="faq-item__title" 
+                   :title="browser.i18n.getMessage(faqItemOpenedId === faqItem.id ? 'close' : 'open')" 
+                   @click="faqTitleClick(faqItem.id)" 
+                   v-html="faqItem.title"
+              ></div>
+              <div class="faq-item__body">
+                <template v-if="faqItem.id === 'notifications'">
+                  <div class="mb-5">
+                    <button @click="sendTestNotification" class="test-notify-btn">
+                      <IconLogo :waves="true" :mode="'info'" height="18"/>
+                      {{ testNotificationBtnText }}
+                    </button>
+                    <div class="color-red" v-if="testNotificationError">{{ testNotificationError }}</div>
+                    <div class="color-green" v-else-if="testNotificationSuccess">{{ testNotificationSuccess }}</div>
+                  </div>
+                  <div>
+                    <div class="mb-5 weight-bolder">{{ browser.i18n.getMessage('troubleshooting_instructions') }}</div>
+                    <div class="opacity-70">
+                      <div>{{ browser.i18n.getMessage('troubleshooting_step_browser') }}</div>
+                      <div>{{ browser.i18n.getMessage('troubleshooting_step_extension') }}</div>
+                      <div>{{ browser.i18n.getMessage('troubleshooting_step_macos') }}</div>
+                      <div>{{ browser.i18n.getMessage('troubleshooting_step_system') }}</div>
+                    </div>
+                  </div>
+                </template>
+                <template v-else-if="faqItem.id === 'smartphone'">
+                  <div>
+                    <div class="opacity-70">{{ browser.i18n.getMessage('troubleshooting_power_save_mode_off') }}</div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
         </div>
-        <div class="faq-item">
-          <div class="faq-item__title">❓Не появляются заметки на телефоне</div>
-          <div class="faq-item__body"></div>
+      </section>
+      <section>
+        <header>
+          <IconHelp height="15" :transparent="true"/> 
+          <span>{{ browser.i18n.getMessage('help') }}</span>
+        </header>
+        <div role="link"  @click="openImproveExpForm">
+          <IconMessage height="12" width="15" :transparent="true" class="v-a-m color-primary mr-5"/>
+
+          <span class="v-a-m">{{ browser.i18n.getMessage('reportIssue') }}</span>
         </div>
       </section>
     </div>
@@ -111,11 +149,15 @@ import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 import {getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
-import {onMounted, ref, watch} from "vue";
+import {onMounted, reactive, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
 import IconPen from "@/components/icons/IconPen.vue";
 import IconWarning from "@/components/icons/IconWarning.vue";
+import IconHelp from "@/components/icons/IconHelp.vue";
+import IconMessage from "@/components/icons/IconMessage.vue";
+import IconExternalOpen from "@/components/icons/IconExternalOpen.vue";
+import IconLogo from "@/components/icons/IconLogo.vue";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -136,18 +178,58 @@ googleLastSyncStore.watch((value) => {
   lastGoogleSync.value = value;
 })
 
+const faqItemOpenedId = ref();
+const faqItems = ref([
+  {
+    id: 'notifications',
+    title: browser.i18n.getMessage('faq_no_notifications'),
+  },
+  {
+    id: 'smartphone',
+    title: browser.i18n.getMessage('faq_no_mobile_sync'),
+  },
+]);
+
+const testNotificationBtnText = ref(browser.i18n.getMessage('test_notification'));
+const testNotificationError = ref();
+const testNotificationSuccess = ref();
+
+const sendTestNotification = () => {
+  testNotificationBtnText.value = browser.i18n.getMessage('test_notification_sending');
+  
+  browser.runtime.sendMessage({action: 'TEST_NOTIFICATION'}, (response) => {
+    testNotificationBtnText.value = browser.i18n.getMessage('test_notification');
+    
+    if (!response.success){
+      testNotificationError.value = browser.i18n.getMessage('test_notification_error');
+    } else {
+      testNotificationSuccess.value = browser.i18n.getMessage('test_notification_success');
+    }
+  });
+}
+
+const faqTitleClick = (id) => {
+  if (faqItemOpenedId.value === id) {
+    faqItemOpenedId.value = null;
+  } else {
+    faqItemOpenedId.value = id;
+  }
+}
+
 const logout = () => {
   sendGoogleLogoutMessage()
 }
 
 const openCalendar = () => {
-  browser.runtime.sendMessage({action: 'OPEN_GOOGLE_CALENDAR', email: props.authenticatedEmail}, (response) => {
-  });
+  browser.runtime.sendMessage({action: 'OPEN_GOOGLE_CALENDAR', email: props.authenticatedEmail}, (response) => {});
+}
+
+const openImproveExpForm = () => {
+  browser.runtime.sendMessage({action: 'OPEN_IMPROVE_EXP_FORM'}, (response) => {});
 }
 
 const editHotkeys = () => {
-  browser.runtime.sendMessage({action: 'OPEN_HOTKEYS'}, async (response) => {
-  });
+  browser.runtime.sendMessage({action: 'OPEN_HOTKEYS'}, async (response) => {});
 }
 
 const fastModeStore = getFastModeStore();

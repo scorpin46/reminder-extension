@@ -342,7 +342,7 @@ main {
 
   section {
     background: var(--foreground-active) ;
-    padding: 10px;
+    padding: 7px 10px 9px;
     border-radius: 5px;
     box-shadow: var(--box-shadow);
     transition: box-shadow 0.2s ease;
@@ -350,6 +350,10 @@ main {
    
     &:hover{
       box-shadow: var(--box-shadow-hovered);
+      
+      ~ section{
+        //filter: blur(1px);
+      }
     }
     
     + section{
@@ -362,11 +366,10 @@ main {
       font-size: 14px;
       font-weight: bold;
       margin-bottom: 10px;
-      padding-bottom: 5px;
+      padding-bottom: 3px;
       display: flex;
       align-items: center;
     }
-    
   }
 }
 

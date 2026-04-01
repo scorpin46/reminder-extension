@@ -282,9 +282,51 @@
     "message": "Скрыть"
   },
   "help": {
-    "message": "Справка"
+    "message": "Помощь"
   },
   "troubleshooting": {
     "message": "Устранение неполадок"
+  },
+  "faq_no_notifications": {
+    "message": "Не приходят уведомления"
+  }, 
+  "faq_no_mobile_sync": {
+    "message": "Не синхронизируется Google Calendar на смартфоне"
+  }, 
+  "test_notification": {
+    "message": "Отправить тестовое уведомление"
+  },
+  "test_notification_error": {
+    "message": "Не удалось отправить. Проверьте настройки браузера."
+  },
+  "test_notification_message": {
+    "message": "Это тестовое уведомление от расширения. Если вы видите это, уведомления работают правильно!"
+  },
+  "test_notification_sending": {
+    "message": "Отправка..."
+  },
+  "test_notification_success": {
+    "message": "Тестовое уведомление отправлено!"
+  },
+  "troubleshooting_instructions": {
+    "message": "Если вы не видите уведомление, проверьте:"
+  },
+  "troubleshooting_step_browser": {
+    "message": "• Уведомления Chrome включены в настройках браузера"
+  },
+  "troubleshooting_step_extension": {
+    "message": "• У расширения есть разрешение на уведомления"
+  },
+  "troubleshooting_step_macos": {
+    "message": "• На macOS: Включите 'Google Chrome Helper (Alerts)' в Системных настройках"
+  },
+  "troubleshooting_step_system": {
+    "message": "• Системные уведомления разрешены для Chrome"
+  },
+  "troubleshooting_power_save_mode_off": {
+    "message": "• Отключите оптимизацию батареи или ограничение фоновой активности для приложения Google Календарь."
+  },
+  "reportIssue": {
+    "message": "Сообщить о проблеме / Предложить функцию"
   }
 }

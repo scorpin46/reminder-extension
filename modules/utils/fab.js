@@ -1454,7 +1454,7 @@ export class FloatingFab {
                         }).init();
 
                         // setupVisibilityHandler(); //отключил по отсутствию необходимости
-                        queryPanelState();
+                        // queryPanelState();
 
                         sendResponse({ success: true, message: "FAB reinitialized" });
                     } catch (error) {
@@ -1522,7 +1522,7 @@ export class FloatingFab {
                     }
                 }).init();
 
-                queryPanelState();
+                // queryPanelState();
                 // setupVisibilityHandler();//отключил по отсутствию необходимости
             } catch (error) {
                 console.error('FAB init error:', error);
