@@ -246,16 +246,16 @@ export class GoogleCalendarService {
         return await this.#googleIsAuthenticatedStore.getValue();
     }
 
-    async run(forceSync: boolean = false): Promise<void> {
+    async run(forceSyncDelay?: number): Promise<void> {
         browser.alarms.create(GoogleCalendarService.syncAlarmName, {
             periodInMinutes: 1,
         });
         console.log('Selected calendar - ' +await this.#getCalendarId());
 
-        if (forceSync) {
+        if (forceSyncDelay) {
             setTimeout(() => {
                 this.#syncUpdates();
-            }, 1000)
+            }, forceSyncDelay)
         }
     }
 
@@ -292,7 +292,7 @@ export class GoogleCalendarService {
                 this.#createCalendar();
 
                 console.log(`✅ Аккаунт закреплен: ${user.email} (Chrome ID: ${user.id})`);
-                await this.run(true);
+                await this.run(1000);
 
                 return {success: true, user};
             }
@@ -513,14 +513,19 @@ export class GoogleCalendarService {
             orderBy: 'startTime',
             singleEvents: 'true',
             showDeleted: 'true',
-            privateExtendedProperty: `appName=${this.#appNameForCalendar}`
         });
+        
+        if (this.#calendarId === 'primary' || !this.#calendarId) {
+            params.set('privateExtendedProperty', `appName=${this.#appNameForCalendar}`);
+        }
 
         const calendarId = await this.#getCalendarId();
         
         const response = await this.#axiosInstance.get(
             `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?${params.toString()}`,
         );
+
+        console.log('google events loaded', response.data.items);
 
         return response.data.items || [];
     }
@@ -713,9 +718,9 @@ export class GoogleCalendarService {
             console.log(`syncUpdates running...`);
 
             const events = await this.#getEvents();
-            console.log(events);
+            await this.importFromGoogle(events);
 
-            const creating: Reminder[] = [];
+            const creating: Reminder[] = []; // создать в google calendar
             const updating: Reminder[] = [];
             const deletingEvents: CalendarEvent["id"][] = [];
 
@@ -902,21 +907,21 @@ export class GoogleCalendarService {
         return false;
     }
 
-    async importFromGoogle() {
+    async importFromGoogle(googleCalendarEvents?: CalendarEvent[]) {
         if (!await this.checkUser()) {
             return;
         }
 
-        const events = (await this.#getEvents())
-            .filter(event => event.status !== 'cancelled' && event.start?.dateTime);
+        googleCalendarEvents ??= (await this.#getEvents())
+        const events = googleCalendarEvents.filter(event => event.status !== 'cancelled' && event.start?.dateTime);
 
         for (const event of events) {
             const isExist = (await ReminderService.instance().getAllGoogleEventsIds()).includes(event.id!);
             const datetime = new Date(event.start?.dateTime as string);
 
-            if (!isExist && datetime.getTime() >= Date.now()) {
+            if (!isExist && !isNaN(+datetime) && datetime.getTime() >= Date.now()) {
                 await this.#reminderService.save({
-                    datetime: new Date(event.start?.dateTime as string),
+                    datetime: datetime,
                     title: event.summary!,
                     desc: event.description,
                     googleSyncDate: new Date(event.updated!),

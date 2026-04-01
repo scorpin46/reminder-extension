@@ -139,6 +139,9 @@
         <IconGoogleCalendar height="26"/> 
         <span>{{ browser.i18n.getMessage('providerConnected', ['']).trim() }}</span>
       </button>
+<!--      <button class="footer__help-btn" v-title="browser.i18n.getMessage('help')" @click="">-->
+<!--        <IconHelp height="26"/>-->
+<!--      </button>-->
     </template>
   </footer>
 
@@ -176,6 +179,7 @@ import IconPlus from "@/components/icons/IconPlus.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
 import IconEye from "@/components/icons/IconEye.vue";
 import {isBoolean} from "es-toolkit";
+import IconHelp from "@/components/icons/IconHelp.vue";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -211,6 +215,7 @@ const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
     googleIsAuthenticatedStore.setValue(!!response.authenticated);
     authenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
+    
   })
 }
 
@@ -221,7 +226,7 @@ googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
     if (!await googleUserStore.getValue()) {
       toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});
     }
-  } else if (newValue) {
+  } else if (newValue && newValue !== oldValue) {
     checkAuth();
   }
 });

@@ -120,7 +120,7 @@ export default defineBackground({
                 const isAuth = await GoogleCalendarService.instance().isAuthenticated();
 
                 if (isAuth){
-                    await GoogleCalendarService.instance().run(true);
+                    await GoogleCalendarService.instance().run(1000);
                 } else {
                     browser.alarms.clear(GoogleCalendarService.syncAlarmName);
                 }
@@ -282,6 +282,12 @@ export default defineBackground({
                     let success = false;
 
                     switch (request.action) {
+                        case 'OPEN_GOOGLE_CALENDAR':
+                            await browser.tabs.create({
+                                url: `https://calendar.google.com/calendar?authuser=${request.email}`
+                            });
+                            
+                            return {success: true};
                         case 'OPEN_HOTKEYS':
                             await browser.tabs.create({
                                 url: "chrome://extensions/shortcuts"
@@ -393,7 +399,7 @@ export default defineBackground({
         // При старте браузера
         browser.runtime.onStartup?.addListener(() => {
             isStartupInstance = true;
-            GoogleCalendarService.instance().run();
+            GoogleCalendarService.instance().run(5000);
         });
 
         // При установке/обновлении

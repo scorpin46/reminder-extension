@@ -289,5 +289,11 @@
   },
   "hide": {
     "message": "Hide"
+  },
+  "help": {
+    "message": "Help"
+  },
+  "troubleshooting": {
+    "message": "Troubleshooting"
   }
 }

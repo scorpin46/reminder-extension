@@ -447,6 +447,10 @@ main {
   user-select: none;
   display: flex;
   justify-content: space-between;
+
+  @media (max-width: 350px){
+    font-size: 0;
+  }
   
   &:before{
     @include beforeBg;
@@ -467,10 +471,6 @@ main {
     color: var(--color-default);
     opacity: .75;
     
-    @media (max-width: 350px){
-      font-size: 0;
-    }
-    
     svg {
       height: 26px;
       aspect-ratio: 1;
@@ -488,12 +488,12 @@ main {
   }
   
   .google-auth-btn{
-   
+    margin-left: auto;
   }
   
   &__connected-btn{
     opacity: .85;
-
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -512,6 +512,17 @@ main {
 
     svg{
       flex: 0 0 max-content;
+    }
+  }
+  
+  &__help-btn{
+    color: var(--color-default);
+    opacity: .5;
+    line-height: 1;
+    
+    &:hover{
+      color: var(--color-primary);
+      opacity: 1;
     }
   }
 }

@@ -280,5 +280,11 @@
   },
   "hide": {
     "message": "Скрыть"
+  },
+  "help": {
+    "message": "Справка"
+  },
+  "troubleshooting": {
+    "message": "Устранение неполадок"
   }
 }

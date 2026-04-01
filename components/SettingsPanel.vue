@@ -8,14 +8,19 @@
     >
       <IconXmark/>
     </button>
-    
+
     <div class="panel__title">
-      <IconSettings />
+      <IconSettings/>
       {{ browser.i18n.getMessage('settings') }}
     </div>
     <div class="panel__body settings">
       <section>
-        <header>Google Calendar</header>
+        <header>
+          Google Calendar 
+          <span role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar">
+            🔗
+          </span>
+        </header>
         <div>
           <button
               v-if="!authenticatedEmail"
@@ -36,10 +41,9 @@
               <div>{{ browser.i18n.getMessage('lastSync') }}:  {{ new Date(lastGoogleSync).toLocaleString() }}</div>
             </div>
           </div>
-          
         </div>
       </section>
-      
+
       <section>
         <header>{{ browser.i18n.getMessage('Other') }}</header>
         <div>
@@ -47,7 +51,7 @@
             <label class="form-label">
               <span class="form-label__title">
                 {{ browser.i18n.getMessage('fastModeRun') }}
-<!--                <IconInfo v-title="`Нажатие по плавающей иконке`" width="15" height="15" class="color-light cursor-help"/>-->
+                <!--                <IconInfo v-title="`Нажатие по плавающей иконке`" width="15" height="15" class="color-light cursor-help"/>-->
               </span>
               <select v-model="fastMode" class="form-control">
                 <option value="text">{{ browser.i18n.getMessage('fastModeRunText') }}</option>
@@ -56,19 +60,19 @@
               </select>
             </label>
           </div>
-<!--          <div class="mb-15">-->
-<!--            <label class="form-check">-->
-<!--              <span>Автоматически включать(клик) голосовую запись при добавлении</span>-->
-<!--              <input type="checkbox">-->
-<!--            </label>-->
-<!--          </div>-->
-<!--          <div class="mb-15">-->
-<!--            &lt;!&ndash; todo на галочка очистки (и теоретиечского удаления должна быть активна)&ndash;&gt;-->
-<!--            <label class="form-check">-->
-<!--              <span>Режим автосохранения изменений (без подтверждения)</span>-->
-<!--              <input type="checkbox">-->
-<!--            </label>-->
-<!--          </div>-->
+          <!--          <div class="mb-15">-->
+          <!--            <label class="form-check">-->
+          <!--              <span>Автоматически включать(клик) голосовую запись при добавлении</span>-->
+          <!--              <input type="checkbox">-->
+          <!--            </label>-->
+          <!--          </div>-->
+          <!--          <div class="mb-15">-->
+          <!--            &lt;!&ndash; todo на галочка очистки (и теоретиечского удаления должна быть активна)&ndash;&gt;-->
+          <!--            <label class="form-check">-->
+          <!--              <span>Режим автосохранения изменений (без подтверждения)</span>-->
+          <!--              <input type="checkbox">-->
+          <!--            </label>-->
+          <!--          </div>-->
         </div>
       </section>
       <section>
@@ -84,6 +88,20 @@
           </div>
         </div>
       </section>
+      <section>
+        <header>
+          <IconWarning height="15"/>
+          <span>{{ browser.i18n.getMessage('troubleshooting') }}</span>
+        </header>
+        <div class="faq-item">
+          <div class="faq-item__title">❓Не приходят уведомления</div>
+          <div class="faq-item__body"></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-item__title">❓Не появляются заметки на телефоне</div>
+          <div class="faq-item__body"></div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -91,12 +109,13 @@
 import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
-import { sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
+import {sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 import {getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
-import { onMounted, ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
 import IconPen from "@/components/icons/IconPen.vue";
+import IconWarning from "@/components/icons/IconWarning.vue";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -121,8 +140,13 @@ const logout = () => {
   sendGoogleLogoutMessage()
 }
 
+const openCalendar = () => {
+  browser.runtime.sendMessage({action: 'OPEN_GOOGLE_CALENDAR', email: props.authenticatedEmail}, (response) => {
+  });
+}
+
 const editHotkeys = () => {
-  browser.runtime.sendMessage({ action : 'OPEN_HOTKEYS'}, async (response) => {
+  browser.runtime.sendMessage({action: 'OPEN_HOTKEYS'}, async (response) => {
   });
 }
 
@@ -134,7 +158,7 @@ onMounted(async () => {
 
   browser.commands.getAll((commands) => {
     commands.forEach((command) => {
-      if (command.shortcut){
+      if (command.shortcut) {
         hotkeys.value.push(command);
       }
     });
