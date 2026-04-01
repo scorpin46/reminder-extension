@@ -61,3 +61,9 @@ export function getExpiredCountStore() {
         fallback: 0,
     });
 }
+
+export function getShowExpiredItemsStore() {
+    return storage.defineItem<boolean>('session:showExpiredItems', { 
+        fallback: true,
+    });
+}

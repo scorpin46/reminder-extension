@@ -43,6 +43,20 @@
         opacity: 1;
       }
     }
+
+    &__expired {
+      color: var(--color-red);
+      
+      svg{
+        transition: transform ease .2s;
+      }
+      
+      &:hover{
+        svg{
+          transform: scale(1.25);
+        }
+      }
+    }
   }
 
   &-item {

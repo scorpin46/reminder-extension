@@ -49,56 +49,59 @@
             <span>{{ dateString }}</span>
           </template>
           <template v-else>
-            <span class="color-red">
-              {{ group.label }} <span> ({{ group.items.length }})</span>
+            <span class="reminders-day__expired" role="button" @click="expiredIsOpen = !expiredIsOpen" :title="browser.i18n.getMessage(expiredIsOpen ? 'hide' : 'show')">
+              <IconEye height="14" class="mr-5" :isOpen="expiredIsOpen"/>
+              {{ group.label }} <span> ({{ group.items.length }}) {{ expiredIsOpen ? '' : '...'}}</span>
             </span>
           </template>
         </div>
 
-        <div v-for="(item, key) in group.items" :key="`${item.id}`"
-             :class="{
+        <template v-if="dateString !== 'expired' || expiredIsOpen">
+          <div v-for="(item, key) in group.items" :key="`${item.id}`"
+               :class="{
                 'reminders-item': true, 
                 '--expired': expired.includes(item.id),
                 '--completed': item.completed, 
                 '--soon': soon.includes(item.id),
              }"
-             :id="`reminder-${item.id}`"
-             @mouseenter.once="$event.target.title = item.previewTitle"
-        >
-          <div class="reminders-item__text-box">
-            <div class="reminders-item__title notranslate">{{ item.title }}</div>
-            <div class="reminders-item__desc notranslate">{{ item.desc }}</div>
-          </div>
-          <div class="reminders-item__time-box">
-            <div class="reminders-item__time"><span>{{ item.localTime }}</span></div>
+               :id="`reminder-${item.id}`"
+               @mouseenter.once="$event.target.title = item.previewTitle"
+          >
+            <div class="reminders-item__text-box">
+              <div class="reminders-item__title notranslate">{{ item.title }}</div>
+              <div class="reminders-item__desc notranslate">{{ item.url ? item.url : item.desc }}</div>
+            </div>
+            <div class="reminders-item__time-box">
+              <div class="reminders-item__time"><span>{{ item.localTime }}</span></div>
 
-            <div class="reminders-item__day">
-              <IconTimer width="14" height="14"/>
-              <span>{{ item.timeUntil }}</span>
-              <IconChecks v-if="item.completed" width="16" height="16"/>
+              <div class="reminders-item__day">
+                <IconTimer width="14" height="14"/>
+                <span>{{ item.timeUntil }}</span>
+                <IconChecks v-if="item.completed" width="16" height="16"/>
+              </div>
+            </div>
+
+            <div class="reminders-item__actions" @click="showEditPanel(item)">
+              <div class="reminders-item__actions-inner" title="">
+                <button class="reminders-item__action reminders-item__action--edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
+                  <IconEdit/>
+                </button>
+                <!--              <div class="reminders-item__actions-fin">-->
+                <!--              </div>-->
+                <button class="reminders-item__action reminders-item__action--complete" v-if="expired.includes(item.id) || group.isToday" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+                  <IconChecks/>
+                </button>
+                <button v-else
+                        class="reminders-item__action reminders-item__action--delete"
+                        :title="browser.i18n.getMessage('delete')"
+                        @click.stop="deleteItem(item)"
+                >
+                  <IconTrash/>
+                </button>
+              </div>
             </div>
           </div>
-
-          <div class="reminders-item__actions" @click="showEditPanel(item)">
-            <div class="reminders-item__actions-inner" title="">
-              <button class="reminders-item__action reminders-item__action--edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
-                <IconEdit/>
-              </button>
-<!--              <div class="reminders-item__actions-fin">-->
-<!--              </div>-->
-              <button class="reminders-item__action reminders-item__action--complete" v-if="expired.includes(item.id) || group.isToday" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
-                <IconChecks/>
-              </button>
-              <button v-else
-                  class="reminders-item__action reminders-item__action--delete"
-                  :title="browser.i18n.getMessage('delete')"
-                  @click.stop="deleteItem(item)"
-              >
-                <IconTrash/>
-              </button>
-            </div>
-          </div>
-        </div>
+        </template>
       </div>
     </div>
   </main>
@@ -151,7 +154,7 @@ import {browser} from 'wxt/browser';
 import {useToast} from "vue-toastification";
 import {
   getBroadcastErrorStore,
-  getFastModeStore,
+  getFastModeStore, getShowExpiredItemsStore,
   getStoredGoogleIsAuthenticated,
   getStoredGoogleUser
 } from "@/modules/utils/storage.ts";
@@ -171,6 +174,8 @@ import IconGoogleCalendar from "@/components/icons/IconGoogleCalendar.vue";
 import IconLogo from "@/components/icons/IconLogo.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
+import IconEye from "@/components/icons/IconEye.vue";
+import {isBoolean} from "es-toolkit";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -190,11 +195,17 @@ const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
 const authenticatedEmail = ref();
+const expiredIsOpen = ref(true);
 
 const googleIsAuthenticatedStore = getStoredGoogleIsAuthenticated();
 const broadcastErrorStore = getBroadcastErrorStore();
 const googleUserStore = getStoredGoogleUser();
 const fastModeStore = getFastModeStore();
+const showExpiredItems = getShowExpiredItemsStore();
+
+showExpiredItems.getValue().then((val) => {
+  expiredIsOpen.value = val;
+})
 
 const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
@@ -393,6 +404,12 @@ watch(() => recognitionService.state.isRecording, (value, oldValue) => {
 watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVisible], [settingsVisibleOld, editingVisibleOld]) => {
   if (!settingsVisible && !editingVisible) {
     actualize();
+  }
+})
+
+watch(() => expiredIsOpen.value, (value) => {
+  if (value != null){
+    showExpiredItems.setValue(value);
   }
 })
 
