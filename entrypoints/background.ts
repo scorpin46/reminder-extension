@@ -1,5 +1,8 @@
 import {watch} from "vue";
-import {getReminderIdFromAlarmName, IMPROVE_EXPERIENCE_FORM_LINK} from "@/modules/utils/helpers";
+import {
+    getImproveExperienceFormLink,
+    getReminderIdFromAlarmName,
+} from "@/modules/utils/helpers";
 import {browser, Browser} from 'wxt/browser';
 import {ReminderService} from "@/modules/reminderService.js";
 
@@ -301,19 +304,22 @@ export default defineBackground({
                             return {success: false};
                         case 'OPEN_IMPROVE_EXP_FORM':
                             await browser.tabs.create({
-                                url: IMPROVE_EXPERIENCE_FORM_LINK
+                                url: getImproveExperienceFormLink(),
+                                active: true,
                             });
                             
                             return {success: true};
                         case 'OPEN_GOOGLE_CALENDAR':
                             await browser.tabs.create({
-                                url: `https://calendar.google.com/calendar?authuser=${request.email}`
+                                url: `https://calendar.google.com/calendar?authuser=${request.email}`,
+                                active: true,
                             });
                             
                             return {success: true};
                         case 'OPEN_HOTKEYS':
                             await browser.tabs.create({
-                                url: "chrome://extensions/shortcuts"
+                                url: "chrome://extensions/shortcuts",
+                                active: true,
                             });
                             
                             return {success: true};
@@ -483,7 +489,7 @@ export default defineBackground({
                     documentUrlPatterns,
                 });
 
-                browser.runtime.setUninstallURL(IMPROVE_EXPERIENCE_FORM_LINK);
+                browser.runtime.setUninstallURL(getImproveExperienceFormLink());
 
                 GoogleCalendarService.instance().run();
             } catch (error) {

@@ -110,18 +110,20 @@
                     <div class="color-green" v-else-if="testNotificationSuccess">{{ testNotificationSuccess }}</div>
                   </div>
                   <div>
-                    <div class="mb-5 weight-bolder">{{ browser.i18n.getMessage('troubleshooting_instructions') }}</div>
+                    <div class="mb-5 weight-bolder">{{ browser.i18n.getMessage('faq_notify_instructions') }}</div>
                     <div class="opacity-70">
-                      <div>{{ browser.i18n.getMessage('troubleshooting_step_browser') }}</div>
-                      <div>{{ browser.i18n.getMessage('troubleshooting_step_extension') }}</div>
-                      <div>{{ browser.i18n.getMessage('troubleshooting_step_macos') }}</div>
-                      <div>{{ browser.i18n.getMessage('troubleshooting_step_system') }}</div>
+                      <div>{{ browser.i18n.getMessage('faq_notify_step_browser') }}</div>
+                      <div>{{ browser.i18n.getMessage('faq_notify_step_extension') }}</div>
+                      <div>{{ browser.i18n.getMessage('faq_notify_step_macos') }}</div>
+                      <div>{{ browser.i18n.getMessage('faq_notify_step_system') }}</div>
                     </div>
                   </div>
                 </template>
                 <template v-else-if="faqItem.id === 'smartphone'">
-                  <div>
-                    <div class="opacity-70">{{ browser.i18n.getMessage('troubleshooting_power_save_mode_off') }}</div>
+                  <div class="opacity-70">
+                    <div>{{ browser.i18n.getMessage('faq_mobile_stable_connection') }}</div>
+                    <div>{{ browser.i18n.getMessage('faq_mobile_check_account') }}</div>
+                    <div>{{ browser.i18n.getMessage('faq_mobile_power_save_mode_off') }}</div>
                   </div>
                 </template>
               </div>

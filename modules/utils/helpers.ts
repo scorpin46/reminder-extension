@@ -1,6 +1,10 @@
 import {browser} from 'wxt/browser';
 
-export const IMPROVE_EXPERIENCE_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform';
+export const getImproveExperienceFormLink = () => {
+    return detectLocale().startsWith('ru')
+        ? 'https://docs.google.com/forms/d/e/1FAIpQLSc_40i19uAtg5muHfCbyTKwXJJbAoeLrvqCiAtBeoJmU8nMnA/viewform'
+        : 'https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform'
+}
 
 export const localTimeUntil = (dateObj: Date, locale: Intl.LocalesArgument, now = new Date()) => {
     const diffInMs = dateObj.getTime() - now.getTime();

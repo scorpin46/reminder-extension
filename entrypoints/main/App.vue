@@ -215,7 +215,6 @@ const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
     googleIsAuthenticatedStore.setValue(!!response.authenticated);
     authenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
-    
   })
 }
 

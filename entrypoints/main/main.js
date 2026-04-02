@@ -11,10 +11,12 @@ import {detectLocale, blockPageScaling} from "@/modules/utils/helpers.ts";
 import { plugin as VueTippy } from 'vue-tippy'
 
 blockPageScaling();
-document.title = browser.i18n.getMessage('appName');
+document.title = browser.i18n.getMessage('mainTitle');
 
 const locale = detectLocale();
-document.documentElement.lang = locale;
+if (!locale.startsWith('ru')) {    //todo если переводы по языкам добавятся в будущем , то убрать if-обертку
+    document.documentElement.lang = locale;
+}
 
 const vuetify = createVuetify({
     locale: { 
