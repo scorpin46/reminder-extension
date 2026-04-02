@@ -350,6 +350,13 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
   padding-bottom: 0;
 
   align-items: center;
+  
+  &-body{
+    &.--smaller{
+      line-height: 1.2;
+      font-size: 14px;
+    }
+  }
 }
 
 

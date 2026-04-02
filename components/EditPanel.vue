@@ -15,12 +15,12 @@
         <div class="text-center">
           <RecordBtn :data-locale="recognitionLocale" :autostart="autostartRecording"/>
         </div>
-        <label class="language-selector form-label">
-          <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>
-          <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">
-            <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>
-          </select>
-        </label>
+<!--        <label class="language-selector form-label">-->
+<!--          <span class="form-label__title">{{ browser.i18n.getMessage('recognitionLanguage') }}</span>-->
+<!--          <select id="languageSelect" v-model="recognitionLocale" :disabled="recognitionService.state.isRecording">-->
+<!--            <option :value="locale" v-for="(lang, locale) in recognitionService.allowedLocaleLanguages">{{ lang }}</option>-->
+<!--          </select>-->
+<!--        </label>-->
       </div>
 
       <form :class="{'--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">

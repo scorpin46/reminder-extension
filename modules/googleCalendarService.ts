@@ -820,7 +820,7 @@ export class GoogleCalendarService {
     async #fetchUserInfo(): Promise<{user: GoogleUser, error: string|null}> {
         return new Promise((resolve) => {
             browser.identity.getProfileUserInfo({accountStatus: 'ANY'}, (userInfo) => {
-                console.log(userInfo);
+                // console.log(userInfo);
                 if (browser.runtime.lastError) {
                     console.error('Ошибка получения данных профиля:', browser.runtime.lastError);
                     resolve({

@@ -28,10 +28,10 @@ export default defineBackground({
         let openedExtensionTabId: number|null|undefined = null;
 
         const openMainWindow = async (urlParams: Record<string, any> = {}): Promise<void> => {
-            // Предотвращаем параллельные вызовы
-            if (pendingOpen) {
-                return pendingOpen;
-            }
+            // Предотвращаем параллельные вызовы (Но мешает открытию голосового ввода по горячей клавише)
+            // if (pendingOpen) {
+            //     return pendingOpen;
+            // }
 
             pendingOpen = (async () => {
                 const pageUrl = browser.runtime.getURL('/main.html');
@@ -316,6 +316,13 @@ export default defineBackground({
                             });
                             
                             return {success: true};
+                        case 'OPEN_EXTENSION_BROWSER_SETTINGS':
+                            await browser.tabs.create({
+                                url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`,
+                                active: true,
+                            });
+                            
+                            return {success: true};
                         case 'OPEN_HOTKEYS':
                             await browser.tabs.create({
                                 url: "chrome://extensions/shortcuts",
@@ -525,25 +532,18 @@ export default defineBackground({
             console.log(`[Background] Получена команда: ${command}`);
 
             // Получаем активную вкладку
-            // todo check open voice
             
-            if (command.startsWith("open")) {
-                await openMainWindow();
-            }
-
             switch (command) {
                 case "open_reminders_list":
+                    await openMainWindow();
                     break;
                     
                 case "open_create_by_text":
+                    await openMainWindow({id: ''});
                     break;
 
                 case "open_create_by_voice":
-                    if (openedExtensionTabId) {
-                        await browser.tabs.sendMessage(openedExtensionTabId, {
-                            type: "CREATE_BY_VOICE"
-                        });
-                    }
+                    await openMainWindow({id: '', __createByVoice: 1});
                     break;
 
                 default:

@@ -296,6 +296,9 @@
   "help": {
     "message": "Help"
   },
+  "clickForTroubleshooting": {
+    "message": "Click here to open troubleshooting"
+  },
   "troubleshooting": {
     "message": "Troubleshooting"
   },

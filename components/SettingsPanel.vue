@@ -1,5 +1,5 @@
 <template>
-  <div class="panel panel-settings">
+  <div class="panel panel-settings" ref="panelRef">
     <button
         class="panel__close"
         type="button"
@@ -13,7 +13,7 @@
       <IconSettings/>
       {{ browser.i18n.getMessage('settings') }}
     </div>
-    <div class="panel__body settings">
+    <div class="panel__body">
       <section>
         <header>
           Google Calendar 
@@ -65,7 +65,7 @@
           <!--            </label>-->
           <!--          </div>-->
           <!--          <div class="mb-15">-->
-          <!--            &lt;!&ndash; todo на галочка очистки (и теоретиечского удаления должна быть активна)&ndash;&gt;-->
+          <!--            &lt;!&ndash; на галочка очистки (и теоретиечского удаления должна быть активна)&ndash;&gt;-->
           <!--            <label class="form-check">-->
           <!--              <span>Режим автосохранения изменений (без подтверждения)</span>-->
           <!--              <input type="checkbox">-->
@@ -126,6 +126,16 @@
                     <div>{{ browser.i18n.getMessage('faq_mobile_power_save_mode_off') }}</div>
                   </div>
                 </template>
+                <template v-else-if="faqItem.id === 'microphone'">
+                  <div class="opacity-70">
+                    <span role="link" @click="openExtensionBrowserSettings">Открыть настройки доступа для данного расширения </span>
+<!--                    //todo добавить openExtensionBrowserSettings-->
+<!--                    //todo хотя в яндексе по другому, либо убрать ссылку вообще-->
+                    <div>{{ browser.i18n.getMessage('faq_mobile_stable_connection') }}</div>
+                    <div>{{ browser.i18n.getMessage('faq_mobile_check_account') }}</div>
+                    <div>{{ browser.i18n.getMessage('faq_mobile_power_save_mode_off') }}</div>
+                  </div>
+                </template>
               </div>
             </div>
           </template>
@@ -151,7 +161,7 @@ import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
 import {getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
-import {onMounted, reactive, ref, watch} from "vue";
+import {nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
 import IconPen from "@/components/icons/IconPen.vue";
@@ -180,8 +190,9 @@ googleLastSyncStore.watch((value) => {
   lastGoogleSync.value = value;
 })
 
+const panelRef = ref();
 const faqItemOpenedId = ref();
-const faqItems = ref([
+const faqItems = [
   {
     id: 'notifications',
     title: browser.i18n.getMessage('faq_no_notifications'),
@@ -190,7 +201,11 @@ const faqItems = ref([
     id: 'smartphone',
     title: browser.i18n.getMessage('faq_no_mobile_sync'),
   },
-]);
+  {
+    id: 'microphone',
+    title: 'todo ссылку и инструкцию выставить',
+  },
+];
 
 const testNotificationBtnText = ref(browser.i18n.getMessage('test_notification'));
 const testNotificationError = ref();
@@ -234,6 +249,10 @@ const editHotkeys = () => {
   browser.runtime.sendMessage({action: 'OPEN_HOTKEYS'}, async (response) => {});
 }
 
+const openExtensionBrowserSettings = () => {
+  browser.runtime.sendMessage({action: 'OPEN_EXTENSION_BROWSER_SETTINGS'}, async (response) => {});
+}
+
 const fastModeStore = getFastModeStore();
 
 onMounted(async () => {
@@ -247,6 +266,25 @@ onMounted(async () => {
       }
     });
   });
+
+  if (window.location.hash.startsWith('#troubleshooting')) {
+    const foundFaqItem = faqItems.find((item) => item.id === window.location.hash.split('-')[1]);
+   
+    if (foundFaqItem){
+      faqItemOpenedId.value = foundFaqItem.id;
+
+      setTimeout(() => {
+        panelRef.value?.scrollTo({
+          top: 350,
+          behavior: 'smooth'
+        });
+      }, 500)
+    }
+  }
+})
+
+onUnmounted(() => {
+  window.location.hash = '';
 })
 
 watch(() => fastMode.value, async (value) => {

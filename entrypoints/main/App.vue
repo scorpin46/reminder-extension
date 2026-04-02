@@ -178,8 +178,7 @@ import IconLogo from "@/components/icons/IconLogo.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
 import IconEye from "@/components/icons/IconEye.vue";
-import {isBoolean} from "es-toolkit";
-import IconHelp from "@/components/icons/IconHelp.vue";
+import {omitBy} from "es-toolkit";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -428,16 +427,19 @@ const bigBtnCreateHandler = (event) => {
 }
 
 const url = new URL(window.location.href);
-let initialFormData = Object.fromEntries(url.searchParams.entries());
+let initialFormData = omitBy(Object.fromEntries(url.searchParams.entries()), (value, key) => key.startsWith('__'));
 
 onMounted(async () => {
   const fastMode = await fastModeStore.getValue();
+  if (url.searchParams.has('__createByVoice')){
+    autostartRecording.value = true;
+  }
   
   if (fastMode === 'activeReminders'){
     openedTab.value = 'active';
   } else if (Object.keys(initialFormData).length) {
     const id = (+initialFormData.id || null); //нужно!
-    await showEditPanel(id, fastMode === 'voice');
+    await showEditPanel(id, fastMode === 'voice' || autostartRecording.value);
 
     url.search = '';
 
@@ -459,6 +461,11 @@ onMounted(async () => {
   checkAuth();
 
   window.addEventListener('focus', () => actualize());
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash.includes('troubleshooting')) {
+      settingsPanelVisible.value = true;
+    }
+  });
 
   //пока убрал чтобы не перенагружать
   // watch(() => openedTab.value, (value, oldValue) => {
