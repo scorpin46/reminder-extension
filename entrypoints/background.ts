@@ -302,30 +302,9 @@ export default defineBackground({
                                 console.error(error);
                             }
                             return {success: false};
-                        case 'OPEN_IMPROVE_EXP_FORM':
+                        case 'OPEN_LINK':
                             await browser.tabs.create({
-                                url: getImproveExperienceFormLink(),
-                                active: true,
-                            });
-                            
-                            return {success: true};
-                        case 'OPEN_GOOGLE_CALENDAR':
-                            await browser.tabs.create({
-                                url: `https://calendar.google.com/calendar?authuser=${request.email}`,
-                                active: true,
-                            });
-                            
-                            return {success: true};
-                        case 'OPEN_EXTENSION_BROWSER_SETTINGS':
-                            await browser.tabs.create({
-                                url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`,
-                                active: true,
-                            });
-                            
-                            return {success: true};
-                        case 'OPEN_HOTKEYS':
-                            await browser.tabs.create({
-                                url: "chrome://extensions/shortcuts",
+                                url: request.url,
                                 active: true,
                             });
                             

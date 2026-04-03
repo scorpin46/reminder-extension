@@ -315,19 +315,16 @@
     "message": "Тестовое уведомление отправлено!"
   },
   "faq_notify_instructions": {
-    "message": "Если вы не видите уведомление, проверьте:"
+    "message": "Если вы не видите уведомление:"
   },
-  "faq_notify_step_browser": {
-    "message": "• Уведомления Chrome включены в настройках браузера"
-  },
-  "faq_notify_step_extension": {
-    "message": "• У расширения есть разрешение на уведомления"
+  "faq_notify_extension_perm": {
+    "message": "• Проверьте разрешение на уведомления для данного расширения"
   },
   "faq_notify_step_macos": {
-    "message": "• На macOS: Включите 'Google Chrome Helper (Alerts)' в Системных настройках"
+    "message": "• На macOS: Включите \"Google Chrome Helper (Alerts)\" в Системных настройках"
   },
-  "faq_notify_step_system": {
-    "message": "• Системные уведомления разрешены для Chrome"
+  "faq_notify_os_perm": {
+    "message": "• Проверьте разрешены ли системные уведомления для вашего браузера (Chrome и т.д.) в вашей операционной системе"
   },
   "faq_mobile_stable_connection": {
     "message": "• Убедитесь в стабильности подключения приложения Google Календарь к сети"
@@ -337,6 +334,15 @@
   },
   "faq_mobile_power_save_mode_off": {
     "message": "• Отключите оптимизацию батареи или ограничение фоновой активности для приложения Google Календарь."
+  },
+  "faq_mic_access_failed": {
+    "message": "Отсутствует доступ к микрофону"
+  },
+  "faq_mic_extension_perm": {
+    "message": "• Проверьте разрешение на доступ к микрофону для данного расширения"
+  },
+  "faq_mic_os_perm": {
+    "message": "• Проверьте в вашей операционной системе разрешение на использование микрофона браузером (Chrome и т.д.) "
   },
   "reportIssue": {
     "message": "Сообщить о проблеме / Предложить функцию"

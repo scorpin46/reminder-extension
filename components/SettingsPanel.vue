@@ -112,28 +112,35 @@
                   <div>
                     <div class="mb-5 weight-bolder">{{ browser.i18n.getMessage('faq_notify_instructions') }}</div>
                     <div class="opacity-70">
-                      <div>{{ browser.i18n.getMessage('faq_notify_step_browser') }}</div>
-                      <div>{{ browser.i18n.getMessage('faq_notify_step_extension') }}</div>
+                      <div class="color-primary mb-5" role="link" @click="openExtensionBrowserSettings">
+                        <span class="v-a-m"> {{ browser.i18n.getMessage('faq_notify_extension_perm') }}  </span>
+                        <IconExternalOpen height="12" class="v-a-m"/>
+                      </div>
+                      <div class="color-primary mb-5" role="link" @click="openOsNotifySettings" title="Windows / macOS / Linux">
+                        <span class="v-a-m"> {{ browser.i18n.getMessage('faq_notify_os_perm') }}  </span>
+                        <IconExternalOpen height="12" class="v-a-m"/>
+                      </div>
                       <div>{{ browser.i18n.getMessage('faq_notify_step_macos') }}</div>
-                      <div>{{ browser.i18n.getMessage('faq_notify_step_system') }}</div>
                     </div>
                   </div>
                 </template>
                 <template v-else-if="faqItem.id === 'smartphone'">
                   <div class="opacity-70">
-                    <div>{{ browser.i18n.getMessage('faq_mobile_stable_connection') }}</div>
-                    <div>{{ browser.i18n.getMessage('faq_mobile_check_account') }}</div>
+                    <div class="mb-5">{{ browser.i18n.getMessage('faq_mobile_stable_connection') }}</div>
+                    <div class="mb-5">{{ browser.i18n.getMessage('faq_mobile_check_account') }}</div>
                     <div>{{ browser.i18n.getMessage('faq_mobile_power_save_mode_off') }}</div>
                   </div>
                 </template>
                 <template v-else-if="faqItem.id === 'microphone'">
                   <div class="opacity-70">
-                    <span role="link" @click="openExtensionBrowserSettings">Открыть настройки доступа для данного расширения </span>
-<!--                    //todo добавить openExtensionBrowserSettings-->
-<!--                    //todo хотя в яндексе по другому, либо убрать ссылку вообще-->
-                    <div>{{ browser.i18n.getMessage('faq_mobile_stable_connection') }}</div>
-                    <div>{{ browser.i18n.getMessage('faq_mobile_check_account') }}</div>
-                    <div>{{ browser.i18n.getMessage('faq_mobile_power_save_mode_off') }}</div>
+                    <div class="color-primary mb-5" role="link" @click="openExtensionBrowserSettings">
+                      <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_extension_perm') }}  </span>
+                      <IconExternalOpen height="12" class="v-a-m"/>
+                    </div>
+                    <div class="color-primary mb-5" role="link" @click="openOsMicSettings" title="Windows / macOS / Linux">
+                      <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_os_perm') }}  </span>
+                      <IconExternalOpen height="12" class="v-a-m"/>
+                    </div>
                   </div>
                 </template>
               </div>
@@ -170,6 +177,7 @@ import IconHelp from "@/components/icons/IconHelp.vue";
 import IconMessage from "@/components/icons/IconMessage.vue";
 import IconExternalOpen from "@/components/icons/IconExternalOpen.vue";
 import IconLogo from "@/components/icons/IconLogo.vue";
+import {getImproveExperienceFormLink, getOsMicSettingsLink, getOsNotifySettingsLink} from "@/modules/utils/helpers.ts";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -194,16 +202,16 @@ const panelRef = ref();
 const faqItemOpenedId = ref();
 const faqItems = [
   {
+    id: 'microphone',
+    title: browser.i18n.getMessage('faq_mic_access_failed') + " 🎙️",
+  },
+  {
     id: 'notifications',
-    title: browser.i18n.getMessage('faq_no_notifications'),
+    title: browser.i18n.getMessage('faq_no_notifications') + ' 🔔',
   },
   {
     id: 'smartphone',
-    title: browser.i18n.getMessage('faq_no_mobile_sync'),
-  },
-  {
-    id: 'microphone',
-    title: 'todo ссылку и инструкцию выставить',
+    title: browser.i18n.getMessage('faq_no_mobile_sync') + ' 📲',
   },
 ];
 
@@ -238,19 +246,27 @@ const logout = () => {
 }
 
 const openCalendar = () => {
-  browser.runtime.sendMessage({action: 'OPEN_GOOGLE_CALENDAR', email: props.authenticatedEmail}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: `https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`}, (response) => {});
 }
 
 const openImproveExpForm = () => {
-  browser.runtime.sendMessage({action: 'OPEN_IMPROVE_EXP_FORM'}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getImproveExperienceFormLink()}, (response) => {});
 }
 
 const editHotkeys = () => {
-  browser.runtime.sendMessage({action: 'OPEN_HOTKEYS'}, async (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: "chrome://extensions/shortcuts"}, (response) => {});
 }
 
 const openExtensionBrowserSettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_EXTENSION_BROWSER_SETTINGS'}, async (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`}, async (response) => {});
+}
+
+const openOsMicSettings = () => {
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {});
+}
+
+const openOsNotifySettings = () => {
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {});
 }
 
 const fastModeStore = getFastModeStore();

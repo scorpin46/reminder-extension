@@ -28,6 +28,12 @@
   select{
     font-size: 13px;
   }
+  
+  &:hover{
+    section:not(:hover){
+      filter: blur(1px);
+    }
+  }
 }
 
 .faq {
@@ -76,6 +82,7 @@
       user-select: text;
       white-space: pre-line;
       font-size: 12px;
+      line-height: 1.2;
       padding: 5px;
     }
 

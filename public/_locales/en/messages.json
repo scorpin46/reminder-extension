@@ -329,24 +329,16 @@
     "message": "Test notification sent! Check your system notifications."
   },
   "faq_notify_instructions": {
-    "description": "Instructions header for notification troubleshooting",
-    "message": "If you don't see the test notification, please check:"
+    "message": "If you don't see the test notification:"
   },
-  "faq_notify_step_browser": {
-    "description": "First troubleshooting step for browser notifications",
-    "message": "• Chrome notifications are enabled in browser settings"
-  },
-  "faq_notify_step_extension": {
-    "description": "Fourth troubleshooting step for extension permissions",
-    "message": "• This extension has notification permissions enabled"
+  "faq_notify_extension_perm": {
+    "message": "• Check notification permission for this extension"
   },
   "faq_notify_step_macos": {
-    "description": "Third troubleshooting step specifically for macOS",
-    "message": "• On macOS: Enable 'Google Chrome Helper (Alerts)' in System Preferences"
+    "message": "• On macOS: Enable \"Google Chrome Helper (Alerts)\" in System Preferences"
   },
-  "faq_notify_step_system": {
-    "description": "Second troubleshooting step for system notifications",
-    "message": "• System notifications are allowed for Chrome"
+  "faq_notify_os_perm": {
+    "message": "• Check if system notifications are allowed for your browser (Chrome, etc.) on your operating system"
   },
   "faq_mobile_stable_connection": {
     "message": "• Make sure the Google Calendar app has a stable network connection."
@@ -356,6 +348,15 @@
   },
   "faq_mobile_power_save_mode_off": {
     "message": "• Disable battery optimization and background restrictions for the Google Calendar app."
+  },
+  "faq_mic_access_failed": {
+    "message": "No access to microphone"
+  },
+  "faq_mic_extension_perm": {
+    "message": "• Check microphone permission for this extension"
+  },
+  "faq_mic_os_perm": {
+    "message": "• Check your operating system for permission to use the microphone with your browser (Chrome, etc.)"
   },
   "reportIssue": {
     "description": "Text for feedback link",

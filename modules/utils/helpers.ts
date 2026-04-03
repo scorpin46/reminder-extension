@@ -6,6 +6,72 @@ export const getImproveExperienceFormLink = () => {
         : 'https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform'
 }
 
+export const getOsMicSettingsLink = () => {
+    const ua = navigator.userAgent;
+
+    // Windows: только NT 6.2 (Windows 8) и выше
+    const winMatch = ua.match(/Windows NT (\d+)\.(\d+)/);
+    if (winMatch) {
+        const major = parseInt(winMatch[1], 10);
+        const minor = parseInt(winMatch[2], 10);
+        const ntVersion = major + minor / 10;
+
+        if (ntVersion >= 6.2) {
+            return 'ms-settings:privacy-microphone';
+        }
+        return null;
+    }
+
+    // macOS: только 10.10 (Yosemite) и выше
+    const macMatch = ua.match(/Mac OS X (\d+)[._](\d+)/);
+    if (macMatch) {
+        const major = parseInt(macMatch[1], 10);
+        const minor = parseInt(macMatch[2], 10);
+        const version = major + minor / 100;
+
+        if (version >= 10.10) {
+            return 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone';
+        }
+        return null;
+    }
+
+    // Linux, мобильные, старые Windows, старые macOS — null
+    return null;
+}
+
+export const getOsNotifySettingsLink = () => {
+    const ua = navigator.userAgent;
+
+    // Windows: только NT 6.2 (Windows 8) и выше
+    const winMatch = ua.match(/Windows NT (\d+)\.(\d+)/);
+    if (winMatch) {
+        const major = parseInt(winMatch[1], 10);
+        const minor = parseInt(winMatch[2], 10);
+        const ntVersion = major + minor / 10;
+
+        if (ntVersion >= 6.2) {
+            return 'ms-settings:notifications';
+        }
+        return null;
+    }
+
+    // macOS: только 10.10 (Yosemite) и выше
+    const macMatch = ua.match(/Mac OS X (\d+)[._](\d+)/);
+    if (macMatch) {
+        const major = parseInt(macMatch[1], 10);
+        const minor = parseInt(macMatch[2], 10);
+        const version = major + minor / 100;
+
+        if (version >= 10.10) {
+            return 'x-apple.systempreferences:com.apple.preference.notifications';
+        }
+        return null;
+    }
+
+    // Linux, мобильные, старые Windows, старые macOS — null
+    return null;
+};
+
 export const localTimeUntil = (dateObj: Date, locale: Intl.LocalesArgument, now = new Date()) => {
     const diffInMs = dateObj.getTime() - now.getTime();
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
