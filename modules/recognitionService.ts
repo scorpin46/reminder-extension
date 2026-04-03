@@ -60,13 +60,16 @@ export class RecognitionService {
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
         recognition.lang = locale;
+        
+        let fullText = '';
 
         recognition.onstart = (event: object) => {
             console.log('onstart');
 
+            fullText = '';
             this.state.parsedData = null;
-            this.state.streamRecordingText = ''; // Сбрасываем при старте
 
+            this.state.streamRecordingText = ''; // Сбрасываем при старте
             this.state.isRecording = true;
             this.#resetSilenceTimer(5000);
         }
@@ -79,6 +82,9 @@ export class RecognitionService {
                 track.stop(); //освобождение микрофона
             });
             this.#clearSilenceTimer();
+
+            this.state.parsedData = this.#textParser!.parse(this.state.streamRecordingText);
+            this.state.error = this.state.parsedData.error ?? this.state.error;
         }
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -108,34 +114,22 @@ export class RecognitionService {
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log('onresult');
-            let recordingText: string = '';
+            
             this.#resetSilenceTimer();
             
-            // Проходим по всем новым результатам
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const result = event.results[i];
-                const transcript = result[0].transcript;
-       
-                if (result.isFinal) {
-                    // Финальный результат - заменяем весь текст
-                    // (или можно добавить, если хочешь накапливать предложения)
-                    this.state.streamRecordingText = transcript;
-
-                    if (transcript) {
-                        const parsedData = this.#textParser!.parse(transcript);
-                        this.state.parsedData = parsedData;
-                        this.state.error = parsedData.error ?? this.state.error;
-
-                        // setTimeout(() => {
-                        recordingText = '';
-                        // }, 1000)
-                    }
-                } else {
-                    recordingText += transcript;
-                }
+            const lastResult = event.results[event.results.length - 1];
+            const currentSegment = lastResult[0].transcript;
+ 
+            if (lastResult.isFinal) {
+                // Финальный сегмент - добавляем к полному тексту
+                fullText = fullText ? `${fullText} ${currentSegment}` : currentSegment;
+                this.state.streamRecordingText = fullText;
+            } else {
+                // Промежуточный результат - показываем полный текст + текущий сегмент
+                this.state.streamRecordingText = fullText
+                    ? `${fullText} ${currentSegment}`
+                    : currentSegment;
             }
-
-            this.state.streamRecordingText = recordingText;
         }
 
         // Остальные обработчики можно оставить как есть

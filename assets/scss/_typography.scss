@@ -300,11 +300,10 @@ $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
 
   &:has(:required) &__title {
     &:after {
-      content: "*";
+      content: " *";
       color: var(--color-red);
       //font-size: 1.2em;
       line-height: 0;
-      padding-left: 2px;
     }
   }
 

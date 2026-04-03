@@ -149,6 +149,9 @@
   "errorNoSpeech": {
     "message": "Не обнаружена речь. Попробуйте еще раз."
   },
+  "errorNoSpeechText": {
+    "message": "Текст не распознан или отсутствует"
+  },
   "errorAudioCapture": {
     "message": "Микрофон не найден. Проверьте подключение."
   },

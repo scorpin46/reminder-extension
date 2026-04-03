@@ -149,6 +149,9 @@
   "errorNoSpeech": {
     "message": "No speech detected. Try again."
   },
+  "errorNoSpeechText": {
+    "message": "Text is not recognized or missing"
+  },
   "errorAudioCapture": {
     "message": "Microphone not found. Check the connection."
   },
