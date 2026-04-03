@@ -65,18 +65,18 @@
                 '--soon': soon.includes(item.id),
              }"
                :id="`reminder-${item.id}`"
-               @mouseenter.once="$event.target.title = item.previewTitle"
+               @mouseenter.once="$event.target.title = reminderService.getPreviewTitle(item, now.value)"
           >
             <div class="reminders-item__text-box">
               <div class="reminders-item__title notranslate">{{ item.title }}</div>
               <div class="reminders-item__desc notranslate">{{ item.url ? item.url : item.desc }}</div>
             </div>
             <div class="reminders-item__time-box">
-              <div class="reminders-item__time"><span>{{ item.localTime }}</span></div>
+              <div class="reminders-item__time"><span>{{ reminderService.getLocalTime(item, now.value) }}</span></div>
 
               <div class="reminders-item__day">
                 <IconTimer width="14" height="14"/>
-                <span>{{ item.timeUntil }}</span>
+                <span>{{ reminderService.getTimeUntil(item, now.value) }}</span>
                 <IconChecks v-if="item.completed" width="16" height="16"/>
               </div>
             </div>
@@ -265,10 +265,6 @@ const daysGroupsReminders = computed(() => {
     }
 
     const extendedItem = {...item};
-
-    extendedItem.previewTitle = reminderService.getPreviewTitle(item, now.value);
-    extendedItem.timeUntil = reminderService.getTimeUntil(item, now.value);
-    extendedItem.localTime = reminderService.getLocalTime(item, now.value)
 
     groups[groupKey].items.push(extendedItem);
   })

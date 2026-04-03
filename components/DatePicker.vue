@@ -3,7 +3,7 @@
       color="primary"
       elevation="24"
       weekday-format="short"
-      :allowed-dates="() => allowedDates.length ? allowedDates : false"
+      :allowed-dates="allowedDates"
       :max="maxFilterDate"
       :min="minFilterDate"
       hide-header
@@ -29,7 +29,7 @@
 <script setup>
 import {VBtn} from "vuetify/components/VBtn";
 import {VDatePicker} from "vuetify/components/VDatePicker";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {onClickOutside} from "@vueuse/core";
 
 const props = defineProps({
@@ -37,6 +37,8 @@ const props = defineProps({
   maxFilterDate: String,
   minFilterDate: String,
 })
+
+const allowedDates = computed(() => props.allowedDates.length ? props.allowedDates : false)
 
 const emit = defineEmits(["close", "update:filterDate"]);
 // const filterDate = ref(null);
