@@ -29,7 +29,7 @@
     font-size: 13px;
   }
   
-  &:hover{
+  &:has(section:hover){
     section:not(:hover){
       filter: blur(1px);
     }
