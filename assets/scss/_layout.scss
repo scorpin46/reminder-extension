@@ -451,7 +451,8 @@ main {
   user-select: none;
   display: flex;
   justify-content: space-between;
-
+  background: var(--background);
+  
   @media (max-width: 350px){
     font-size: 0;
   }

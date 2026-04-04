@@ -1,5 +1,5 @@
 <template>
-  <div class="panel panel-editing">
+  <div class="panel panel-editing" ref="panelRef">
     <div class="panel__title">
       <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminderTitle')}}</template>
       <template v-else>
@@ -40,6 +40,7 @@
         </div>
         <div class="w-100">
           <button v-if="!showExtraFields" 
+                  type="button"
                   @click="showExtraFields = !showExtraFields" 
                   class="reminder-more-btn mb-10"
           >
@@ -63,6 +64,14 @@
              
               <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com" maxlength="2000">
             </label>
+            <RepeatField
+                v-if="showExtraFields"
+                :startDate="form.input.datetime"
+                v-model:rrule="form.input.recurrence"
+                v-model:fromTime="form.input.recurrenceFromTime"
+                v-model:toTime="form.input.recurrenceToTime"
+                @scrollToBottom="scrollToBottom"
+            />
             <label class="form-check mb-15" v-if="!form.input.url">
               <span>{{ browser.i18n.getMessage('syncWithGoogleCalendar') }}</span>
               <input 
@@ -110,6 +119,7 @@ import IconDown from "@/components/icons/IconDown.vue";
 import {sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 import IconInfo from "@/components/icons/IconInfo.vue";
 import {isNumeric} from "@/modules/utils/helpers.ts";
+import RepeatField from "@/components/RepeatField.vue";
 
 const props = defineProps({
   backToPanel: {
@@ -137,6 +147,7 @@ const reminderTitleRef = ref();
 const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
+const panelRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
 const isAuthenticated = computed(() => !!props.authenticatedEmail)
 const formInputInitData = {
@@ -146,6 +157,9 @@ const formInputInitData = {
   datetime: null,
   desc: null,
   googleSync: null,
+  recurrence: null,
+  recurrenceFromTime: null,
+  recurrenceToTime: null,
 };
 
 const form = reactive({
@@ -241,6 +255,13 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
   }
 });
 
+const scrollToBottom = () => {
+  panelRef.value.scrollTo({
+    top: 500,
+    behavior: 'smooth'
+  });
+}
+
 onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
   emit('update:initialFormData', {});
@@ -302,6 +323,9 @@ onMounted(async () => {
   }
 })
 
+// watch(() => form.input.datetime, (value) => {
+//   console.log(value);
+// }, {deep: true, immediate: true})
 
 onUnmounted(() => {
   recognitionService.stop();

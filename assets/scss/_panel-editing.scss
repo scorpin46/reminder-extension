@@ -1,5 +1,6 @@
 .panel-editing {
   font-size: 13px;
+  padding-bottom: 20px;
 }
 
 .main-fields {
@@ -306,5 +307,38 @@
     100%{
       opacity: 1;
     }
+  }
+}
+
+.recurrence{
+  font-size: 13px;
+  
+  &__unit{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    
+    input{
+      width: 90px;
+    }
+    
+    select{
+      //flex: 0 1 250px;
+      flex: 1 1 auto;
+      min-width: max-content;
+    }
+  }
+  
+  &__times{
+    padding-left: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  &__weeksdays{
+    //todo стилизовать и проверить функциональность
   }
 }

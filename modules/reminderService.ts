@@ -1,4 +1,4 @@
-import { localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale} from "./utils/helpers";
+import {localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale, isNumeric} from "./utils/helpers";
 import {Reminder, ReminderRepository} from "./reminderRepository.js";
 import {browser} from 'wxt/browser';
 import {getExpiredCountStore} from "@/modules/utils/storage";
@@ -68,7 +68,7 @@ export class ReminderService {
         if (reminderParams.datetime && !reminderParams.completed){
             await browser.alarms.create(reminderIdToAlarmName(id), {
                 when: +reminderParams.datetime,
-                periodInMinutes: reminderParams.repeatAfterMin,
+                // periodInMinutes: reminderParams.repeatAfterMin, //todo тут вообще не понятно как сделать защиту для точного повторного срабатывания особенно после пропусков и сложных кейсов повторений
             })
         }
         
@@ -128,6 +128,25 @@ export class ReminderService {
 
     getExpiredReminders(now = new Date()) {
         return this.repository.state.active.filter(item => !item.completed && item.datetime < now);
+    }
+
+    async getNextOccurrence(reminderOrId: Reminder|number): Promise<Date|null> {
+        let reminder = typeof reminderOrId === 'number' ? await this.repository.getById(reminderOrId) : reminderOrId;
+        
+        if (!reminder){
+            return null;
+        }
+        
+        //todo доделать
+        if (reminder.recurrence) {
+            // let nextDatetime = +reminder.datetime;
+            // while (nextDatetime <= Date.now()) {
+            //     nextDatetime += reminder.repeatAfterMin * 60000;
+            // }
+            // newReminderParams.datetime = reminderService.getNextOccurrence(reminder) new Date(nextDatetime);
+        }
+        
+        return reminder.datetime > new Date() ? reminder.datetime : null;
     }
 
     hasExpiredReminders(now = new Date()) {
