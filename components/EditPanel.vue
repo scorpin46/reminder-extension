@@ -6,7 +6,7 @@
         {{ browser.i18n.getMessage('editReminderTitle')}}
       </template>
     </div>
-    <div class="panel__body">
+    <div class="panel__body" ref="panelBodyRef">
       <div class="record-box">
 <!--       <div>-->
 <!--         <b>Тапни и произнеси что-то вроде:</b> <br>-->
@@ -42,7 +42,7 @@
           <button v-if="!showExtraFields" 
                   type="button"
                   @click="showExtraFields = !showExtraFields" 
-                  class="reminder-more-btn mb-10"
+                  class="reminder-more-btn mb-30"
           >
             <span>{{ browser.i18n.getMessage('reminderAdvanced') }}</span>
             <IconDown />
@@ -91,7 +91,7 @@
           </div>
         </div>
      
-        <div class="reminder-buttons">
+        <div class="reminder-buttons" ref="reminderButtonsRef">
           <button type="button" class="reminder-cancel" @click="form.reset" v-title="browser.i18n.getMessage('cancel')">
             <!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
 <!--            <IconCancel />-->
@@ -154,6 +154,8 @@ const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const formRef = ref();
 const panelRef = ref();
+const panelBodyRef = ref();
+const reminderButtonsRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
 const isAuthenticated = computed(() => !!props.authenticatedEmail)
 const formInputInitData = {
@@ -262,11 +264,13 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
 });
 
 const scrollToBottom = () => {
-  panelRef.value.scrollTo({
-    top: 500,
+  panelBodyRef.value.scrollTo({
+    top: 1000,
     behavior: 'smooth'
   });
 }
+
+let buttonsObserver;
 
 onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
@@ -328,6 +332,8 @@ onMounted(async () => {
     emit('update:autostartRecording', false);
   }
 })
+
+
 
 // watch(() => form.input.datetime, (value) => {
 //   console.log(value);

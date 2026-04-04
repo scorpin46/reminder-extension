@@ -101,51 +101,6 @@ export const localTimeUntil = (dateObj: Date, locale: Intl.LocalesArgument, now 
     return rtf.format(diffInDays, 'day');
 }
 
-//некорректно писала "Сегодня", хотя это уже должно было стать вчера (сейчас 01:15, а событие 23:55)
-// export const localDateFormat = (date:Date|string, withTime: boolean, locale: string, nearRelativeDay:boolean = false) => {
-//     const dateObj = date instanceof Date
-//         ? date
-//         : new Date(new Date(date).getTime() + new Date().getTimezoneOffset());
-//
-//     const currentYear = new Date().getFullYear();
-//     const dateYear = dateObj.getFullYear();
-//
-//     const options: Intl.DateTimeFormatOptions = {
-//         weekday: 'long',
-//         day: 'numeric',
-//         month: 'long'
-//     }
-//
-//     if (withTime){
-//         options.hour = '2-digit';
-//         options.minute = '2-digit';
-//     }
-//
-//     if (dateYear !== currentYear) {
-//         options.year = 'numeric';
-//     }
-//
-//     const formattedDate = dateObj.toLocaleDateString(locale, options);
-//
-//     if (nearRelativeDay){
-//         const diffInMs = dateObj.getTime() - Date.now();
-//         const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-//
-//         if (diffInDays >= -1 && diffInDays <= 1) {
-//             const rtf = new Intl.RelativeTimeFormat(locale, {
-//                 numeric: 'auto'
-//             });
-//
-//             const relativeDay = rtf.format(diffInDays, 'day');
-//             const capitalized = relativeDay.charAt(0).toUpperCase() + relativeDay.slice(1);
-//
-//             return `${capitalized}`;
-//         }
-//     }
-//
-//     return formattedDate
-// }
-
 export const localDateFormat = (date: Date | string, withTime: boolean, locale: string, nearRelativeDay: boolean = false) => {
     const dateObj = date instanceof Date
         ? date
@@ -193,6 +148,14 @@ export const localDateFormat = (date: Date | string, withTime: boolean, locale: 
     }
 
     return formattedDate;
+}
+
+export const getValueForInputTime = (dateObj: Date = new Date(), locale?: string) => {
+    return dateObj.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false // принудительно 24-часовой формат
+    })
 }
 
 export const detectLocale = () => {

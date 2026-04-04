@@ -13,7 +13,7 @@
       <IconSettings/>
       {{ browser.i18n.getMessage('settings') }}
     </div>
-    <div class="panel__body">
+    <div class="panel__body" ref="panelBodyRef">
       <section>
         <header>
           Google Calendar 
@@ -199,6 +199,7 @@ googleLastSyncStore.watch((value) => {
 })
 
 const panelRef = ref();
+const panelBodyRef = ref();
 const faqItemOpenedId = ref();
 const faqItems = [
   {
@@ -290,7 +291,7 @@ onMounted(async () => {
       faqItemOpenedId.value = foundFaqItem.id;
 
       setTimeout(() => {
-        panelRef.value?.scrollTo({
+        panelBodyRef.value?.scrollTo({
           top: 350,
           behavior: 'smooth'
         });
