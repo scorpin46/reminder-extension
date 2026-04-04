@@ -1,5 +1,5 @@
 <template>
-  <div class="recurrence mb-15">
+  <div class="recurrence mb-5">
     <label class="form-label mb-15">
       <span class="form-label__title">Repeat</span>
       <select v-model="frequency" class="form-control">
@@ -17,17 +17,17 @@
       </div>
     </template>
 
-    <div v-if="showTimeRange" class="recurrence__times mb-15">
+    <div v-if="showTimeRange" class="recurrence__times mb-20">
       <span>From</span>
       <input type="time" v-model="fromTime" class="form-control" />
       <span>to</span>
       <input type="time" v-model="toTime" class="form-control" :min="fromTime" />
     </div>
 
-    <div v-if="showWeekdays" class="weekdays mb-15">
-      <label v-for="day in weekdays" :key="day.value">
-        <input type="checkbox" v-model="selectedDays" :value="day.value">
-        {{ day.label }}
+    <div v-if="showWeekdays" class="recurrence__weekdays mb-20">
+      <label v-for="day in weekdays" :key="day.value" class="recurrence__weekday">
+        <input type="checkbox" v-model="selectedDays" :value="day.value" hidden>
+        <span>{{ day.label }}</span>
       </label>
     </div>
   </div>

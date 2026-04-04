@@ -29,11 +29,11 @@
     font-size: 13px;
   }
   
-  &:has(section:not(:last-child):hover){
-    section:not(:hover){
-      filter: blur(1px);
-    }
-  }
+  //&:has(section:not(:last-child):hover){
+  //  section:not(:hover){
+  //    filter: blur(1px);
+  //  }
+  //}
 }
 
 .faq {

@@ -1,6 +1,13 @@
 .panel-editing {
   font-size: 13px;
   padding-bottom: 20px;
+  
+  &:has(#input-datetime:focus){
+    .reminder-buttons{
+      pointer-events: none;
+      opacity: .1;
+    }
+  }
 }
 
 .main-fields {
@@ -338,7 +345,45 @@
     align-items: center;
   }
   
-  &__weeksdays{
-    //todo стилизовать и проверить функциональность
+  &__weekdays{
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding-top: 5px;
+  }
+  
+  &__weekday{
+    line-height: 1;
+    cursor: pointer;
+    min-width: 30px;
+    flex: 0 1 calc(100% / 7);
+    outline: none;
+    
+    span{
+      display: inline-block;
+      text-align: center;
+      height: 100%;
+      width: 100%;
+      border-radius: 5px;
+      line-height: 1.2;
+      color: var(--color-primary);
+      border: 1px solid var(--foreground);
+      
+      padding: 4px 1px 5px;
+      transition: background .25s ease;
+      box-shadow: var(--box-shadow);
+    }
+
+    &:hover span{
+      font-weight: 500;
+      background: var(--foreground);
+      //border-color: var(--color-primary);
+    }
+    
+    input:checked ~ span{
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--foreground-active);
+    }
   }
 }

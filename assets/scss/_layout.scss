@@ -295,6 +295,8 @@ main {
   animation: fade 200ms ease-out forwards;
   will-change: transform, opacity;
   user-select: none;
+  display: flex;
+  flex-direction: column;
   
   &__close {
     position: absolute;
@@ -316,17 +318,18 @@ main {
       border-color: var(--color-red);
     }
   }
-
+  
   &__title {
     font-size: 16px;
-    padding: 17px 40px;
+    padding: 11px 40px;
+    min-height: 49px;
     line-height: 1;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--foreground);
-    margin-bottom: 10px;
+    
     color: var(--color-primary);
     gap: 5px;
     
@@ -336,8 +339,10 @@ main {
   }
 
   &__body {
-    padding: 5px 10px;
+    padding: 15px 10px 5px;
     font-size: 12px;
+    overflow: auto;
+    flex: 1 1 auto;
   }
 
   section {
@@ -350,10 +355,6 @@ main {
    
     &:hover{
       box-shadow: var(--box-shadow-hovered);
-      
-      ~ section{
-        //filter: blur(1px);
-      }
     }
     
     + section{

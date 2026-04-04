@@ -72,17 +72,22 @@
                 v-model:toTime="form.input.recurrenceToTime"
                 @scrollToBottom="scrollToBottom"
             />
-            <label class="form-check mb-15" v-if="!form.input.url">
-              <span>{{ browser.i18n.getMessage('syncWithGoogleCalendar') }}</span>
-              <input 
-                  type="checkbox"
-                  v-model="form.input.googleSync"
-                  :true-value="1"
-                  :false-value="0"
-                  class="form-control w-100" 
-                  @click="reminderGoogleSyncClickHandler"
-              >
-            </label>
+            <div class="text-center">
+              <label class="form-check mb-20 mt-5" v-if="!form.input.url">
+                <span>
+                  <IconSync height="20" width="22" class="v-a-m"/>
+                  {{ browser.i18n.getMessage('syncWithGoogleCalendar') }}
+                </span>
+                <input
+                    type="checkbox"
+                    v-model="form.input.googleSync"
+                    :true-value="1"
+                    :false-value="0"
+                    class="form-control w-100"
+                    @click="reminderGoogleSyncClickHandler"
+                >
+              </label>
+            </div>
           </div>
         </div>
      
@@ -120,6 +125,7 @@ import {sendGoogleLoginMessage} from "@/modules/utils/auth.js";
 import IconInfo from "@/components/icons/IconInfo.vue";
 import {isNumeric} from "@/modules/utils/helpers.ts";
 import RepeatField from "@/components/RepeatField.vue";
+import IconSync from "@/components/icons/IconSync.vue";
 
 const props = defineProps({
   backToPanel: {
