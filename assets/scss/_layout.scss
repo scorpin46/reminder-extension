@@ -451,17 +451,19 @@ main {
   user-select: none;
   display: flex;
   justify-content: space-between;
+  min-height: 38px;
 
   @media (max-width: 350px){
     font-size: 0;
   }
-  
+
   @at-root body:has(.panel-editing){
     footer{
-      transition: all .25s ease;
       max-height: 42px;
+      transition: all .25s ease;
       
-      &:not(:hover){
+      &:not(:hover, .--hovered)
+      {
         border-radius: 8px;
         font-size: 0;
         width: 46px;

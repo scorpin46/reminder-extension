@@ -120,7 +120,7 @@
       @close="settingsPanelVisible = false"
   />
 
-  <footer class="footer">
+  <footer class="footer" ref="footerRef" @mouseover="footerHover(true)" @mouseout="footerHover(false)">
     <button class="footer__settings-btn" @click="settingsPanelVisible = true">
       <IconSettings/>
       <span>{{ browser.i18n.getMessage('settings') }}</span>
@@ -194,6 +194,7 @@ const props = defineProps({
 const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
 
+const footerRef = ref();
 const settingsPanelVisible = ref(false);
 const editingPanelVisible = ref(props.editingPanelVisible);
 const openedTab = ref(props.openedTab);
@@ -420,6 +421,16 @@ const bigBtnCreateHandler = (event) => {
     btn.classList.remove('--clicked');
     showEditPanel(null);
   }, 300)
+}
+
+let footerHoverTimeoutId;
+const footerHover = (state) => {
+  if (state){
+    clearTimeout(footerHoverTimeoutId);
+    footerRef.value.classList.add('--hovered')
+  } else {
+    footerHoverTimeoutId = setTimeout(() => {footerRef.value.classList.remove('--hovered')},1000)
+  }
 }
 
 const url = new URL(window.location.href);
