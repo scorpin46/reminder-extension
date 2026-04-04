@@ -49,96 +49,87 @@ const msLocaleMap: Record<string, string> = {
 };
 
 // ✅ Улучшенные триггеры с границами слов и безопасными паттернами
-const TRIGGER_PATTERNS: Record<string, string> = {
+const TRIGGER_PATTERNS: Record<string, string[]> = {
     ru: [
-        '(?:на)?помн(?:и(?:ть|шь|т|м|те|ят|ю))\\s*(?:мне)?',
+        '(?:про|о) том? что',
+        '(?:на|за)?помн(?:и|ить|ишь|ит|им|ите|ят|ю)(?: мне)?',
         '(?:на)?помина(?:ние|ния|ю|ешь|ет|ем|ете|ют)',
-        '(?:установи|создай|добавь|поставь)\\s+напоминание',
-        'не\\s+забудь',
-        'нужно\\s+напомнить',
-        'хочу\\s+напомнить',
-        'напомни\\b',
-        'нагадай\\b',
-        'запомни\\b',
-        'запиши\\b',
-        'заметка\\b',
-        'про(?:\\s+то)?\\b',
-        'о(?:\\s+том,\\s+что)?\\b',
-        'что\\b',
-    ].join('|'),
+        '(?:установи|создай|добавь|поставь) напоминание',
+        'не забудь',
+        'нужно напомнить',
+        'хочу напомнить',
+        'что',
+    ],
 
     en: [
-        'remind\\s+me',
+        'remind me',
         'reminder',
-        'set\\s+reminder',
-        'create\\s+reminder',
-        'add\\s+reminder',
-        'don\'?t\\s+forget',
-        'need\\s+to\\s+remember',
-        'make\\s+a\\s+note',
-        'note\\s+to\\s+self',
+        '(?:set|create|add|make)(?: a)? reminder',
+        'don\'?t forget',
+        'need to remember',
+        'make(?: a)? note',
+        'note to self',
         // Вежливые формы
         'please',
         'kindly',
-        'if\\s+you\\s+(?:can|could)'
-    ].join('|'),
+        'if you (?:can|could)'
+    ],
 
     de: [
-        'erinnere\\s+mich',
+        'erinnere mich',
         'erinnerung',
-        '(eine|stelle)\\s+erinnerung',
-        'nicht\\s+vergessen',
+        '(eine|stelle) erinnerung',
+        'nicht vergessen',
         'bitte',
-    ].join('|'),
+    ],
 
     fr: [
-        'rappelle\\s+moi',
+        'rappelle moi',
         'rappel',
-        'crée\\s+rappel',
-        'cree\\s+rappel',
-        'n\'?oublie\\s+pas',
-        's\'il\\s+te\\s+plaît',
-        's\'il\\s+vous\\s+plaît',
+        '(?:crée|cree) rappel',
+        'n\'?oublie pas',
+        's\'il te plaît',
+        's\'il vous plaît',
         'stp',
         'svp'
-    ].join('|'),
+    ],
 
     es: [
         'recuérdame',
         'recordatorio',
-        'crea\\s+recordatorio',
-        'no\\s+olvides',
-        'por\\s+favor',
+        'crea recordatorio',
+        'no olvides',
+        'por favor',
         'porfa'
-    ].join('|'),
+    ],
 
     it: [
         'ricordami',
         'promemoria',
-        'crea\\s+promemoria',
-        'non\\s+dimenticare',
-        'per\\s+favore',
+        'crea promemoria',
+        'non dimenticare',
+        'per favore',
         'perfavore'
-    ].join('|'),
+    ],
 
     pt: [
         'lembrete',
-        'lembrar\\s+me',
-        'criar\\s+lembrete',
-        'não\\s+esqueça',
-        'por\\s+favor',
+        'lembrar me',
+        'criar lembrete',
+        'não esqueça',
+        'por favor',
         'pf',
         'pfv'
-    ].join('|'),
+    ],
 
     nl: [
-        'herinner\\s+me',
+        'herinner me',
         'herinnering',
-        'maak\\s+herinnering',
-        'vergeet\\s+niet',
+        'maak herinnering',
+        'vergeet niet',
         'alsjeblieft',
         'alstublieft'
-    ].join('|'),
+    ],
 
     zh: [
         '提醒我',
@@ -147,7 +138,7 @@ const TRIGGER_PATTERNS: Record<string, string> = {
         '别忘记',
         '别忘了',
         '请'
-    ].join('|'),
+    ],
 
     ja: [
         'リマインダー',
@@ -155,15 +146,15 @@ const TRIGGER_PATTERNS: Record<string, string> = {
         '忘れないで',
         'ください',
         'お願い'
-    ].join('|'),
+    ],
 
     ko: [
         '알림',
-        '상기시켜\\s+줘',
+        '상기시켜 줘',
         '설정',
-        '잊지\\s+마',
+        '잊지 마',
         '주세요'
-    ].join('|'),
+    ],
 
     tr: [
         'hatırlat',
@@ -171,39 +162,24 @@ const TRIGGER_PATTERNS: Record<string, string> = {
         'ayarla',
         'unutma',
         'lütfen'
-    ].join('|'),
+    ],
 
     pl: [
         'przypomnij',
         'przypomnienie',
-        'ustaw\\s+przypomnienie',
-        'nie\\s+zapomnij',
+        'ustaw przypomnienie',
+        'nie zapomnij',
         'proszę'
-    ].join('|'),
+    ],
 
     hi: [
-        'याद\\s+दिलाओ',
+        'याद दिलाओ',
         'रिमाइंडर',
-        'सेट\\s+करें',
-        'भूलना\\s+नहीं',
+        'सेट करें',
+        'भूलना नहीं',
         'कृपया',
         'प्लीज़'
-    ].join('|')
-};
-
-// ✅ Предлоги и артикли для удаления (только в начале/конце)
-const REMOVABLE_WORDS:Record<string, string> = {
-    ru: 'в|во|на|с|со|к|у|за|по|из|от|до|для|без|через|о|об|про|а|и|но|или|же|ли|ведь',
-    en: 'a|an|the|in|on|at|for|to|with|by|from|of|off|out|over|under|and|or|but',
-    de: 'der|die|das|den|dem|des|ein|eine|einer|eines|einem|in|auf|bei|mit|nach|von|zu|aus|durch|für|ohne|und|oder|aber',
-    fr: 'le|la|les|un|une|des|du|de|à|au|aux|en|dans|sur|sous|avec|sans|pour|par|et|ou|mais',
-    es: 'el|la|los|las|un|una|unos|unas|de|del|a|al|en|sobre|bajo|con|sin|por|para|y|o|pero',
-    it: 'il|lo|la|i|gli|le|un|uno|una|un\'|di|a|da|in|con|su|per|tra|fra|e|o|ma',
-    pt: 'o|a|os|as|um|uma|uns|umas|de|do|da|dos|das|em|no|na|nos|nas|por|para|com|sem|sobre|e|ou|mas',
-    nl: 'de|het|een|in|op|aan|bij|met|van|uit|naar|voor|door|over|onder|en|of|maar',
-    zh: '的|了|在|和|就|个|也|很',
-    ja: 'の|は|が|を|に|で|と|から|まで|より|も|や|か|ね|よ',
-    ko: '의|는|가|을|를|에|에서|으로|로|와|과|랑|하고|도|만|부터|까지'
+    ]
 };
 
 export class TextParserProvider {
@@ -223,7 +199,8 @@ export class TextParserProvider {
                 sourceText: text,
                 cleanText: '',
                 date: null,
-                error: browser.i18n.getMessage('errorNoSpeechText'), 
+                // error: browser.i18n.getMessage('errorNoSpeechText'), //при принудительной остановке выскакивало 
+                error: null, 
             };
         }
 
@@ -342,50 +319,80 @@ export class TextParserProvider {
         return bestDate;
     }
 
-    // ✅ Полностью переработанный метод очистки текста
     #cleanText(fullText: string, dateText: string, locale: string): string {
-        let cleaned = fullText;
+        let cleaned = fullText.replace(/\s+/g, ' ');
 
-        // Удаляем распознанную дату
+        // 1. СНАЧАЛА удаляем дату (вместе с предлогами)
         if (dateText) {
             const escapedDate = dateText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const dateRegex = new RegExp(`\\s*${escapedDate}\\s*`, 'gi');
-            cleaned = cleaned.replace(dateRegex, ' ');
+            const TIME_PREPOSITIONS: Record<string, string> = {
+                ru: '(?:в|во|на|через|после|спустя|за|до|к|с|со|от|около|примерно|ровно|в этот|в тот|в следующий|в прошлый|в ближайший)',
+                en: '(?:in|on|at|by|for|since|from|after|before|within|during|through|about|around|exactly)',
+                de: '(?:in|um|auf|bei|nach|vor|bis|ab|seit|innerhalb|während|gegen|ungefähr|genau)',
+                fr: '(?:dans|à|en|sur|pour|depuis|après|avant|pendant|vers|environ|exactement)',
+                es: '(?:en|a|para|por|desde|hasta|después|antes|durante|hacia|aproximadamente|exactamente)',
+                it: '(?:in|a|per|da|dopo|prima|durante|verso|circa|esattamente)',
+                pt: '(?:em|a|para|por|desde|até|depois|antes|durante|sobre|aproximadamente|exatamente)',
+                nl: '(?:in|op|aan|bij|na|voor|binnen|tijdens|ongeveer|precies)',
+                zh: '(?:在|于|到|前|后|从|自|当|大约|正好)',
+                ja: '(?:に|で|から|まで|後|前|中|約|ちょうど)',
+                ko: '(?:에|에서|부터|까지|후|전|중|약|정확히)'
+            };
+            const prepPattern = TIME_PREPOSITIONS[locale] || TIME_PREPOSITIONS.en;
+            const dateWithPrepositionRegex = new RegExp(`\\s*${prepPattern}\\s+${escapedDate}\\s*|\\s*${escapedDate}\\s*`, 'gi');
+            cleaned = cleaned.replace(dateWithPrepositionRegex, ' ')
+                .replace(/\s+/g, ' ').trim();
         }
+
+        // 2. ПОТОМ удаляем триггеры (теперь строка начинается с "Напомни о чём-нибудь")
+        const triggerPatterns= TRIGGER_PATTERNS[locale] || [];
         
-        // Удаляем триггеры (команды) циклически
-        const triggerPattern = TRIGGER_PATTERNS[locale];
-        if (triggerPattern) {
+        if (triggerPatterns.length) {
+            const triggerPattern = triggerPatterns.map(r => `(?:${r}\\s+)`).join('|')
+            
             let prevLength;
             do {
                 prevLength = cleaned.length;
                 // Удаляем триггеры в начале строки
-                const startTriggerRegex = new RegExp(`^\\s*(${triggerPattern})\\s+`, 'gi');
-                cleaned = cleaned.replace(startTriggerRegex, '');
-                // // Удаляем триггеры в конце (Такого быть не может)
-                // const endTriggerRegex = new RegExp(`\\s+(${triggerPattern})\\s*$`, 'gi');
-                // cleaned = cleaned.replace(endTriggerRegex, '');
+                const startTriggerRegex = new RegExp(`^\\s*(?:${triggerPattern})`, 'gi');
+                cleaned = cleaned.replace(startTriggerRegex, '')
+                    .replace(/\s+/g, ' ').trim();
+               
             } while (cleaned.length !== prevLength);
         }
 
-        // Удаляем предлоги и артикли, короткие слова
-        const removableWords = REMOVABLE_WORDS[locale];
-        if (removableWords) {
-            let prevLength;
-            do {
-                prevLength = cleaned.length;
-                // Удаляем в начале строки
-                cleaned = cleaned.replace(new RegExp(`^(?:${removableWords})\\s+`, 'i'), '');
-                // Удаляем в конце строки
-                cleaned = cleaned.replace(new RegExp(`\\s+(?:${removableWords})$`, 'i'), '');
-            } while (cleaned.length !== prevLength);
-        }
+        
+        //Тогда ломается кейсы типа "Сегодня в 8:00 в гараже убраться
+        // ✅ Предлоги и артикли для удаления (только в начале/конце)
+        // const REMOVABLE_WORDS:Record<string, string> = {
+        //     ru: 'в|во|на|с|со|к|у|за|по|из|от|до|для|без|о|об|про|а|и|но|или|же|ли|ведь|вот|это|эти|этого|этому|этим',
+        //     en: 'a|an|the|in|on|at|for|to|with|by|from|of|off|out|over|under|and|or|but',
+        //     de: 'der|die|das|den|dem|des|ein|eine|einer|eines|einem|in|auf|bei|mit|nach|von|zu|aus|durch|für|ohne|und|oder|aber',
+        //     fr: 'le|la|les|un|une|des|du|de|à|au|aux|en|dans|sur|sous|avec|sans|pour|par|et|ou|mais',
+        //     es: 'el|la|los|las|un|una|unos|unas|de|del|a|al|en|sobre|bajo|con|sin|por|para|y|o|pero',
+        //     it: 'il|lo|la|i|gli|le|un|uno|una|un\'|di|a|da|in|con|su|per|tra|fra|e|o|ma',
+        //     pt: 'o|a|os|as|um|uma|uns|umas|de|do|da|dos|das|em|no|na|nos|nas|por|para|com|sem|sobre|e|ou|mas',
+        //     nl: 'de|het|een|in|op|aan|bij|met|van|uit|naar|voor|door|over|onder|en|of|maar',
+        //     zh: '的|了|在|和|就|个|也|很',
+        //     ja: 'の|は|が|を|に|で|と|から|まで|より|も|や|か|ね|よ',
+        //     ko: '의|는|가|을|를|에|에서|으로|로|와|과|랑|하고|도|만|부터|까지'
+        // };
+        //
+        // // 3. Удаляем стоп-слова только в начале и конце
+        // const removableWords = REMOVABLE_WORDS[locale];
+        // if (removableWords) {
+        //     let prevLength;
+        //     do {
+        //         prevLength = cleaned.length;
+        //         cleaned = cleaned.replace(new RegExp(`^(?:${removableWords})\\s+`, 'gi'), '').trim();
+        //         cleaned = cleaned.replace(new RegExp(`^(?:${removableWords})$`, 'gi'), '').trim();
+        //     } while (cleaned.length !== prevLength);
+        // }
 
-        // 5. Финальная очистка
-        cleaned = cleaned
-            .replace(/\s+/g, ' ')
-            .trim();
+        // 4. Финальная очистка
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
 
         return cleaned || fullText;
     }
+    
 }
