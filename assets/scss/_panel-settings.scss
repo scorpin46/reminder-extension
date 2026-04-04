@@ -29,7 +29,7 @@
     font-size: 13px;
   }
   
-  &:has(section:hover){
+  &:has(section:not(:last-child):hover){
     section:not(:hover){
       filter: blur(1px);
     }

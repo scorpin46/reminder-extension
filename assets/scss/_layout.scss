@@ -451,7 +451,6 @@ main {
   user-select: none;
   display: flex;
   justify-content: space-between;
-  min-height: 38px;
 
   @media (max-width: 350px){
     font-size: 0;
@@ -475,7 +474,7 @@ main {
       }
     }
   }
-  
+
   &:before{
     @include beforeBg;
     opacity: .5;

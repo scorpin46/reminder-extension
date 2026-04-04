@@ -8,7 +8,7 @@ export const sendGoogleLoginMessage = (callback) => {
         if (!response.success) {
             toast.error(browser.i18n.getMessage("errorAuth"), {timeout: 5000});
         } else if (!response.silent){
-            toast.success(browser.i18n.getMessage('successAuth', [response.user.email]));
+            toast.success(browser.i18n.getMessage('successAuth', [response.user.email]), {id: 'successAuth'});
         }
 
         if (callback && typeof callback === 'function') {

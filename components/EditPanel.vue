@@ -37,7 +37,6 @@
               <IconCheck class="date-confirm-icon"/>
             </div>
           </div>
-<!--          <RecordBtn  :data-locale="recognitionLocale"/>-->
         </div>
         <div class="w-100">
           <button v-if="!showExtraFields" 

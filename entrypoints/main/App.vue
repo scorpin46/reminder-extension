@@ -88,7 +88,7 @@
                 </button>
                 <!--              <div class="reminders-item__actions-fin">-->
                 <!--              </div>-->
-                <button class="reminders-item__action reminders-item__action--complete" v-if="expired.includes(item.id) || group.isToday" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+                <button class="reminders-item__action reminders-item__action--complete" v-if="!item.completed && (group.isToday || expired.includes(item.id))" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
                   <IconChecks/>
                 </button>
                 <button v-else
@@ -164,7 +164,7 @@ import {
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
-import {isNumeric, localDateFormat} from "@/modules/utils/helpers.ts";
+import {isNumeric, localDateFormat, reminderIdToAlarmName} from "@/modules/utils/helpers.ts";
 import {useIntervalFn} from "@vueuse/core";
 import {useDate} from "vuetify/framework";
 import Header from "@/components/Header.vue";
@@ -213,7 +213,7 @@ showExpiredItems.getValue().then((val) => {
 
 const checkAuth = async () => {
   sendGoogleCheckStatusMessage(async response => {
-    googleIsAuthenticatedStore.setValue(!!response.authenticated);
+    await googleIsAuthenticatedStore.setValue(!!response.authenticated);
     authenticatedEmail.value = !response.authenticated ? '' : response?.user?.email || ''; //возвращать значение отличное от undefined!
   })
 }
@@ -223,7 +223,7 @@ googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
     authenticatedEmail.value = '';
 
     if (!await googleUserStore.getValue()) {
-      toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000});
+      toast.warning(browser.i18n.getMessage("successLogout"), {timeout: 3000, id: "successLogout"});
     }
   } else if (newValue && newValue !== oldValue) {
     checkAuth();
