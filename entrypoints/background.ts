@@ -133,9 +133,11 @@ export default defineBackground({
             
             const reminderId = getReminderIdFromAlarmName(alarm.name);
             const reminderService = ReminderService.instance();
-            
+
+            console.log('alarm', reminderId);
             if (reminderId) {
                 const reminder = await reminderService.repository.getById(reminderId);
+                console.log(reminder);
 
                 if (reminder?.id && !reminder.completed) {
                     const notifyParams: NotificationCreateOptions = {
@@ -163,8 +165,13 @@ export default defineBackground({
                         // notifyParams.requireInteraction = false;
                         isUrlNotify = true;
                         //todo Добавить повтор и в гугл
-                    } else if (reminder.repeatAfterMin) {
-                        notifyParams.buttons = [{title: '✅ OK'}];
+                    } 
+                    
+                    if (reminder.recurrence) {
+                        notifyParams.buttons = [
+                            {title: browser.i18n.getMessage('alertPostponeBtn')},
+                            {title: '✅ OK'}
+                        ]; 
                     }
 
                     const handler = async () => {
@@ -172,6 +179,8 @@ export default defineBackground({
 
                         try {
                             notificationId = await browser.notifications.create(notifyParams);
+                            console.log({notificationId});
+
                             //@ts-ignore
                             if (reminder.priority) {
                                 await offscreenManager.playPriorityAlarmSound(reminder.id);
@@ -183,17 +192,19 @@ export default defineBackground({
                         }
 
                         const newReminderParams:Partial<Reminder> = {notificationId};
-
-                        if (reminder.repeatAfterMin) { //todo этот кейс не доделан, если его использовать в связке с fallback notification
-                            let nextDatetime = +reminder.datetime;
-                            while (nextDatetime <= Date.now()) {
-                                nextDatetime += reminder.repeatAfterMin * 60000;
-                            }
-                            newReminderParams.datetime = new Date(nextDatetime);
-                        } else if (reminder.url) { // если не повторяемый url
+                        const nextOccurrenceDate = await reminderService.getNextOccurrence(reminder);
+                        
+                        if (reminder.url) { // если не повторяемое событие открытия url
                             newReminderParams.completed = 1;
 
                             browser.tabs.create({ url: reminder.url, active: true });
+                        }
+
+                        if (reminder.recurrence && nextOccurrenceDate) {
+                            newReminderParams.completed = 0;
+                            newReminderParams.datetime = nextOccurrenceDate;
+
+                            reminderService.createAlarm(reminderId, newReminderParams.datetime); //тут заводим повторный будильник, т.к. вызываем update не через saveReminder
                         }
 
                         await reminderService.repository.update(reminder.id!, newReminderParams);
@@ -247,6 +258,7 @@ export default defineBackground({
             //Уведомление о необходимости авторизоваться
             const authAlertId = await getStoredGoogleAuthAlertId().getValue();
 
+            console.log('onButtonClicked', notificationId);
             if (notificationId === authAlertId) {
                 await GoogleCalendarService.instance().login();
                 return;
@@ -259,12 +271,12 @@ export default defineBackground({
 
                 return;
             }
-            
-            if (!reminder || reminder.url || reminder.repeatAfterMin){
+
+            if (!reminder || reminder.url){
                 return;
             }
 
-            if (buttonIndex === 1) {
+            if (buttonIndex === 1 && ! reminder.recurrence) {
                 await ReminderService.instance().complete(reminder, false);
                 await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
             } else if (buttonIndex === 0) {

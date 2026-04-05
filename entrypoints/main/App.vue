@@ -278,7 +278,6 @@ const showEditPanel = async (reminder = null, forceRunRecording = false) => {
     initialFormData = isNumeric(reminder)
         ? await reminderService.repository.getById(reminder) || {}
         : reminder
-    
     initialFormData ??= {}
   }
   
@@ -396,9 +395,9 @@ watch(() => searchVisible.value, (value, oldValue) => {
 watch(() => recognitionService.state.isRecording, (value, oldValue) => {
   document.documentElement.classList.toggle('--recording', value);
   
-  if (!value && oldValue && !recognitionService.state.streamRecordingText){
-    //todo notify "вас не слышно"...
-  }
+  // if (!value && oldValue && !recognitionService.state.streamRecordingText){
+    //можно было бы notify "вас не слышно", но это не очень надежно здесь
+  // }
 })
 
 watch([settingsPanelVisible, editingPanelVisible], ([settingsVisible, editingVisible], [settingsVisibleOld, editingVisibleOld]) => {

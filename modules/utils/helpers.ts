@@ -150,7 +150,7 @@ export const localDateFormat = (date: Date | string, withTime: boolean, locale: 
     return formattedDate;
 }
 
-export const getValueForInputTime = (dateObj: Date = new Date(), locale?: string) => {
+export const getUniversalLocalTimeString = (dateObj: Date = new Date(), locale?: string) => {
     return dateObj.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
@@ -175,16 +175,28 @@ export const detectLocale = () => {
     return results.find(l => l.startsWith(locale) && l.includes('-')) || locale;
 }
 
-export const reminderNotificationPrefix = 'reminder_';
-
+export const reminderAlarmPrefix = 'alarm-';
+export const reminderNotificationPrefix = 'notification-';
 
 export const reminderIdToAlarmName = (reminderId: number, type: string = 'default') => {
-    return `${reminderNotificationPrefix}${reminderId}#type-${type}`
+    return `${reminderAlarmPrefix}${reminderId}#type-${type}`
 }
 
 export const getReminderIdFromAlarmName = (alarmName: string) => {
-    if (alarmName.startsWith(reminderNotificationPrefix)) {
-        return parseInt(alarmName.replace(reminderNotificationPrefix, ''));
+    if (alarmName.startsWith(reminderAlarmPrefix)) {
+        return parseInt(alarmName.replace(reminderAlarmPrefix, ''));
+    }
+    
+    return null;
+}
+
+export const reminderIdToNotificationId = (reminderId: number) => {
+    return `${reminderNotificationPrefix}${reminderId}`
+}
+
+export const getReminderIdFromNotificationId = (notificationId: string) => {
+    if (notificationId.startsWith(reminderNotificationPrefix)) {
+        return parseInt(notificationId.replace(reminderNotificationPrefix, ''));
     }
     
     return null;

@@ -33,7 +33,13 @@
             <div class="form-label mb-15 reminder-datetime-wrapper">
               <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
-              <InputDatetime required id="input-datetime" class="form-control w-100" v-model="form.input.datetime" :rewritePastTime="!form.isCreating()"/>
+              <InputDatetime
+                  required
+                  id="input-datetime"
+                  class="form-control w-100"
+                  v-model="form.input.datetime"
+                  :rewritePastTime="!form.isCreating()"
+              />
               <IconCheck class="date-confirm-icon"/>
             </div>
           </div>
@@ -270,7 +276,6 @@ const scrollToBottom = () => {
   });
 }
 
-let buttonsObserver;
 
 onMounted(async () => {
   Object.assign(form.input, props.initialFormData);
@@ -332,12 +337,6 @@ onMounted(async () => {
     emit('update:autostartRecording', false);
   }
 })
-
-
-
-// watch(() => form.input.datetime, (value) => {
-//   console.log(value);
-// }, {deep: true, immediate: true})
 
 onUnmounted(() => {
   recognitionService.stop();

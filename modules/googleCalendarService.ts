@@ -14,6 +14,7 @@ import type {calendar_v3} from "@googleapis/calendar";
 import axios, {AxiosInstance, AxiosError, InternalAxiosRequestConfig} from 'axios';
 import rateLimit from 'axios-rate-limit';
 import {delay} from "./utils/helpers";
+import RRuleService from "@/modules/rRuleService";
 
 // Расширяем интерфейс для хранения флага повтора
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -510,8 +511,8 @@ export class GoogleCalendarService {
         const params = new URLSearchParams({
             maxResults: maxResults.toString(),
             timeZone: this.timeZone,
-            orderBy: 'startTime',
-            singleEvents: 'true',
+            // orderBy: 'startTime',
+            singleEvents: 'false',
             showDeleted: 'true',
         });
         
@@ -636,6 +637,8 @@ export class GoogleCalendarService {
             description = description.replace(matches[0]!, '');
         }
 
+        //todo  прочие RULE конвертации
+        //todo Не зыбать сметь/убрать унопки продления для повторяющихся
         return {
             datetime: new Date(event.start?.dateTime!),
             title: event.summary!,
@@ -751,7 +754,7 @@ export class GoogleCalendarService {
                         } else if (reminderItem.datetime.getTime() > Date.now()) {
                             creating.push(reminderItem);
                         }
-                    } else if (event) {
+                    } else if (event && event.status !== 'cancelled') {
                         deletingEvents.push(reminderItem.googleEventId!);
                     }
                 });
@@ -917,10 +920,15 @@ export class GoogleCalendarService {
 
         for (const event of events) {
             const isExist = (await ReminderService.instance().getAllGoogleEventsIds()).includes(event.id!);
-            const datetime = new Date(event.start?.dateTime as string);
+            const datetimeAsObj = new Date(event.start?.dateTime!);
+            const datetime = RRuleService.getNextOccurrence(datetimeAsObj, event.recurrence) ?? datetimeAsObj;
+            
+            console.log(`NextOccurrence for ${event.summary}`, datetime);
 
-            if (!isExist && !isNaN(+datetime) && datetime.getTime() >= Date.now()) {
+            //в принципе можно импортировать всё
+            if (!isExist && datetime && !isNaN(+datetime)/* && datetime.getTime() >= Date.now()*/) {
                 await this.#reminderService.save({
+                    //todo rrule + dateFrom + dateTo
                     datetime: datetime,
                     title: event.summary!,
                     desc: event.description,

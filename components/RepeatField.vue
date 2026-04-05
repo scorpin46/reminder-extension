@@ -9,9 +9,10 @@
 
     <template v-if="isCustomFrequency">
       <div class="recurrence__unit">
+<!--        todo переводы текстам сделать-->
         <span>Every</span>
-        <input type="number" v-model.number="interval" min="1" class="form-control"/>
-        <select v-model="intervalUnit" class="form-control w-50">
+        <input type="number" v-model.number="interval" min="1" class="form-control" required placeholder="1"/>
+        <select v-model="intervalUnit" class="form-control w-50" required>
           <option v-for="unit in intervalUnits" :value="unit.value">{{ unit.label }}</option>
         </select>
       </div>
@@ -19,14 +20,14 @@
 
     <div v-if="showTimeRange" class="recurrence__times mb-20">
       <span>From</span>
-      <input type="time" v-model="fromTime" class="form-control" />
+      <input type="time" v-model="fromTime" class="form-control" required/>
       <span>to</span>
-      <input type="time" v-model="toTime" class="form-control" :min="fromTime" />
+      <input type="time" v-model="toTime" class="form-control" :min="fromTime" required/>
     </div>
 
     <div v-if="showWeekdays" class="recurrence__weekdays mb-20">
       <label v-for="day in weekdays" :key="day.value" class="recurrence__weekday">
-        <input type="checkbox" v-model="selectedDays" :value="day.value" hidden>
+        <input type="checkbox" v-model="selectedDays" :value="day.value" hidden :required="!selectedDays.length">
         <span>{{ day.label }}</span>
       </label>
     </div>
@@ -36,7 +37,6 @@
 <script setup>
 import {ref, computed, watch, onMounted, nextTick} from 'vue'
 import {RRule, Frequencies, Weekdays} from '@martinhipp/rrule'
-import { CalendarDateTime } from '@internationalized/date'
 import {useDate} from "vuetify/framework";
 
 const props = defineProps({
@@ -59,7 +59,7 @@ const emit = defineEmits(['change', 'scrollToBottom', 'update:rrule', 'update:fr
 const dateAdapter = useDate()
 
 const frequency = ref('')
-const interval = ref(1)
+const interval = ref(30)
 const intervalUnit = ref(Frequencies.MINUTELY)
 
 const baseDate = computed(() => props.startDate instanceof Date && !isNaN(props.startDate.getTime())
@@ -116,23 +116,15 @@ const rrule = computed(() => {
 
   try {
     const date = baseDate.value;
-    // const date = new Date('2026-04-30 15:30');
-    const isLastDayOfMonth = dateAdapter.isSameDay(date, dateAdapter.endOfMonth(date));
+    const aDate = dateAdapter.date(date);
+    const isLastDayOfMonth = dateAdapter.isSameDay(aDate, dateAdapter.endOfMonth(aDate));
 
-    // const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
-
-    // console.log(isLastDayOfMonth, date, dateAdapter.endOfMonth(date));
-    // const [h, m] = fromTime.value.split(':').map(Number)
-    // const dtstart = showTimeRange.value
-    //     ? new CalendarDateTime(year, month, day, h, m)
-    //     : new CalendarDateTime(year, month, day)
 
     const options = {
       freq: isCustomFrequency.value ? intervalUnit.value : frequency.value,
       interval: isCustomFrequency.value ? interval.value : 1,
-      // dtstart
     }
 
     if (showWeekdays.value && selectedDays.value.length) {
@@ -157,7 +149,8 @@ const rrule = computed(() => {
 
 onMounted(() => {
   if (props.rrule){
-    const { freq, interval: int, byweekday } = RRule.fromString(props.rrule).options
+    const { freq, interval: int, byweekday } = RRule.fromString(props.rrule);
+
     const mode = rruleToMode[freq]
 
     if (mode) {
@@ -170,6 +163,8 @@ onMounted(() => {
       }
     }
 
+    interval.value ??= 1;
+    
     if (byweekday){
       selectedDays.value = byweekday.map(d => d.toString().toUpperCase())
     }
@@ -183,11 +178,10 @@ onMounted(() => {
   })
 })
 
-watch(rrule, (val) => {
-  console.log(val);
-  emit('update:rrule', val || null)
-  emit('update:fromTime', showTimeRange.value ? fromTime.value : null)
-  emit('update:toTime', showTimeRange.value ? toTime.value : null)
+watch([rrule, fromTime, toTime], ([rruleVal, fromTimeVal, toTimeVal]) => {
+  emit('update:fromTime', showTimeRange.value ? fromTimeVal : null)
+  emit('update:toTime', showTimeRange.value ? toTimeVal : null)
+  emit('update:rrule', rruleVal || null)
 })
 
 </script>

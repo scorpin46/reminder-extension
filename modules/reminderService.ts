@@ -1,7 +1,15 @@
-import {localDateFormat, localTimeUntil, reminderIdToAlarmName, detectLocale, isNumeric} from "./utils/helpers";
+import {
+    localDateFormat,
+    localTimeUntil,
+    reminderIdToAlarmName,
+    detectLocale,
+    getUniversalLocalTimeString
+} from "./utils/helpers";
 import {Reminder, ReminderRepository} from "./reminderRepository.js";
 import {browser} from 'wxt/browser';
 import {getExpiredCountStore} from "@/modules/utils/storage";
+import RRuleService from "@/modules/rRuleService";
+import { VuetifyDateAdapter } from 'vuetify/date/adapters/vuetify'
 
 export class ReminderService {
     readonly repository: ReminderRepository;
@@ -66,10 +74,7 @@ export class ReminderService {
         reminderParams.completed = +reminderParams.datetime! >= Date.now() ? 0 : reminderParams.completed; //обязательно должно быть перед блоком ниже, иначе не сработает alert, если восстанавливаешь из завершенных
         
         if (reminderParams.datetime && !reminderParams.completed){
-            await browser.alarms.create(reminderIdToAlarmName(id), {
-                when: +reminderParams.datetime,
-                // periodInMinutes: reminderParams.repeatAfterMin, //todo тут вообще не понятно как сделать защиту для точного повторного срабатывания особенно после пропусков и сложных кейсов повторений
-            })
+            await this.createAlarm(id, reminderParams.datetime)
         }
         
         if (shouldSendMessage) {
@@ -89,6 +94,12 @@ export class ReminderService {
         await this.#updatedCallback();
 
         return id;
+    }
+    
+    async createAlarm(reminderId: number, datetime: Date) {
+        return await browser.alarms.create(reminderIdToAlarmName(reminderId), {
+            when: +datetime,
+        })
     }
     
     async delete(reminder: Reminder, sendMessage: boolean = true) {
@@ -118,7 +129,6 @@ export class ReminderService {
 
     getPreviewTitle(reminderItem: Reminder, prependDate: boolean = true) {
         const dateFormatted = ! prependDate ? '' : localDateFormat(reminderItem.datetime, true, this.regionLocale);
-        // return `${dateFormatted}\n${reminderItem.title}`.trim();
         return `${dateFormatted}\n${reminderItem.title}\n\n${reminderItem.desc || ''}\n\n${reminderItem.url || ''}`.replace(/\n{3,}/, '\n\n').trim();
     }
 
@@ -130,23 +140,51 @@ export class ReminderService {
         return this.repository.state.active.filter(item => !item.completed && item.datetime < now);
     }
 
-    async getNextOccurrence(reminderOrId: Reminder|number): Promise<Date|null> {
-        let reminder = typeof reminderOrId === 'number' ? await this.repository.getById(reminderOrId) : reminderOrId;
-        
+    async getNextOccurrence(reminderOrId: Reminder|number, nowDate = new Date()): Promise<Date|null> {
+        const reminder = typeof reminderOrId === 'number' ? await this.repository.getById(reminderOrId) : reminderOrId;
+ 
         if (!reminder){
             return null;
         }
         
-        //todo доделать
-        if (reminder.recurrence) {
-            // let nextDatetime = +reminder.datetime;
-            // while (nextDatetime <= Date.now()) {
-            //     nextDatetime += reminder.repeatAfterMin * 60000;
-            // }
-            // newReminderParams.datetime = reminderService.getNextOccurrence(reminder) new Date(nextDatetime);
+        if (reminder.datetime > nowDate){
+            return reminder.datetime;
         }
         
-        return reminder.datetime > new Date() ? reminder.datetime : null;
+        const dateAdapter = new VuetifyDateAdapter({locale: this.regionLocale});
+        const adapterReminderDate = dateAdapter.date(reminder.datetime);
+        let nextDate: Date|null = reminder.datetime;
+        
+        if (reminder.recurrence) {
+            const fromTime = reminder.recurrenceFromTime;
+            const toTime = reminder.recurrenceToTime;
+            let tempLastNextDate: Date|null = nextDate;
+
+            do {
+                nextDate = RRuleService.getNextOccurrence(nextDate, reminder.recurrence, nowDate);
+                const adapterNextDate = dateAdapter.date(nextDate);
+                const nextTime = nextDate ? getUniversalLocalTimeString(nextDate) : null;
+
+                if (fromTime && toTime && nextDate && nextDate > nowDate){
+                    const needAppendDay = nextTime && nextTime > toTime;
+                    const [hours, minutes] = fromTime.split(':');
+                    
+                    if (needAppendDay){
+                        nextDate.setDate(nextDate.getDate() + 1)
+                    }
+
+                    if (dateAdapter.isAfterDay(adapterNextDate!, adapterReminderDate!) || needAppendDay){
+                        nextDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    }
+                }
+                
+                if (nextDate && nextDate === tempLastNextDate){
+                    nextDate.setMinutes(nextDate.getMinutes() + 1); //просто защита от случайного зацикливания
+                }
+            } while (nextDate && nextDate <= nowDate)
+        }
+        
+        return nextDate && nextDate > nowDate ? nextDate : null;
     }
 
     hasExpiredReminders(now = new Date()) {

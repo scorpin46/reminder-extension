@@ -5,7 +5,7 @@ import {isNumeric} from "@/modules/utils/helpers";
 
 const DB_NAME = 'ReminderDatabase';
 
-// Единый базовый тип для БД
+// Единый базовый тип для БД 
 interface ReminderInterface {
     id: number | undefined;
     title: string;
@@ -22,6 +22,8 @@ interface ReminderInterface {
     recurrence?: string | null;
     recurrenceFromTime?: string | null;
     recurrenceToTime?: string | null;
+    recurrencePause: 0 | 1;
+    //не забывать добавлять новые поля в миграцию
 }
 
 type Reminder = {
@@ -62,8 +64,8 @@ export class ReminderRepository {
     constructor() {
         this._db = new Dexie(DB_NAME, {}) as typeof this._db;
 
-        this._db.version(3).stores({
-            reminders: '++id, title, desc, url, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, [completed+datetime]'
+        this._db.version(4).stores({
+            reminders: '++id, title, desc, url, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, recurrence, recurrenceFromTime, recurrenceToTime, recurrencePause, [completed+datetime]'
         });
 
         // Хуки
@@ -76,6 +78,7 @@ export class ReminderRepository {
             reminder.createdAt = now;
             reminder.updatedAt = now;
             reminder.completed = reminder.completed ? 1 : 0;
+            reminder.recurrencePause = reminder.recurrencePause ? 1 : 0;
             reminder.datetime = +reminder.datetime;
            
             if (reminder.googleSync != null){ //!= сравнивает на undefined и на null 
@@ -91,7 +94,7 @@ export class ReminderRepository {
 
                 if (updates.datetime >= Date.now()) {
                     updates.completed = 0;
-                    updates.notificationId = null;
+                    updates.recurrencePause = 0;
                 }
             }
 
@@ -101,6 +104,10 @@ export class ReminderRepository {
 
             if ('completed' in updates){
                 updates.completed = updates.completed ? 1 : 0;
+            }
+
+            if ('recurrencePause' in updates){
+                updates.recurrencePause = updates.recurrencePause ? 1 : 0;
             }
 
             if ('googleSync' in updates && updates.googleSync != null){ //!= сравнивает на undefined и на null 

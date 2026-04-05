@@ -1,8 +1,6 @@
 @use "../../assets/scss/variables";
 @use "../../assets/scss/typography";
 
-//todo стили все нужно зафиксировать (если будет поддержка больше 1 темы), нельзя чтобы разные welcome page были, иначе как определять конверсию...
-
 html {
   all: unset;
   background: #ffe6ac;
