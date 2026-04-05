@@ -191,7 +191,7 @@ export const getReminderIdFromAlarmName = (alarmName: string) => {
 }
 
 export const reminderIdToNotificationId = (reminderId: number) => {
-    return `${reminderNotificationPrefix}${reminderId}`
+    return `${reminderNotificationPrefix}${reminderId}`;
 }
 
 export const getReminderIdFromNotificationId = (notificationId: string) => {

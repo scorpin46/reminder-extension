@@ -1,7 +1,7 @@
 import {watch} from "vue";
 import {
     getImproveExperienceFormLink,
-    getReminderIdFromAlarmName,
+    getReminderIdFromAlarmName, getReminderIdFromNotificationId, reminderIdToNotificationId,
 } from "@/modules/utils/helpers";
 import {browser, Browser} from 'wxt/browser';
 import {ReminderService} from "@/modules/reminderService.js";
@@ -175,10 +175,11 @@ export default defineBackground({
                     }
 
                     const handler = async () => {
-                        let notificationId = null;
+                        let notificationId = reminderIdToNotificationId(reminderId);
 
                         try {
-                            notificationId = await browser.notifications.create(notifyParams);
+                            await browser.notifications.clear(notificationId);
+                            notificationId = await browser.notifications.create(notificationId, notifyParams);
                             console.log({notificationId});
 
                             //@ts-ignore
@@ -191,7 +192,7 @@ export default defineBackground({
                             console.error(error);
                         }
 
-                        const newReminderParams:Partial<Reminder> = {notificationId};
+                        const newReminderParams:Partial<Reminder> = {};
                         const nextOccurrenceDate = await reminderService.getNextOccurrence(reminder);
                         
                         if (reminder.url) { // если не повторяемое событие открытия url
@@ -263,14 +264,15 @@ export default defineBackground({
                 await GoogleCalendarService.instance().login();
                 return;
             }
-            
-            const reminder = await ReminderService.instance().repository.getByNotificationId(notificationId);
 
             if (notificationId === startupNotificationId){
                 await openMainWindow();
 
                 return;
             }
+
+            const reminderId = getReminderIdFromNotificationId(notificationId)
+            const reminder = reminderId ? await ReminderService.instance().repository.getById(reminderId) : null;
 
             if (!reminder || reminder.url){
                 return;

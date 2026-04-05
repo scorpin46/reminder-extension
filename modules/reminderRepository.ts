@@ -14,7 +14,6 @@ interface ReminderInterface {
     createdAt: number | Date;
     updatedAt: number | Date;
     completed: 0 | 1;
-    notificationId: string | null;
     googleEventId: string | null;
     googleSync: 0 | 1 | null;
     googleSyncDate: number | Date | null;
@@ -64,8 +63,8 @@ export class ReminderRepository {
     constructor() {
         this._db = new Dexie(DB_NAME, {}) as typeof this._db;
 
-        this._db.version(4).stores({
-            reminders: '++id, title, desc, url, datetime, createdAt, updatedAt, completed, notificationId, googleEventId, googleSync, googleSyncDate, recurrence, recurrenceFromTime, recurrenceToTime, recurrencePause, [completed+datetime]'
+        this._db.version(6).stores({
+            reminders: '++id, title, desc, url, datetime, createdAt, updatedAt, completed, googleEventId, googleSync, googleSyncDate, recurrence, recurrenceFromTime, recurrenceToTime, recurrencePause, [completed+datetime]'
         });
 
         // Хуки
@@ -200,13 +199,13 @@ export class ReminderRepository {
         return reminder?.id ? toUI(reminder): undefined;
     }
 
-    async getByNotificationId(notificationId: string): Promise<Reminder | undefined> {
-        const reminder = await this._db.reminders
-            .where('notificationId')
-            .equals(notificationId)
-            .first();
-        return reminder?.id ? toUI(reminder): undefined;
-    }
+    // async getByNotificationId(notificationId: string): Promise<Reminder | undefined> {
+    //     const reminder = await this._db.reminders
+    //         .where('notificationId')
+    //         .equals(notificationId)
+    //         .first();
+    //     return reminder?.id ? toUI(reminder): undefined;
+    // }
 
     async add(data: Partial<Reminder|ReminderInterface>): Promise<number> {
         delete data.id;
