@@ -92,6 +92,9 @@
   "missed": {
     "message": "Просроченные"
   },
+  "onPause": {
+    "message": "На паузе"
+  },
   "reminder": {
     "message": "Напоминание"
   },
@@ -349,5 +352,62 @@
   },
   "reportIssue": {
     "message": "Сообщить о проблеме / Предложить функцию"
+  },
+  "reminder_action_pause": {
+    "message": "Приостановить"
+  },
+  "reminder_action_unpause": {
+    "message": "Возобновить"
+  },
+  "reminder_paused": {
+    "message": "приостановлено"
+  },
+  "reminderForm_repeat_custom": {
+    "message": "Своё"
+  },
+  "reminderForm_repeat_daily": {
+    "message": "Ежедневно"
+  },
+  "reminderForm_repeat_monthly": {
+    "message": "Ежемесячно"
+  },
+  "reminderForm_repeat_never": {
+    "message": "Никогда"
+  },
+  "reminderForm_repeat_weekly": {
+    "message": "Еженедельно"
+  },
+  "reminderForm_repeat_yearly": {
+    "message": "Ежегодно"
+  },
+  "customRepeat_label_every": {
+    "message": "Каждые"
+  },
+  "customRepeat_unit_minutes": {
+    "message": "Минут"
+  },
+  "customRepeat_unit_hours": {
+    "message": "Часов"
+  },
+  "customRepeat_unit_days": {
+    "message": "Дни"
+  },
+  "customRepeat_unit_weeks": {
+    "message": "Недели"
+  },
+  "customRepeat_unit_months": {
+    "message": "Месяцы"
+  },
+  "customRepeat_unit_years": {
+    "message": "Годы"
+  },
+  "repeat": {
+    "message": "Повтор"
+  },
+  "from": {
+    "message": "с"
+  },
+  "to": {
+    "message": "по"
   }
 }

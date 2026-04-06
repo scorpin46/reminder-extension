@@ -92,6 +92,9 @@
   "missed": {
     "message": "Missed"
   },
+  "onPause": {
+    "message": "Paused"
+  },
   "reminder": {
     "message": "Reminder"
   },
@@ -364,5 +367,68 @@
   "reportIssue": {
     "description": "Text for feedback link",
     "message": "Report an issue / Request a feature"
+  },
+  "reminder_action_pause": {
+    "message": "Pause reminder"
+  },
+  "reminder_action_unpause": {
+    "message": "Resume reminder"
+  },
+  "reminder_paused": {
+    "message": "paused"
+  },
+  "reminderForm_repeat_custom": {
+    "description": "Option for custom repeating",
+    "message": "Custom"
+  },
+  "reminderForm_repeat_daily": {
+    "description": "Option for daily repeating",
+    "message": "Every Day"
+  },
+  "reminderForm_repeat_monthly": {
+    "description": "Option for monthly repeating",
+    "message": "Every Month"
+  },
+  "reminderForm_repeat_never": {
+    "description": "Option for never repeating",
+    "message": "Never"
+  },
+  "reminderForm_repeat_weekly": {
+    "description": "Option for weekly repeating",
+    "message": "Every Week"
+  },
+  "reminderForm_repeat_yearly": {
+    "description": "Option for yearly repeating",
+    "message": "Every Year"
+  },
+  "customRepeat_label_every": {
+    "message": "Every"
+  },
+  "customRepeat_unit_minutes": {
+    "message": "Minutes"
+  },
+  "customRepeat_unit_hours": {
+    "message": "Hours"
+  },
+  "customRepeat_unit_days": {
+    "message": "Days"
+  },
+  "customRepeat_unit_weeks": {
+    "message": "Weeks"
+  },
+  "customRepeat_unit_months": {
+    "message": "Months"
+  },
+  "customRepeat_unit_years": {
+    "message": "Years"
+  },
+  "repeat": {
+    "message": "Repeat"
+  },
+  "from": {
+    "message": "from"
+  },
+  "to": {
+    "message": "to"
   }
 }

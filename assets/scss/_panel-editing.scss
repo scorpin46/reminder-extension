@@ -233,7 +233,7 @@
   transition: opacity .25s ease;
   gap: 45%;
   
-  &:not(:hover){
+  &.--is-sticky:not(:hover){
     opacity: .6;
   }
   

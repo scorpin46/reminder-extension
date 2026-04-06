@@ -35,6 +35,7 @@ type Reminder = {
 
 // Состояние хранилища
 interface ReminderState {
+    allCount: number;
     isLoaded: boolean;
     active: Reminder[];
     completed: Reminder[];
@@ -53,6 +54,7 @@ const toUI = (reminder: ReminderInterface): Reminder => ({
 export class ReminderRepository {
     readonly state = reactive<ReminderState>({
         isLoaded: false,
+        allCount: 0,
         active: [],
         completed: [],
     });
@@ -93,7 +95,6 @@ export class ReminderRepository {
 
                 if (updates.datetime >= Date.now()) {
                     updates.completed = 0;
-                    updates.recurrencePause = 0;
                 }
             }
 
@@ -164,6 +165,7 @@ export class ReminderRepository {
                 this.state.active = active;
                 this.state.completed = completed;
                 this.state.isLoaded = true;
+                this.state.allCount = active.length + completed.length;
             },
             error: console.error
         });
@@ -233,10 +235,6 @@ export class ReminderRepository {
             console.error('Ошибка при удалении БД:', error);
             return false;
         }
-    }
-
-    isEmpty(){
-        return ! this.state.active.length && ! this.state.completed.length;
     }
 }
 

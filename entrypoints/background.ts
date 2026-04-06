@@ -1,5 +1,6 @@
 import {watch} from "vue";
 import {
+    delay,
     getImproveExperienceFormLink,
     getReminderIdFromAlarmName, getReminderIdFromNotificationId, reminderIdToNotificationId,
 } from "@/modules/utils/helpers";
@@ -119,9 +120,11 @@ export default defineBackground({
         });
 
         browser.alarms.onAlarm?.addListener(async (alarm: Alarm) => {
+            console.log('alarm:', alarm.name);
+            
             if (alarm.name === GoogleCalendarService.syncAlarmName) {
                 const isAuth = await GoogleCalendarService.instance().isAuthenticated();
-
+       
                 if (isAuth){
                     await GoogleCalendarService.instance().run(1000);
                 } else {
@@ -133,116 +136,118 @@ export default defineBackground({
             
             const reminderId = getReminderIdFromAlarmName(alarm.name);
             const reminderService = ReminderService.instance();
+            const reminder = reminderId ? await reminderService.repository.getById(reminderId) : null;
 
-            console.log('alarm', reminderId);
-            if (reminderId) {
-                const reminder = await reminderService.repository.getById(reminderId);
-                console.log(reminder);
+            if (reminder?.id && !reminder.completed) {
+                const notifyParams: NotificationCreateOptions = {
+                    type: "basic",
+                    iconUrl: browser.runtime.getURL("/icon/128.png"),
+                    title: '',
+                    message: reminder.title,
+                    contextMessage: reminder.desc!,
+                    requireInteraction: true,
+                    priority: 2,
+                    buttons: [
+                        {title: browser.i18n.getMessage('alertPostponeBtn')},
+                        {title: browser.i18n.getMessage('alertCompleteBtn')}
+                    ],
+                };
 
-                if (reminder?.id && !reminder.completed) {
-                    const notifyParams: NotificationCreateOptions = {
-                        type: "basic",
-                        iconUrl: browser.runtime.getURL("/icon/128.png"),
-                        title: '',
-                        message: reminder.title,
-                        contextMessage: reminder.desc!,
-                        requireInteraction: true,
-                        priority: 2,
-                        buttons: [
-                            {title: browser.i18n.getMessage('alertPostponeBtn')},
-                            {title: browser.i18n.getMessage('alertCompleteBtn')}
-                        ],
-                    };
+                const url = reminder.url  || '';
+                let isUrlNotify = false;
 
-                    const url = reminder.url  || '';
-                    let isUrlNotify = false;
+                if (url.length > 7) { //тут Url в приоритете, т.к. он может быть повторяемым
+                    notifyParams.buttons = [{title: '✅ ОК'}];
+                    notifyParams.title = '🔗 ' + browser.i18n.getMessage('linkIsOpened');
+                    notifyParams.message = reminder.title;
+                    notifyParams.contextMessage = reminder.url!;
+                    // notifyParams.requireInteraction = false;
+                    isUrlNotify = true;
+                }
 
-                    if (url.length > 7) { //тут Url в приоритете, т.к. он может быть повторяемым
-                        notifyParams.buttons = [{title: '✅ ОК'}];
-                        notifyParams.title = '🔗 ' + browser.i18n.getMessage('linkIsOpened');
-                        notifyParams.message = reminder.title;
-                        notifyParams.contextMessage = reminder.url!;
-                        // notifyParams.requireInteraction = false;
-                        isUrlNotify = true;
-                        //todo Добавить повтор и в гугл
-                    } 
-                    
-                    if (reminder.recurrence) {
-                        notifyParams.buttons = [
-                            {title: browser.i18n.getMessage('alertPostponeBtn')},
-                            {title: '✅ OK'}
-                        ]; 
+                if (reminder.recurrence?.length) {
+                    if (reminder.recurrencePause){
+                        return;
                     }
+                    notifyParams.buttons = [
+                        {title: browser.i18n.getMessage('alertPostponeBtn')},
+                        {title: '✅ OK'}
+                    ];
+                }
 
-                    const handler = async () => {
-                        let notificationId = reminderIdToNotificationId(reminderId);
+                const handler = async () => {
+                    let notificationId = reminderIdToNotificationId(reminderId!);
 
-                        try {
-                            await browser.notifications.clear(notificationId);
-                            notificationId = await browser.notifications.create(notificationId, notifyParams);
-                            console.log({notificationId});
+                    try {
+                        await browser.notifications.clear(notificationId);
+                        notificationId = await browser.notifications.create(notificationId, notifyParams);
+                        console.log({notificationId});
 
-                            //@ts-ignore
-                            if (reminder.priority) {
-                                await offscreenManager.playPriorityAlarmSound(reminder.id);
-                            } else {
-                                await offscreenManager.playAlarmSound();
-                            }
-                        } catch (error) {
-                            console.error(error);
+                        //@ts-ignore
+                        if (reminder.priority) {
+                            await offscreenManager.playPriorityAlarmSound(reminder.id);
+                        } else {
+                            await offscreenManager.playAlarmSound();
                         }
 
                         const newReminderParams:Partial<Reminder> = {};
                         const nextOccurrenceDate = await reminderService.getNextOccurrence(reminder);
-                        
+
                         if (reminder.url) { // если не повторяемое событие открытия url
                             newReminderParams.completed = 1;
 
                             browser.tabs.create({ url: reminder.url, active: true });
                         }
 
-                        if (reminder.recurrence && nextOccurrenceDate) {
+                        if (reminder.recurrence?.length && nextOccurrenceDate) {
                             newReminderParams.completed = 0;
                             newReminderParams.datetime = nextOccurrenceDate;
 
-                            reminderService.createAlarm(reminderId, newReminderParams.datetime); //тут заводим повторный будильник, т.к. вызываем update не через saveReminder
+                            await reminderService.save(reminder.id!, newReminderParams, false);
+                            
+                            //запрос должен быть отдельный, чтобы воркер не уснул
+                            await GoogleCalendarService.instance().updateEventByReminder(
+                                await reminderService.repository.getById(reminder.id!)
+                            );
+                        } else {
+                            await reminderService.repository.update(reminder.id!, newReminderParams);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+                if (isStartupInstance && ! isUrlNotify) {
+                    clearTimeout(startupCbNotificationsTimeout);
+                    startupCbNotifications.push(async () => {
+                        return await handler();
+                    });
+
+                    startupCbNotificationsTimeout = setTimeout(async () => {
+                        const missingAlarmsLen = startupCbNotifications.length;
+
+                        if (missingAlarmsLen > 2) {
+                            await browser.notifications.create(startupNotificationId, {
+                                type: "basic",
+                                iconUrl: browser.runtime.getURL("/icon/128.png"),
+                                title: '',
+                                message: browser.i18n.getMessage(`missedReminders`, [missingAlarmsLen.toString()]),
+                                requireInteraction: true,
+                                buttons: [
+                                    {title: browser.i18n.getMessage('open')},
+                                ],
+                            });
+                            await offscreenManager.playAlarmSound();
+                        } else {
+                            for (const cb of startupCbNotifications) {
+                                await cb();
+                            }
                         }
 
-                        await reminderService.repository.update(reminder.id!, newReminderParams);
-                    }
-
-                    if (isStartupInstance && ! isUrlNotify) {
-                        clearTimeout(startupCbNotificationsTimeout);
-                        startupCbNotifications.push(async () => {
-                            return await handler();
-                        });
-                        
-                        startupCbNotificationsTimeout = setTimeout(async () => {
-                            const missingAlarmsLen = startupCbNotifications.length;
-                            
-                            if (missingAlarmsLen > 2) {
-                                await browser.notifications.create(startupNotificationId, {
-                                    type: "basic",
-                                    iconUrl: browser.runtime.getURL("/icon/128.png"),
-                                    title: '',
-                                    message: browser.i18n.getMessage(`missedReminders`, [missingAlarmsLen.toString()]),
-                                    requireInteraction: true,
-                                    buttons: [
-                                        {title: browser.i18n.getMessage('open')},
-                                    ],
-                                });
-                                await offscreenManager.playAlarmSound();
-                            } else {
-                                for (const cb of startupCbNotifications) {
-                                    await cb();
-                                }
-                            }
-
-                            startupCbNotifications = [];
-                        })
-                    } else {
-                        await handler();
-                    }
+                        startupCbNotifications = [];
+                    })
+                } else {
+                    await handler();
                 }
             }
         });
@@ -278,9 +283,9 @@ export default defineBackground({
                 return;
             }
 
-            if (buttonIndex === 1 && ! reminder.recurrence) {
+            if (buttonIndex === 1 && ! reminder.recurrence?.length) {
                 await ReminderService.instance().complete(reminder, false);
-                await GoogleCalendarService.instance().deleteEvent(reminder.googleEventId!);
+                await GoogleCalendarService.instance().deleteEventByReminder(reminder);
             } else if (buttonIndex === 0) {
                 await openPostponeWindow(reminder.id!);
             }
@@ -367,10 +372,10 @@ export default defineBackground({
                             };
 
                         case 'GOOGLE_UPDATE_EVENT':
-                            const reminder = await ReminderService.instance().repository.getById(request.reminderId);
+                            if (await GoogleCalendarService.instance().checkUser()){
+                                const reminder = await ReminderService.instance().repository.getById(request.reminderId);
 
-                            if (reminder && await GoogleCalendarService.instance().checkUser()){
-                                await GoogleCalendarService.instance().updateEventByReminder(reminder);
+                                reminder && await GoogleCalendarService.instance().updateEventByReminder(reminder);
                                 success = true;
                             }
 
@@ -378,17 +383,18 @@ export default defineBackground({
 
                         case 'GOOGLE_DELETE_EVENT':
                             if (await GoogleCalendarService.instance().checkUser()){
-                                await GoogleCalendarService.instance().deleteEvent(request.googleEventId);
+                                const reminder = await ReminderService.instance().repository.getById(request.reminderId)
+                                reminder && await GoogleCalendarService.instance().deleteEventByReminder(reminder);
                                 success = true;
                             }
 
                             return {success: success};
 
                         case 'GOOGLE_CREATE_EVENT':
-                            const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
+                            if (await GoogleCalendarService.instance().checkUser()){
+                                const newReminder = await ReminderService.instance().repository.getById(request.reminderId);
 
-                            if (newReminder && await GoogleCalendarService.instance().checkUser()){
-                                await GoogleCalendarService.instance().createEventByReminder(newReminder);
+                                newReminder && await GoogleCalendarService.instance().createEventByReminder(newReminder);
                                 success = true;
                             }
                             return {success: success};
@@ -427,12 +433,15 @@ export default defineBackground({
 
         // При старте браузера
         browser.runtime.onStartup?.addListener(() => {
+            console.log('onStartup');
+
             isStartupInstance = true;
             GoogleCalendarService.instance().run(5000);
         });
 
         // При установке/обновлении
         browser.runtime.onInstalled?.addListener(async (details) => {
+            console.log('onInstalled');
             try {
                 try {
                     const installId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
@@ -490,10 +499,10 @@ export default defineBackground({
                 });
 
                 browser.runtime.setUninstallURL(getImproveExperienceFormLink());
-
-                GoogleCalendarService.instance().run();
             } catch (error) {
                 console.error('Error during installation:', error);
+            } finally {
+                GoogleCalendarService.instance().run(); 
             }
         });
 

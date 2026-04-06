@@ -3,7 +3,7 @@ import {
     localTimeUntil,
     reminderIdToAlarmName,
     detectLocale,
-    getUniversalLocalTimeString
+    getUniversalLocalTimeString, isNumeric
 } from "./utils/helpers";
 import {Reminder, ReminderRepository} from "./reminderRepository.js";
 import {browser} from 'wxt/browser';
@@ -29,7 +29,9 @@ export class ReminderService {
 
     async #updatedCallback(reminder?: Reminder){
         try{
-            await getExpiredCountStore().setValue(this.getExpiredReminders().length);
+            await getExpiredCountStore().setValue(
+                this.getExpiredReminders(new Date(), true).length
+            );
         } catch (error){
             console.error(error);
         }
@@ -45,12 +47,12 @@ export class ReminderService {
     {
         let id: number | undefined;
         let reminderParams: Partial<Reminder>;
-        let shouldSendMessage: boolean;
+        let shouldSendMessage: boolean|undefined;
 
         // Определяем, как были переданы параметры
-        if (typeof idOrParams === 'number') {
+        if (typeof idOrParams === 'number' || isNumeric(idOrParams)) {
             // Первый вариант: (id, params, sendMessage?)
-            id = idOrParams;
+            id = +idOrParams;
             reminderParams = paramsOrSendMessage as Partial<Reminder>;
             shouldSendMessage = sendMessage;
         } else {
@@ -63,8 +65,10 @@ export class ReminderService {
                 : sendMessage;
         }
 
+        shouldSendMessage ??= true;
+        
         const isUpdated = !!id;
-
+        
         if (id){
             await this.repository.update(id, reminderParams); //update не возвращает ID !!!
         } else {
@@ -72,28 +76,44 @@ export class ReminderService {
         }
 
         reminderParams.completed = +reminderParams.datetime! >= Date.now() ? 0 : reminderParams.completed; //обязательно должно быть перед блоком ниже, иначе не сработает alert, если восстанавливаешь из завершенных
-        
-        if (reminderParams.datetime && !reminderParams.completed){
-            await this.createAlarm(id, reminderParams.datetime)
-        }
-        
-        if (shouldSendMessage) {
-            if (reminderParams.googleSync === 0){
-                browser.runtime.sendMessage({
-                    action : 'GOOGLE_DELETE_EVENT',
-                    googleEventId: reminderParams.googleEventId
-                })
-            } else {
-                browser.runtime.sendMessage({
-                    action : isUpdated ? 'GOOGLE_UPDATE_EVENT' : 'GOOGLE_CREATE_EVENT',
-                    reminderId: id
-                })
-            }
-        }
-        
-        await this.#updatedCallback();
 
+        try {
+            if (reminderParams.datetime && !reminderParams.completed){
+                await this.createAlarm(id, reminderParams.datetime)
+            }
+
+            if (shouldSendMessage) {
+                if (reminderParams.googleSync === 0 || reminderParams.recurrencePause){
+                    browser.runtime.sendMessage({
+                        action : 'GOOGLE_DELETE_EVENT',
+                        reminderId: id
+                    })
+                } else {
+                    browser.runtime.sendMessage({
+                        action : isUpdated ? 'GOOGLE_UPDATE_EVENT' : 'GOOGLE_CREATE_EVENT',
+                        reminderId: id
+                    })
+                }
+            }
+
+            await this.#updatedCallback();
+        } catch(error){
+            console.error(error);
+        }
+        
         return id;
+    }
+    
+    async recurrencePauseToggle(reminder: Reminder){
+        if (!reminder?.recurrence){
+            return;
+        }
+
+        await this.save(reminder.id!, {
+            // @ts-ignore
+            recurrencePause: !reminder.recurrencePause,
+            datetime: await this.getNextOccurrence(reminder) ?? reminder.datetime,
+        }, true);
     }
     
     async createAlarm(reminderId: number, datetime: Date) {
@@ -105,14 +125,14 @@ export class ReminderService {
     async delete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.delete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
         await this.#updatedCallback();
     }
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
         await this.repository.complete(reminder.id!);
         browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId: reminder.googleEventId});
+        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
         await this.#updatedCallback();
     }
 
@@ -136,8 +156,11 @@ export class ReminderService {
         return localTimeUntil(reminderItem.datetime, this.regionLocale, now);
     }
 
-    getExpiredReminders(now = new Date()) {
-        return this.repository.state.active.filter(item => !item.completed && item.datetime < now);
+    getExpiredReminders(now = new Date(), excludePaused = false) {
+        return this.repository.state.active
+            .filter(item => !item.completed && item.datetime < now 
+                && (!excludePaused || !item.recurrencePause)
+            );
     }
 
     async getNextOccurrence(reminderOrId: Reminder|number, nowDate = new Date()): Promise<Date|null> {
@@ -155,7 +178,7 @@ export class ReminderService {
         const adapterReminderDate = dateAdapter.date(reminder.datetime);
         let nextDate: Date|null = reminder.datetime;
         
-        if (reminder.recurrence) {
+        if (reminder.recurrence?.length) {
             const fromTime = reminder.recurrenceFromTime;
             const toTime = reminder.recurrenceToTime;
             let tempLastNextDate: Date|null = nextDate;

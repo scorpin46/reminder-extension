@@ -3,7 +3,7 @@
       v-model:searchVisible="searchVisible"
       v-model:openedTab="openedTab"
       v-model:editingPanelVisible="editingPanelVisible"
-      :hasExpired="!!expired.length"
+      :hasExpired="hasHeaderExpired"
       @openCreatePanel="showEditPanel(null)"
       v-horizontal-wheel
   />
@@ -46,7 +46,7 @@
         <div class="reminders-day">
           <template v-if="dateString !== 'expired'">
             <span>{{ group.label }}</span>
-            <span>{{ dateString }}</span>
+            <span v-if="dateString !== 'paused'">{{ dateString }}</span>
           </template>
           <template v-else>
             <span class="reminders-day__expired" role="button" @click="expiredIsOpen = !expiredIsOpen" :title="browser.i18n.getMessage(expiredIsOpen ? 'hide' : 'show')">
@@ -63,32 +63,51 @@
                 '--expired': expired.includes(item.id),
                 '--completed': item.completed, 
                 '--soon': soon.includes(item.id),
+                '--paused': item.recurrence?.length && item.recurrencePause,
              }"
                :id="`reminder-${item.id}`"
-               @mouseenter.once="$event.target.title = reminderService.getPreviewTitle(item, now.value)"
+               @mouseenter.once="$event.target.title = reminderService.getPreviewTitle(item, now)"
           >
             <div class="reminders-item__text-box">
               <div class="reminders-item__title notranslate">{{ item.title }}</div>
               <div class="reminders-item__desc notranslate">{{ item.url ? item.url : item.desc }}</div>
             </div>
             <div class="reminders-item__time-box">
-              <div class="reminders-item__time"><span>{{ reminderService.getLocalTime(item, now.value) }}</span></div>
+              <div class="reminders-item__time"><span>{{ reminderService.getLocalTime(item, now) }}</span></div>
 
               <div class="reminders-item__day">
-                <IconTimer width="14" height="14"/>
-                <span>{{ reminderService.getTimeUntil(item, now.value) }}</span>
-                <IconChecks v-if="item.completed" width="16" height="16"/>
+                <template v-if="item.recurrence?.length && item.recurrencePause">
+                  <IconPause width="14" height="14" stroke="currentColor"/>
+                  <span>{{ browser.i18n.getMessage('reminder_paused') }}</span>
+                </template> 
+                <template v-else>
+                  <IconTimer width="14" height="14"/>
+                  <span>{{ reminderService.getTimeUntil(item, now) }}</span>
+                  <IconChecks v-if="item.completed" width="16" height="16"/>
+                </template> 
               </div>
             </div>
 
             <div class="reminders-item__actions" @click="showEditPanel(item)">
-              <div class="reminders-item__actions-inner" title="">
+              <div class="reminders-item__actions-inner" @click.stop>
                 <button class="reminders-item__action reminders-item__action--edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
                   <IconEdit/>
                 </button>
-                <!--              <div class="reminders-item__actions-fin">-->
-                <!--              </div>-->
-                <button class="reminders-item__action reminders-item__action--complete" v-if="!item.completed && (group.isToday || expired.includes(item.id))" :title="browser.i18n.getMessage('complete')" @click.stop="complete(item)">
+                <button
+                    v-if="!item.completed && item.recurrence?.length"
+                    :class="['reminders-item__action', {'reminders-item__action--pause': !item.recurrencePause, 'reminders-item__action--resume': item.recurrencePause}]"
+                    :title="item.recurrencePause ? browser.i18n.getMessage('reminder_action_unpause') : browser.i18n.getMessage('reminder_action_pause')"
+                    @click.stop="reminderService.recurrencePauseToggle(item)"
+                >
+                  <IconPlay v-if="item.recurrencePause"/>
+                  <IconPause v-else/>
+                </button>
+                <button
+                    v-if="!item.completed && (group.isToday || expired.includes(item.id))"
+                    class="reminders-item__action reminders-item__action--complete"
+                    :title="browser.i18n.getMessage('complete')"
+                    @click.stop="complete(item)"
+                >
                   <IconChecks/>
                 </button>
                 <button v-else
@@ -179,6 +198,8 @@ import IconPlus from "@/components/icons/IconPlus.vue";
 import IconXmark from "@/components/icons/IconXmark.vue";
 import IconEye from "@/components/icons/IconEye.vue";
 import {omitBy} from "es-toolkit";
+import IconPause from "@/components/icons/IconPause.vue";
+import IconPlay from "@/components/icons/IconPlay.vue";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -238,6 +259,9 @@ const expired = ref([]);
 const soon = ref([]);
 const now = ref();
 const SOON_MINUTES = 15;
+const hasHeaderExpired = computed(() => {
+  return !!reminderService.getExpiredReminders(now.value, true).length
+})
 
 const reminders = computed(() => reminderService.repository.state[openedTab.value] || []);
 const daysGroupsReminders = computed(() => {
@@ -253,12 +277,11 @@ const daysGroupsReminders = computed(() => {
     let label = localDateFormat(item.datetime, false, reminderService.regionLocale, true);
     let isToday = dateAdapter.isSameDay(dateAdapter.date(now.value), dateAdapter.date(item.datetime));
 
-    // Теперь сравнение будет корректным
     if (expired.value.includes(item.id)) {
       groupKey = 'expired';
-      label = browser.i18n.getMessage('missed')
+      label = browser.i18n.getMessage('missed');
     }
-
+    
     groups[groupKey] ??= {
       items: [],
       label: label,
@@ -269,7 +292,7 @@ const daysGroupsReminders = computed(() => {
 
     groups[groupKey].items.push(extendedItem);
   })
-
+  
   return groups;
 });
 
@@ -357,18 +380,14 @@ const allowedDates = computed(() => {
 const minFilterDate = computed(() => min(allowedDates.value));
 const maxFilterDate = computed(() => max(allowedDates.value));
 
-useIntervalFn(() => {
-  actualize();
-}, 10000, {
-  immediateCallback: true
-})
 
-//нет в это необходимости, когда есть артефакт
-// watch(() => reminderService.repository.state.isLoaded, (value) => {
-//   if (value && !reminderService.repository.state.active.length && !reminderService.repository.state.completed.length) {
-//     showEditPanel(null);
-//   }
-// })
+watch(() => reminderService.repository.state.isLoaded, (value) => {
+  const interval = reminderService.repository.state.allCount > 200 ? 10000 : 5000;
+  
+  useIntervalFn(() => {
+    actualize();
+  }, interval, {immediateCallback: true})
+}, {once: true})
 
 watch(() => reminderService.repository.state.active, (value, oldValue) => {
   actualize();

@@ -155,6 +155,12 @@ button {
   }
 }
 
+.capitalize-first-letter{
+  &::first-letter{
+    text-transform: uppercase;
+  }
+}
+
 $offsets: 0, 5, 10, 15, 20, 25, 30, 35, 40;
 
 @each $offset in $offsets {

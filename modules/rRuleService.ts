@@ -9,7 +9,7 @@ export default class RRuleService {
             return dtstart > afterDate ? dtstart : null;
         }
 
-        rrule = typeof rrule === 'string' ? [rrule] : rrule;
+        rrule = typeof rrule === 'string' ? rrule.split('\n').filter(line => line.trim().length > 0) : rrule;
         // 3. Создаем RRuleSet — главный контейнер для всех правил
         const ruleSet = new RRuleSet();
 

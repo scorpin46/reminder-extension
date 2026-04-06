@@ -1,5 +1,5 @@
 <template>
-  <div class="panel panel-editing" ref="panelRef">
+  <div class="panel panel-editing">
     <div class="panel__title">
       <template v-if="form.isCreating()">{{ browser.i18n.getMessage('addReminderTitle')}}</template>
       <template v-else>
@@ -24,80 +24,74 @@
       </div>
 
       <form :class="{'--saved': form.saved }" autocomplete="off" ref="formRef" @submit.prevent="form.save">
-        <div class="main-fields">
-          <div>
-            <label class="form-label mb-15 reminder-title">
-              <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
-              <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef" maxlength="200"></textarea>
-            </label>
-            <div class="form-label mb-15 reminder-datetime-wrapper">
-              <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
+        <label class="form-label mb-15 reminder-title">
+          <span class="form-label__title">{{ browser.i18n.getMessage('reminderTitle')}}</span>
+          <textarea required class="form-control" v-model.trim="form.input.title" rows="1" ref="reminderTitleRef" maxlength="200"></textarea>
+        </label>
+        <label class="form-label mb-15" v-show="showExtraFields" v-if="!form.input.url">
+          <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
+          <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3" maxlength="1000"></textarea>
+        </label>
+        <div class="form-label mb-15 reminder-datetime-wrapper">
+          <span class="form-label__title reminder-datetime">{{ form.input.datetime ? textDatetime : browser.i18n.getMessage('reminderDate') }}</span>
 
-              <InputDatetime
-                  required
-                  id="input-datetime"
-                  class="form-control w-100"
-                  v-model="form.input.datetime"
-                  :rewritePastTime="!form.isCreating()"
-              />
-              <IconCheck class="date-confirm-icon"/>
-            </div>
-          </div>
+          <InputDatetime
+              required
+              id="input-datetime"
+              class="form-control w-100"
+              v-model="form.input.datetime"
+              :rewritePastTime="!form.isCreating()"
+          />
+          <IconCheck class="date-confirm-icon"/>
         </div>
-        <div class="w-100">
-          <button v-if="!showExtraFields" 
-                  type="button"
-                  @click="showExtraFields = !showExtraFields" 
-                  class="reminder-more-btn mb-30"
-          >
-            <span>{{ browser.i18n.getMessage('reminderAdvanced') }}</span>
-            <IconDown />
-          </button>
-          <div v-show="showExtraFields" ref="reminderDetailsRef">
-            <label class="form-label mb-15" v-if="!form.input.url">
-              <span class="form-label__title">{{ browser.i18n.getMessage('reminderDesc') }}</span>
-              <textarea class="form-control w-100 reminder-desc" v-model.trim="form.input.desc" rows="3" maxlength="1000"></textarea>
-            </label>
-            <label class="form-label mb-15">
-              <span class="form-label__title">
-                URL <IconInfo
-                  width="15" 
-                  height="15"
-                  class="form-label__info" 
-                  v-title="browser.i18n.getMessage('reminderUrlInfo') + '<br>' + browser.i18n.getMessage('browserMustBeRun')" 
-              />
-              </span>
-             
-              <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com" maxlength="2000">
-            </label>
-            <RepeatField
-                v-if="showExtraFields"
-                :startDate="form.input.datetime"
-                v-model:rrule="form.input.recurrence"
-                v-model:fromTime="form.input.recurrenceFromTime"
-                v-model:toTime="form.input.recurrenceToTime"
-                @scrollToBottom="scrollToBottom"
-            />
-            <div class="text-center">
-              <label class="form-check mb-20 mt-5" v-if="!form.input.url">
+        
+        <button v-if="!showExtraFields"
+                type="button"
+                @click="showExtraFields = !showExtraFields"
+                class="reminder-more-btn mb-30"
+        >
+          <span>{{ browser.i18n.getMessage('reminderAdvanced') }}</span>
+          <IconDown />
+        </button>
+
+        <RepeatField
+            v-if="showExtraFields"
+            :startDate="form.input.datetime"
+            v-model:rrule="form.input.recurrence"
+            v-model:fromTime="form.input.recurrenceFromTime"
+            v-model:toTime="form.input.recurrenceToTime"
+            @scrollToBottom="scrollToBottom"
+        />
+        <label class="form-label mb-15" v-show="showExtraFields">
+          <span class="form-label__title">
+            URL <IconInfo
+              width="15"
+              height="15"
+              class="form-label__info"
+              v-title="browser.i18n.getMessage('reminderUrlInfo') + '<br>' + browser.i18n.getMessage('browserMustBeRun')"
+          />
+          </span>
+
+          <input type="url" v-model="form.input.url" class="form-control w-100" placeholder="https://example.com" maxlength="2000">
+        </label>
+        <div v-show="showExtraFields" class="text-center">
+          <label class="form-check mb-20 mt-5" v-if="!form.input.url">
                 <span>
                   <IconSync height="20" width="22" class="v-a-m"/>
                   {{ browser.i18n.getMessage('syncWithGoogleCalendar') }}
                 </span>
-                <input
-                    type="checkbox"
-                    v-model="form.input.googleSync"
-                    :true-value="1"
-                    :false-value="0"
-                    class="form-control w-100"
-                    @click="reminderGoogleSyncClickHandler"
-                >
-              </label>
-            </div>
-          </div>
+            <input
+                type="checkbox"
+                v-model="form.input.googleSync"
+                :true-value="1"
+                :false-value="0"
+                class="form-control w-100"
+                @click="reminderGoogleSyncClickHandler"
+            >
+          </label>
         </div>
      
-        <div class="reminder-buttons" ref="reminderButtonsRef">
+        <div :class="['reminder-buttons', {'--is-sticky': reminderButtonsIsSticky}]" ref="reminderButtonsRef">
           <button type="button" class="reminder-cancel" @click="form.reset" v-title="browser.i18n.getMessage('cancel')">
             <!--            можно сделать двойной эффект при создании - сначала очистка, а второй клик отмена-->
 <!--            <IconCancel />-->
@@ -132,6 +126,7 @@ import IconInfo from "@/components/icons/IconInfo.vue";
 import {isNumeric} from "@/modules/utils/helpers.ts";
 import RepeatField from "@/components/RepeatField.vue";
 import IconSync from "@/components/icons/IconSync.vue";
+import {useDebounceFn, useEventListener} from "@vueuse/core";
 
 const props = defineProps({
   backToPanel: {
@@ -156,12 +151,12 @@ const reminderService = ReminderService.instance();
 const recognitionService = RecognitionService.instance();
 
 const reminderTitleRef = ref();
+const reminderButtonsRef = ref();
 const reminderDetailsRef = ref();
 const recognitionLocale = ref();
+const reminderButtonsIsSticky = ref();
 const formRef = ref();
-const panelRef = ref();
 const panelBodyRef = ref();
-const reminderButtonsRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
 const isAuthenticated = computed(() => !!props.authenticatedEmail)
 const formInputInitData = {
@@ -174,6 +169,7 @@ const formInputInitData = {
   recurrence: null,
   recurrenceFromTime: null,
   recurrenceToTime: null,
+  recurrencePause: 0,
 };
 
 const form = reactive({
@@ -190,6 +186,8 @@ const form = reactive({
     } else if(!isAuthenticated && ! this.input.googleSync){
       this.input.googleSync = null;
     }
+    
+    this.input.recurrencePause = 0;
     
     const id = await reminderService.save({...this.input});
     recognitionService.resetState();
@@ -217,6 +215,18 @@ const form = reactive({
     return !this.input.id;
   }
 })
+
+
+const scrollToBottom = () => {
+  panelBodyRef.value.scrollTo({
+    top: 1000,
+    behavior: 'smooth'
+  });
+}
+
+const checkButtonsSticky = () => {
+  reminderButtonsIsSticky.value = panelBodyRef.value.scrollHeight - panelBodyRef.value.scrollTop > panelBodyRef.value.clientHeight + 10
+}
 
 // const defaultStatusText = 'Tap and say or type';
 
@@ -246,6 +256,7 @@ const reminderGoogleSyncClickHandler = (event) => {
 
 watch(() => showExtraFields.value, async (value, oldValue) => {
   await nextTick();
+  checkButtonsSticky();
 
   if (value && reminderDetailsRef.value) {
     const fields = reminderDetailsRef.value.querySelectorAll('input,textarea');
@@ -267,14 +278,7 @@ watch(() => showExtraFields.value, async (value, oldValue) => {
       form.input.desc = null;
     }
   }
-});
-
-const scrollToBottom = () => {
-  panelBodyRef.value.scrollTo({
-    top: 1000,
-    behavior: 'smooth'
-  });
-}
+}, {immediate: true});
 
 
 onMounted(async () => {
@@ -336,7 +340,10 @@ onMounted(async () => {
   if (props.autostartRecording){
     emit('update:autostartRecording', false);
   }
+
+  useEventListener(panelBodyRef.value, 'scroll', useDebounceFn(checkButtonsSticky, 100), {passive: true})
 })
+
 
 onUnmounted(() => {
   recognitionService.stop();

@@ -15,6 +15,8 @@ import axios, {AxiosInstance, AxiosError, InternalAxiosRequestConfig} from 'axio
 import rateLimit from 'axios-rate-limit';
 import {delay} from "./utils/helpers";
 import RRuleService from "@/modules/rRuleService";
+import { merge } from 'es-toolkit';
+import {Frequencies} from "@martinhipp/rrule";
 
 // Расширяем интерфейс для хранения флага повтора
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -257,6 +259,8 @@ export class GoogleCalendarService {
             setTimeout(() => {
                 this.#syncUpdates();
             }, forceSyncDelay)
+        } else {
+            this.checkUser(); //нужно чтобы инициализировать #googleIsAuthenticatedStore
         }
     }
 
@@ -290,7 +294,7 @@ export class GoogleCalendarService {
                 await this.#googleUserStore.setValue(user);
                 await this.#googleIsAuthenticatedStore.setValue(true);
 
-                this.#createCalendar();
+                this.#createCalendar(); //без await, т.к. это как callback на пост-выполнение
 
                 console.log(`✅ Аккаунт закреплен: ${user.email} (Chrome ID: ${user.id})`);
                 await this.run(1000);
@@ -530,120 +534,102 @@ export class GoogleCalendarService {
 
         return response.data.items || [];
     }
+    
+    async #getEventById(eventId: string): Promise<CalendarEvent|null> {
+        const calendarId = await this.#getCalendarId();
+        const response = await this.#axiosInstance.get(
+            `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+        );
 
-    async #createEvent(summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
+        return response.data;
+    }
+
+    async #createEvent(params: CalendarEvent): Promise<CalendarEvent | null | undefined> {
         try {
-            let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
+            const startTimeIso = params.start?.dateTime;
+            const endTime = new Date(+new Date(startTimeIso!) + this.#defaultEndTimeAppendMs);
 
-            const event = {
-                summary,
-                start: {
-                    dateTime: startTime.toISOString(),
-                    timeZone: this.timeZone
-                },
-                end: {
-                    dateTime: endTime.toISOString(),
-                    timeZone: this.timeZone
-                },
-                description: description,
-                transparency: 'transparent',
-                visibility: 'private',
-                extendedProperties: {
-                    private: {
-                        appName: this.#appNameForCalendar
-                    }
-                },
-                reminders: {
-                    useDefault: false,
-                    overrides: [{method: 'popup', minutes: 0}]
-                }
+            params.end ??= {
+                dateTime: endTime.toISOString(),
+                timeZone: this.timeZone
             };
 
+            params.transparency ??= 'transparent';
+            params.visibility ??= 'private';
+            params.extendedProperties = merge({
+                private: {
+                    appName: this.#appNameForCalendar
+                }
+            }, params.extendedProperties || {});
+
+            params.reminders = merge({
+                useDefault: false,
+                overrides: [{method: 'popup', minutes: 0}]
+            }, params.reminders || {});
+            
             const calendarId = await this.#getCalendarId();
 
             const response = await this.#axiosInstance.post(
                 `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
-                event,
+                params,
             );
 
             return response.data;
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            throw error;
         }
-
-        return null;
     }
 
-    async #updateEvent(eventId: string, summary: string, description: string, startTime: Date): Promise<CalendarEvent | null | undefined> {
+    async #updateEvent(params: CalendarEvent): Promise<CalendarEvent | null | undefined> {
         try {
+            const eventId = params.id;
+            
             if (!eventId) return;
+          
+            const startTimeIso = params.start?.dateTime;
+            const endTime = new Date(+new Date(startTimeIso!) + this.#defaultEndTimeAppendMs);
 
-            let endTime = new Date(startTime.getTime() + this.#defaultEndTimeAppendMs);
-
-            const event: CalendarEvent = {
-                summary,
-                start: {
-                    dateTime: startTime.toISOString(),
-                    timeZone: this.timeZone
-                },
-                end: {
-                    dateTime: endTime.toISOString(),
-                    timeZone: this.timeZone
-                },
-                description: description,
-                transparency: 'transparent',
-                visibility: 'private',
-                extendedProperties: {
-                    private: {
-                        appName: this.#appNameForCalendar
-                    }
-                },
-                reminders: {
-                    useDefault: false,
-                    overrides: [{method: 'popup', minutes: 0}]
-                }
+            params.end ??= {
+                dateTime: endTime.toISOString(),
+                timeZone: this.timeZone
             };
+
+            params.transparency ??= 'transparent';
+            params.visibility ??= 'private';
+
+            params.extendedProperties = merge({
+                private: {
+                    appName: this.#appNameForCalendar
+                }
+            }, params.extendedProperties || {});
+
+            params.reminders =merge({
+                useDefault: false,
+                overrides: [{method: 'popup', minutes: 0}]
+            }, params.reminders || {});
 
             const calendarId = await this.#getCalendarId();
 
             const response = await this.#axiosInstance.put(
                 `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
-                event,
+                params,
             );
 
             return response.data;
         } catch (error) {
-            console.error('Error updating event:', error);
-            return null;
+            throw error;
         }
-    }
-
-    #prepareEventDescription(reminder: Reminder): string {
-        let description = reminder.desc || '';
-
-        if (reminder.url) {
-            description += `\n\n[${reminder.url}]`;
-        }
-
-        return description.trim();
     }
 
     #googleEventToReminderFields(event: CalendarEvent): Partial<Reminder> {
-        let description = (event.description || '').trim();
-        const matches = description.match(/\[(https?:\/\/.+)]$/i) || [];
-        const url = matches[1];
-
-        if (url) {
-            description = description.replace(matches[0]!, '');
-        }
-
-        //todo  прочие RULE конвертации
-        //todo Не зыбать сметь/убрать унопки продления для повторяющихся
+        const recurrence = event.extendedProperties?.private?.recurrence || event.recurrence;
+        
         return {
             datetime: new Date(event.start?.dateTime!),
             title: event.summary!,
-            desc: description,
-            url: url,
+            desc: event.description,
+            recurrence: recurrence instanceof Array ? recurrence.join('\n').trim() : recurrence,
+            googleEventId: event.id,
         };
     }
 
@@ -651,21 +637,47 @@ export class GoogleCalendarService {
         if (!reminder || !this.currentUser || reminder.googleSync === 0 || !reminder.googleEventId) {
             return;
         }
-
         try {
-            const event = await this.#updateEvent(
-                reminder.googleEventId,
-                reminder.title,
-                this.#prepareEventDescription(reminder),
-                reminder.datetime
-            );
+            const params: CalendarEvent = {
+                id: reminder.googleEventId,
+                summary: reminder.title,
+                description: reminder.desc,
+                start: {
+                    dateTime: reminder.datetime.toISOString(),
+                    timeZone: this.timeZone
+                },
+                extendedProperties: {
+                    private: {
+                        recurrence: reminder.recurrence || ''
+                    }
+                },
+                recurrence: typeof reminder.recurrence === 'string' ? reminder.recurrence?.split('\n') : reminder.recurrence
+            };
+            
+            if (reminder.recurrence && (reminder.recurrence.includes(Frequencies.HOURLY) || reminder.recurrence.includes(Frequencies.MINUTELY))){
+                delete params.recurrence;
+            }
+            
+            let result;
 
-            if (event?.updated) {
+            try {
+                result = await this.#updateEvent(params);
+            } catch (rErr: any) {
+                console.log(rErr);
+                if (rErr.message.includes('Invalid recurrence rule')) {
+                    console.log('Повторная попытка без public recurrence');
+
+                    delete params.recurrence;
+                    result = await this.#updateEvent(params);
+                }
+            }
+
+            if (result?.updated) {
                 await this.#reminderService.save(reminder.id!, {
-                    googleSyncDate: new Date(event.updated)
+                    googleSyncDate: new Date(result.updated)
                 }, false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating event from reminder:', error);
             // Не пробрасываем ошибку дальше, чтобы не ломать основной процесс
         }
@@ -676,18 +688,44 @@ export class GoogleCalendarService {
             if (!reminder || !this.currentUser || reminder.googleSync === 0) {
                 return;
             }
+            
+            const params: CalendarEvent = {
+                summary: reminder.title,
+                description: reminder.desc,
+                start: {
+                    dateTime: reminder.datetime.toISOString(),
+                    timeZone: this.timeZone
+                },
+                extendedProperties: {
+                    private: {
+                        recurrence: reminder.recurrence || ''
+                    }
+                },
+                recurrence: typeof reminder.recurrence === 'string' ? reminder.recurrence?.split('\n') : reminder.recurrence
+            }
 
-            const event = await this.#createEvent(
-                reminder.title,
-                this.#prepareEventDescription(reminder),
-                reminder.datetime
-            );
+            if (reminder.recurrence && (reminder.recurrence.includes(Frequencies.HOURLY) || reminder.recurrence.includes(Frequencies.MINUTELY))){
+                delete params.recurrence;
+            }
+            
+            let result;
 
-            if (event?.id) {
+            try {
+                result = await this.#createEvent(params);
+            } catch (rErr: any) {
+                if (rErr.message.includes('Invalid recurrence rule')) {
+                    console.log('Повторная попытка без public recurrence');
+
+                    delete params.recurrence;
+                    result = await this.#createEvent(params);
+                }
+            }
+            
+            if (result?.id) {
                 await this.#reminderService.save(reminder.id!, {
                     googleSync: 1,
-                    googleEventId: event.id,
-                    googleSyncDate: new Date(event.updated!)
+                    googleEventId: result.id,
+                    googleSyncDate: new Date(result.updated!)
                 }, false);
             }
         } catch (error) {
@@ -696,12 +734,25 @@ export class GoogleCalendarService {
         }
     }
 
-    async deleteEvent(eventId?: string): Promise<void> {
+    async deleteEventByReminder(reminder: Reminder | null | undefined): Promise<void> {
+        try {
+            if (!reminder || !this.currentUser || ! reminder.googleEventId) {
+                return;
+            }
+
+            await this.#deleteEvent(reminder.googleEventId!, reminder.recurrencePause);
+        } catch (error) {
+            console.error('Error creating event from reminder:', error);
+            // Не пробрасываем ошибку дальше
+        }
+    }
+
+    async #deleteEvent(eventId?: string, deleteRecurrences: boolean|0|1 = false): Promise<void> {
         if (!eventId || !this.currentUser) return;
 
         try {
             const calendarId = await this.#getCalendarId();
-
+            
             await this.#axiosInstance.delete(
                 `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
             );
@@ -723,8 +774,8 @@ export class GoogleCalendarService {
             const events = await this.#getEvents();
             await this.importFromGoogle(events);
 
-            const creating: Reminder[] = []; // создать в google calendar
-            const updating: Reminder[] = [];
+            const creatingInGoogle: Reminder[] = []; // создать в google calendar
+            const updatingInGoogle: Reminder[] = [];
             const deletingEvents: CalendarEvent["id"][] = [];
 
             // Обрабатываем напоминания без блокировки
@@ -738,21 +789,17 @@ export class GoogleCalendarService {
                         if (event && reminderItem.googleSyncDate) {
                             const googleUpdatedAt = new Date(event.updated!);
 
-                            if (event.status === 'cancelled') {
-                                this.#reminderService.save(reminderItem.id!, {
-                                    googleSync: 0,
-                                    googleSyncDate: googleUpdatedAt
-                                }, false).catch(console.error);
-                            } else if (googleUpdatedAt > reminderItem.googleSyncDate) {
+                            if (googleUpdatedAt > reminderItem.googleSyncDate) {
                                 this.#reminderService.save(reminderItem.id!, {
                                     ...this.#googleEventToReminderFields(event),
-                                    googleSyncDate: googleUpdatedAt
+                                    googleSyncDate: googleUpdatedAt,
+                                    googleSync: event.status === 'cancelled' ? 0 : reminderItem.googleSync,
                                 }, false).catch(console.error);
                             } else if (googleUpdatedAt < reminderItem.googleSyncDate) {
-                                updating.push(reminderItem);
+                                updatingInGoogle.push(reminderItem);
                             }
                         } else if (reminderItem.datetime.getTime() > Date.now()) {
-                            creating.push(reminderItem);
+                            creatingInGoogle.push(reminderItem);
                         }
                     } else if (event && event.status !== 'cancelled') {
                         deletingEvents.push(reminderItem.googleEventId!);
@@ -760,16 +807,16 @@ export class GoogleCalendarService {
                 });
             });
 
-            for (let reminderItem of creating) {
+            for (let reminderItem of creatingInGoogle) {
                 await this.createEventByReminder(reminderItem);
             }
 
-            for (let reminderItem of updating) {
+            for (let reminderItem of updatingInGoogle) {
                 await this.updateEventByReminder(reminderItem);
             }
 
             for (let eventId of deletingEvents) {
-                await this.deleteEvent(eventId!);
+                await this.#deleteEvent(eventId!);
             }
 
             await this.#googleLastSyncTsStore.setValue(Date.now());
@@ -923,17 +970,14 @@ export class GoogleCalendarService {
             const datetimeAsObj = new Date(event.start?.dateTime!);
             const datetime = RRuleService.getNextOccurrence(datetimeAsObj, event.recurrence) ?? datetimeAsObj;
             
-            console.log(`NextOccurrence for ${event.summary}`, datetime);
-
             //в принципе можно импортировать всё
-            if (!isExist && datetime && !isNaN(+datetime)/* && datetime.getTime() >= Date.now()*/) {
+            if (!isExist && !isNaN(+datetime)/* && datetime.getTime() >= Date.now()*/) {
+                console.log(`Import google event #${event} - ${event.summary}`, datetime);
+
                 await this.#reminderService.save({
-                    //todo rrule + dateFrom + dateTo
+                    ...this.#googleEventToReminderFields(event),
                     datetime: datetime,
-                    title: event.summary!,
-                    desc: event.description,
                     googleSyncDate: new Date(event.updated!),
-                    googleEventId: event.id,
                 }, false);
             }
         }

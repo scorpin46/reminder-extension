@@ -1,7 +1,7 @@
 <template>
   <div class="recurrence mb-5">
     <label class="form-label mb-15">
-      <span class="form-label__title">Repeat</span>
+      <span class="form-label__title">{{ browser.i18n.getMessage('repeat')}}</span>
       <select v-model="frequency" class="form-control">
         <option v-for="freq in frequencyOptions" :value="freq.value">{{ freq.label }}</option>
       </select>
@@ -9,8 +9,7 @@
 
     <template v-if="isCustomFrequency">
       <div class="recurrence__unit">
-<!--        todo переводы текстам сделать-->
-        <span>Every</span>
+        <span>{{ browser.i18n.getMessage('customRepeat_label_every') }}</span>
         <input type="number" v-model.number="interval" min="1" class="form-control" required placeholder="1"/>
         <select v-model="intervalUnit" class="form-control w-50" required>
           <option v-for="unit in intervalUnits" :value="unit.value">{{ unit.label }}</option>
@@ -19,9 +18,9 @@
     </template>
 
     <div v-if="showTimeRange" class="recurrence__times mb-20">
-      <span>From</span>
+      <span class="capitalize-first-letter">{{ browser.i18n.getMessage('from') }}</span>
       <input type="time" v-model="fromTime" class="form-control" required/>
-      <span>to</span>
+      <span>{{ browser.i18n.getMessage('to') }}</span>
       <input type="time" v-model="toTime" class="form-control" :min="fromTime" required/>
     </div>
 
@@ -75,21 +74,21 @@ const isCustomFrequency = computed(() => frequency.value === 'custom')
 
 // Статика
 const frequencyOptions = [
-  { value: '', label: 'Never' },
-  { value: Frequencies.DAILY, label: 'Every Day' },
-  { value: Frequencies.WEEKLY, label: 'Every Week' },
-  { value: Frequencies.MONTHLY, label: 'Every Month' },
-  { value: Frequencies.YEARLY, label: 'Every Year' },
-  { value: 'custom', label: 'Custom' }
+  { value: '', label: browser.i18n.getMessage('reminderForm_repeat_never') },
+  { value: Frequencies.DAILY, label: browser.i18n.getMessage('reminderForm_repeat_daily') },
+  { value: Frequencies.WEEKLY, label: browser.i18n.getMessage('reminderForm_repeat_weekly') },
+  { value: Frequencies.MONTHLY, label: browser.i18n.getMessage('reminderForm_repeat_monthly') },
+  { value: Frequencies.YEARLY, label: browser.i18n.getMessage('reminderForm_repeat_yearly') },
+  { value: 'custom', label: browser.i18n.getMessage('reminderForm_repeat_custom') }
 ]
 
 const intervalUnits = [
-  { value: Frequencies.MINUTELY, label: 'Minutes' },
-  { value: Frequencies.HOURLY, label: 'Hours' },
-  { value: Frequencies.DAILY, label: 'Days' },
-  { value: Frequencies.WEEKLY, label: 'Weeks' },
-  { value: Frequencies.MONTHLY, label: 'Months' },
-  { value: Frequencies.YEARLY, label: 'Years' }
+  { value: Frequencies.MINUTELY, label: browser.i18n.getMessage('customRepeat_unit_minutes') },
+  { value: Frequencies.HOURLY, label: browser.i18n.getMessage('customRepeat_unit_hours') },
+  { value: Frequencies.DAILY, label: browser.i18n.getMessage('customRepeat_unit_days') },
+  { value: Frequencies.WEEKLY, label: browser.i18n.getMessage('customRepeat_unit_weeks') },
+  { value: Frequencies.MONTHLY, label: browser.i18n.getMessage('customRepeat_unit_months') },
+  { value: Frequencies.YEARLY, label: browser.i18n.getMessage('customRepeat_unit_years') }
 ]
 
 const rruleToMode = {
@@ -132,12 +131,12 @@ const rrule = computed(() => {
     }
 
     if (frequency.value === Frequencies.MONTHLY || intervalUnit.value === Frequencies.MONTHLY) {
-      options.bymonthday = [isLastDayOfMonth ? -1 : day]
+      options.bymonthday = [isLastDayOfMonth && day === 31 ? -1 : day]
     }
 
     if (frequency.value === Frequencies.YEARLY || intervalUnit.value === Frequencies.YEARLY) {
       options.bymonth = [month]; //todo протестить корректный ли месяц в гугл залетит
-      options.bymonthday = [isLastDayOfMonth ? -1 : day]
+      options.bymonthday = [isLastDayOfMonth && day === 31 ? -1 : day]
     }
 
     return new RRule(options).toString()
@@ -154,9 +153,9 @@ onMounted(() => {
     const mode = rruleToMode[freq]
 
     if (mode) {
-      if (int === 1 && !mode.unit) {
-        frequency.value = mode.freq
-      } else if (int > 1 || mode.unit) {
+      frequency.value = mode.freq;
+      
+      if (mode.unit) {
         frequency.value = 'custom'
         intervalUnit.value = mode.unit || mode.freq
         interval.value = int
@@ -179,6 +178,7 @@ onMounted(() => {
 })
 
 watch([rrule, fromTime, toTime], ([rruleVal, fromTimeVal, toTimeVal]) => {
+  console.log(rruleVal);
   emit('update:fromTime', showTimeRange.value ? fromTimeVal : null)
   emit('update:toTime', showTimeRange.value ? toTimeVal : null)
   emit('update:rrule', rruleVal || null)
