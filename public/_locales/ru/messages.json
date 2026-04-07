@@ -409,5 +409,8 @@
   },
   "to": {
     "message": "по"
+  },
+  "defaultShowExtraFields": {
+    "message": "Отображать дополнительные поля при создании"
   }
 }

@@ -16,8 +16,8 @@
     <div class="panel__body" ref="panelBodyRef">
       <section>
         <header>
-          Google Calendar 
-          <IconExternalOpen height="14" class="ml-5"  role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar"/>
+          <span>Google Calendar </span>
+          <IconExternalOpen height="14" class="ml-5" role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar"/>
         </header>
         <div>
           <button
@@ -45,7 +45,7 @@
       <section>
         <header>{{ browser.i18n.getMessage('Other') }}</header>
         <div>
-          <div class="mb-5">
+          <div class="mb-15">
             <label class="form-label">
               <span class="form-label__title">
                 {{ browser.i18n.getMessage('fastModeRun') }}
@@ -56,6 +56,12 @@
                 <option value="voice">{{ browser.i18n.getMessage('fastModeRunVoice') }}</option>
                 <option value="activeReminders">{{ browser.i18n.getMessage('fastModeRunActiveReminders') }}</option>
               </select>
+            </label>
+          </div>
+          <div class="">
+            <label class="form-check">
+              <input type="checkbox" v-model="defaultShowExtraFields">
+              <span>{{ browser.i18n.getMessage('defaultShowExtraFields') }}</span>
             </label>
           </div>
           <!--          <div class="mb-15">-->
@@ -94,9 +100,9 @@
         <div class="faq-list">
           <template v-for="(faqItem) in faqItems" :key="faqItem.id">
             <div :class="['faq-item', {'--opened': faqItemOpenedId === faqItem.id}]">
-              <div class="faq-item__title" 
-                   :title="browser.i18n.getMessage(faqItemOpenedId === faqItem.id ? 'close' : 'open')" 
-                   @click="faqTitleClick(faqItem.id)" 
+              <div class="faq-item__title"
+                   :title="browser.i18n.getMessage(faqItemOpenedId === faqItem.id ? 'close' : 'open')"
+                   @click="faqTitleClick(faqItem.id)"
                    v-html="faqItem.title"
               ></div>
               <div class="faq-item__body">
@@ -153,7 +159,7 @@
           <IconHelp height="15" :transparent="true"/> 
           <span>{{ browser.i18n.getMessage('help') }}</span>
         </header>
-        <div role="link"  @click="openImproveExpForm">
+        <div role="link" @click="openImproveExpForm">
           <IconMessage height="12" width="15" :transparent="true" class="v-a-m color-primary mr-5"/>
 
           <span class="v-a-m">{{ browser.i18n.getMessage('reportIssue') }}</span>
@@ -167,8 +173,8 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
-import {getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
-import {nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
+import {getDefaultShowExtraFieldsStore, getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
+import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
 import IconPen from "@/components/icons/IconPen.vue";
@@ -186,17 +192,21 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
-const fastMode = ref();
 
 const hotkeys = ref([]);
 const isChrome = navigator.userAgent.includes("Chrome");
+
 const lastGoogleSync = ref();
-
 const googleLastSyncStore = getStoredGoogleLastSyncTs();
-
 googleLastSyncStore.watch((value) => {
   lastGoogleSync.value = value;
 })
+
+const defaultShowExtraFields = ref();
+const defaultShowExtraFieldsStore = getDefaultShowExtraFieldsStore()
+
+const fastMode = ref();
+const fastModeStore = getFastModeStore();
 
 const panelRef = ref();
 const panelBodyRef = ref();
@@ -222,11 +232,11 @@ const testNotificationSuccess = ref();
 
 const sendTestNotification = () => {
   testNotificationBtnText.value = browser.i18n.getMessage('test_notification_sending');
-  
+
   browser.runtime.sendMessage({action: 'TEST_NOTIFICATION'}, (response) => {
     testNotificationBtnText.value = browser.i18n.getMessage('test_notification');
-    
-    if (!response.success){
+
+    if (!response.success) {
       testNotificationError.value = browser.i18n.getMessage('test_notification_error');
     } else {
       testNotificationSuccess.value = browser.i18n.getMessage('test_notification_success');
@@ -247,34 +257,45 @@ const logout = () => {
 }
 
 const openCalendar = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: `https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`}, (response) => {});
+  browser.runtime.sendMessage({
+    action: 'OPEN_LINK',
+    url: `https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`
+  }, (response) => {
+  });
 }
 
 const openImproveExpForm = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getImproveExperienceFormLink()}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getImproveExperienceFormLink()}, (response) => {
+  });
 }
 
 const editHotkeys = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: "chrome://extensions/shortcuts"}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: "chrome://extensions/shortcuts"}, (response) => {
+  });
 }
 
 const openExtensionBrowserSettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`}, async (response) => {});
+  browser.runtime.sendMessage({
+    action: 'OPEN_LINK',
+    url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`
+  }, async (response) => {
+  });
 }
 
 const openOsMicSettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {
+  });
 }
 
 const openOsNotifySettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {});
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {
+  });
 }
-
-const fastModeStore = getFastModeStore();
 
 onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();
   lastGoogleSync.value = await googleLastSyncStore.getValue();
+  defaultShowExtraFields.value = await defaultShowExtraFieldsStore.getValue();
 
   browser.commands.getAll((commands) => {
     commands.forEach((command) => {
@@ -286,8 +307,8 @@ onMounted(async () => {
 
   if (window.location.hash.startsWith('#troubleshooting')) {
     const foundFaqItem = faqItems.find((item) => item.id === window.location.hash.split('-')[1]);
-   
-    if (foundFaqItem){
+
+    if (foundFaqItem) {
       faqItemOpenedId.value = foundFaqItem.id;
 
       setTimeout(() => {
@@ -300,14 +321,18 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => {
-  window.location.hash = '';
-})
-
 watch(() => fastMode.value, async (value) => {
   await fastModeStore.setValue(value);
 
   browser.runtime.sendMessage({action: 'REINIT_FAB_FOR_CONTENT'});
+})
+
+watch(() => defaultShowExtraFields.value, async (value) => {
+  await defaultShowExtraFieldsStore.setValue(value);
+})
+
+onUnmounted(() => {
+  window.location.hash = '';
 })
 
 </script>

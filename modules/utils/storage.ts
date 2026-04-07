@@ -67,3 +67,9 @@ export function getShowExpiredItemsStore() {
         fallback: true,
     });
 }
+
+export function getDefaultShowExtraFieldsStore() {
+    return storage.defineItem<boolean>('local:defaultShowExtraFields', { 
+        fallback: false,
+    });
+}

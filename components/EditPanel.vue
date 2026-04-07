@@ -127,6 +127,7 @@ import {isNumeric} from "@/modules/utils/helpers.ts";
 import RepeatField from "@/components/RepeatField.vue";
 import IconSync from "@/components/icons/IconSync.vue";
 import {useDebounceFn, useEventListener} from "@vueuse/core";
+import {getDefaultShowExtraFieldsStore} from "@/modules/utils/storage.ts";
 
 const props = defineProps({
   backToPanel: {
@@ -155,10 +156,12 @@ const reminderButtonsRef = ref();
 const reminderDetailsRef = ref();
 const recognitionLocale = ref();
 const reminderButtonsIsSticky = ref();
+const defaultShowExtraFieldsStore = getDefaultShowExtraFieldsStore();
+
 const formRef = ref();
 const panelBodyRef = ref();
 const showExtraFields = ref();//изначально должен быть Undefined!
-const isAuthenticated = computed(() => !!props.authenticatedEmail)
+const isAuthenticated = computed(() => !!props.authenticatedEmail);
 const formInputInitData = {
   id: null,
   title: '',
@@ -333,9 +336,18 @@ onMounted(async () => {
     value && toast.error(value);
   }, {immediate: true})
 
-  if (form.hasExtraFields()){
+  
+  if (form.hasExtraFields() || await defaultShowExtraFieldsStore.getValue()){
     showExtraFields.value = true
   }
+
+  defaultShowExtraFieldsStore.watch((newVal, oldVal) => {
+    if (newVal){
+      showExtraFields.value = true
+    } else if (!form.hasExtraFields()){
+      showExtraFields.value = false
+    }
+  })
   
   if (props.autostartRecording){
     emit('update:autostartRecording', false);
@@ -343,7 +355,6 @@ onMounted(async () => {
 
   useEventListener(panelBodyRef.value, 'scroll', useDebounceFn(checkButtonsSticky, 100), {passive: true})
 })
-
 
 onUnmounted(() => {
   recognitionService.stop();

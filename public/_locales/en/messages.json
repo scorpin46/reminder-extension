@@ -42,7 +42,7 @@
     "message": "Details"
   },
   "reminderAdvanced": {
-    "message": "Advanced"
+    "message": "Additional"
   },
   "reminderUrlInfo": {
     "message": "(Optional) Enter a website to open when this reminder triggers."
@@ -430,5 +430,8 @@
   },
   "to": {
     "message": "to"
+  },
+  "defaultShowExtraFields": {
+    "message": "Show additional fields on creation"
   }
 }
