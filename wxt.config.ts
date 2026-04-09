@@ -13,7 +13,7 @@ export default defineConfig({
             "notifications",
             "storage",
             "tabs",
-            "gcm",
+            // "gcm",
             "contextMenus",
             "activeTab",
             "alarms",
