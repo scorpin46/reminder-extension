@@ -180,19 +180,19 @@
     "message": "Set a Reminder"
   },
   "contextmenu_reminderSite": {
-    "message": "Auto-open Site on schedule"
+    "message": "Open Site on a Schedule"
   },
   "contextmenu_setLinkReminder": {
-    "message": "Auto-open link on schedule"
+    "message": "Open Link on a Schedule"
   },
   "contextmenu_setImgReminder": {
-    "message": "Auto-open image on schedule"
+    "message": "Open Image on a Schedule"
   },
   "contextmenu_setVideoReminder": {
-    "message": "Auto-open video on schedule"
+    "message": "Open Video on a Schedule"
   },
   "contextmenu_setAudioReminder": {
-    "message": "Auto-play audio on schedule"
+    "message": "Play Audio on a Schedule"
   },
   "contextmenu_setSelectionReminder": {
     "message": "Add as Reminder: \"%s\""
