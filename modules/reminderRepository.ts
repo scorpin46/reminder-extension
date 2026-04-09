@@ -158,7 +158,8 @@ export class ReminderRepository {
 
             return {
                 active: this.#ensureSorted(active, 'datetime', 'asc'),
-                completed: this.#ensureSorted(completed, 'datetime', 'desc')
+                completed: this.#ensureSorted(completed, 'datetime', 'desc'),
+                allCount: active.length + completed.length,
             };
         }).subscribe({
             next: ({ active, completed }) => {

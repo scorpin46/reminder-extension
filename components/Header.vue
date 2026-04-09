@@ -11,7 +11,7 @@
       >
         <IconPlus/>
       </button>
-      <RecordBtn @click="editingPanelVisible = true"/>
+      <RecordBtn @click="editingPanelVisible = true" :isHeaderBtn="true"/>
     </div>
     
 
@@ -69,7 +69,6 @@ const props = defineProps({
     type: Boolean,
   },
 })
-
 const emit = defineEmits(['update:editingPanelVisible', 'update:openedTab', 'update:searchVisible']);
 const reminderService = ReminderService.instance();
 const openedTab = computed({

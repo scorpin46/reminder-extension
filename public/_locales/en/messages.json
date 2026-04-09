@@ -274,6 +274,9 @@
   "dictateNewReminder": {
     "message": "Dictate a reminder"
   },
+  "dictateNewReminderExamples": {
+    "message": "Examples:\n - take a break in 30 minutes\n - in 2 hours, call a courier\n - remind me tomorrow at 1 pm that my sister is arriving on Monday"
+  },
   "hotkeys": {
     "message": "Hotkeys"
   },

@@ -67,7 +67,7 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
         '(?:set|create|add|make)(?: a)? reminder',
         'don\'?t forget',
         'need to remember',
-        'make(?: a)? note',
+        // 'make(?: a)? note', //не удачный пример, т.к. человек может диктовать напоминание "сделать заметку в журнале"
         'note to self',
         // Вежливые формы
         'please',
@@ -206,10 +206,10 @@ export class TextParserProvider {
 
         let result = this.#tryChronoParse(text) ?? this.#tryMicrosoftParse(text);
 
-        // ✅ Оставляем правильную фильтрацию прошлых дат
-        if (result?.date && result.date.getTime() < Date.now()) {
-            result = null;
-        }
+        // Оставляем правильную фильтрацию прошлых дат (не используем т.к. создается ощущение тчо не работает, когда в сегодняшнем дне вызываешь дату на час раньше к примеру)
+        // if (result?.date && result.date.getTime() < Date.now()) {
+        //     result = null;
+        // }
 
         return result ?? {
             sourceText: text,

@@ -135,7 +135,7 @@ const rrule = computed(() => {
     }
 
     if (frequency.value === Frequencies.YEARLY || intervalUnit.value === Frequencies.YEARLY) {
-      options.bymonth = [month]; //todo протестить корректный ли месяц в гугл залетит
+      options.bymonth = [month];
       options.bymonthday = [isLastDayOfMonth && day === 31 ? -1 : day]
     }
 
