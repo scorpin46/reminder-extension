@@ -71,7 +71,7 @@
     transition: all .3s var(--transition-fn);
     display: flex;
     //flex-wrap: wrap;
-    gap: 15px;
+    gap: 10px;
     min-height: 50px;
     box-shadow: var(--box-shadow);
     background: var(--foreground-active);
@@ -167,7 +167,7 @@
     }
 
     &__desc {
-      font-size: 11px;
+      font-size: 12px;
       display: -webkit-box;
       text-overflow: ellipsis;
       -webkit-box-orient: vertical;

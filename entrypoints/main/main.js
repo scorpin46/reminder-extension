@@ -10,7 +10,6 @@ import '@/assets/scss/styles.scss'
 import {detectLocale, blockPageScaling} from "@/modules/utils/helpers.ts";
 import { plugin as VueTippy } from 'vue-tippy'
 
-blockPageScaling();
 document.title = browser.i18n.getMessage('mainTitle');
 
 const locale = detectLocale();
@@ -72,3 +71,5 @@ app.use(Toast, {
 
 
 app.mount('#app');
+
+blockPageScaling();
