@@ -22,6 +22,7 @@ export class RecognitionService {
     readonly localeStore: ReturnType<typeof getStoredLocale>;
 
     #silenceTimer: NodeJS.Timeout|null = null;
+    #streamRecordingFinalText: string = '';
 
     private constructor() {
         this.localeStore = getStoredLocale();
@@ -29,6 +30,7 @@ export class RecognitionService {
         this.state = reactive({
             isRecording: false,
             streamRecordingText: '',
+            streamRecordingFinalText: '',
             recordedText: '',
             parsedData: null,
             error: null
@@ -61,35 +63,21 @@ export class RecognitionService {
         recognition.maxAlternatives = 1;
         recognition.lang = locale;
         
-        let fullText = '';
-
         recognition.onstart = (event: object) => {
             console.log('onstart');
 
-            fullText = '';
             this.state.parsedData = null;
 
+            this.#streamRecordingFinalText = ''; // Сбрасываем при старте
             this.state.streamRecordingText = ''; // Сбрасываем при старте
             this.state.isRecording = true;
             this.#resetSilenceTimer(5000);
         }
 
-        recognition.onend = (event: object) => {
-            console.log('onend');
-
-            this.state.isRecording = false;
-            this.#currentAudioStream?.getTracks().forEach(track => {
-                track.stop(); //освобождение микрофона
-            });
-            this.#clearSilenceTimer();
-
-            this.state.parsedData = this.#textParser!.parse(this.state.streamRecordingText);
-            this.state.error = this.state.parsedData.error ?? this.state.error;
-        }
-
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.log('onerror');
             this.state.streamRecordingText = '';
+            this.#streamRecordingFinalText = '';
             this.state.isRecording = false;
             this.#clearSilenceTimer();
 
@@ -114,22 +102,51 @@ export class RecognitionService {
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log('onresult');
+
+            if (! event.results) {
+                console.error('no speech results');
+
+                return;
+            }
             
             this.#resetSilenceTimer();
+
+            let interimText = '';
+            let localFinalText = '';
             
-            const lastResult = event.results[event.results.length - 1];
-            const currentSegment = lastResult[0].transcript;
- 
-            if (lastResult.isFinal) {
-                // Финальный сегмент - добавляем к полному тексту
-                fullText = fullText ? `${fullText} ${currentSegment}` : currentSegment;
-                this.state.streamRecordingText = fullText;
-            } else {
-                // Промежуточный результат - показываем полный текст + текущий сегмент
-                this.state.streamRecordingText = fullText
-                    ? `${fullText} ${currentSegment}`
-                    : currentSegment;
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                let transcript = event.results[i][0].transcript;
+
+                if (event.results[i].isFinal) {
+                    localFinalText += transcript;
+                } else {
+                    interimText += transcript;
+                }
             }
+            
+            this.#streamRecordingFinalText += ' ' + localFinalText;
+            
+            if (localFinalText){
+                this.state.streamRecordingText = this.#streamRecordingFinalText;
+            } else {
+                this.state.streamRecordingText = this.#streamRecordingFinalText + ' ' +  interimText;
+            }
+
+            this.state.streamRecordingText = this.state.streamRecordingText.replace(/\s+/g, ' ').trim();
+        }
+
+        recognition.onend = (event: object) => {
+            console.log('onend');
+
+            this.state.isRecording = false;
+            this.#currentAudioStream?.getTracks().forEach(track => {
+                track.stop(); //освобождение микрофона
+            });
+            this.#clearSilenceTimer();
+
+            this.state.streamRecordingText = this.#streamRecordingFinalText;
+            this.state.parsedData = this.#textParser!.parse(this.#streamRecordingFinalText);
+            this.state.error = this.state.parsedData.error ?? this.state.error;
         }
 
         // Остальные обработчики можно оставить как есть
@@ -155,6 +172,7 @@ export class RecognitionService {
         this.stop();
         
         this.state.streamRecordingText = '';
+        this.#streamRecordingFinalText = '';
         // this.state.isRecording = true; //чтобы не создавать иллюзию, что запись уже идет
 
         this.#currentAudioStream = await navigator.mediaDevices.getUserMedia({

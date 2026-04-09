@@ -72,7 +72,8 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
         // Вежливые формы
         'please',
         'kindly',
-        'if you (?:can|could)'
+        'if you (?:can|could)',
+        'that'
     ],
 
     de: [
@@ -390,7 +391,8 @@ export class TextParserProvider {
         // }
 
         // 4. Финальная очистка
-        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+        cleaned = cleaned.replace(/\s+/g, ' ').trim()
+            .replace(/\S/, (char) => char.toLocaleUpperCase());
 
         return cleaned || fullText;
     }
