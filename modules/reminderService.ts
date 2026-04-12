@@ -121,19 +121,27 @@ export class ReminderService {
             when: +datetime,
         })
     }
-    
+
     async delete(reminder: Reminder, sendMessage: boolean = true) {
-        await this.repository.delete(reminder.id!);
-        browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
-        await this.#updatedCallback();
+        try {
+            await this.repository.delete(reminder.id!);
+            browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
+            sendMessage && browser.runtime.sendMessage({action: 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
+            await this.#updatedCallback();
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
-        await this.repository.complete(reminder.id!);
-        browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-        sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
-        await this.#updatedCallback();
+        try {
+            await this.repository.complete(reminder.id!);
+            browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
+            sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
+            await this.#updatedCallback();
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async getAllGoogleEventsIds(){

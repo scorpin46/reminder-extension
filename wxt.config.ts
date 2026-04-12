@@ -30,6 +30,7 @@ export default defineConfig({
                 24: 'icon/24.png',
                 32: 'icon/32.png',
                 48: 'icon/48.png',
+                64: 'icon/64.png',
                 96: 'icon/96.png',
                 128: 'icon/128.png',
             },
@@ -80,7 +81,7 @@ export default defineConfig({
     }),
     modules: [
         '@wxt-dev/module-vue',
-        '@wxt-dev/auto-icons'
+        // '@wxt-dev/auto-icons'
     ],
     modulesDir: "wxt-modules",
     consoleForward: {

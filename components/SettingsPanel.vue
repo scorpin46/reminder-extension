@@ -238,12 +238,16 @@ const sendTestNotification = () => {
   testNotificationBtnText.value = browser.i18n.getMessage('test_notification_sending');
 
   browser.runtime.sendMessage({action: 'TEST_NOTIFICATION'}, (response) => {
-    testNotificationBtnText.value = browser.i18n.getMessage('test_notification');
+    try {
+      testNotificationBtnText.value = browser.i18n.getMessage('test_notification');
 
-    if (!response.success) {
-      testNotificationError.value = browser.i18n.getMessage('test_notification_error');
-    } else {
-      testNotificationSuccess.value = browser.i18n.getMessage('test_notification_success');
+      if (!response.success) {
+        testNotificationError.value = browser.i18n.getMessage('test_notification_error');
+      } else {
+        testNotificationSuccess.value = browser.i18n.getMessage('test_notification_success');
+      }
+    } catch (e) {
+      console.error(e);
     }
   });
 }
