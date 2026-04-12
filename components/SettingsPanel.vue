@@ -88,7 +88,7 @@
         </header>
         <div>
           <div class="" v-for="hotkey in hotkeys">
-            <b>{{ ! hotkey.shortcut.includes('+') && hotkey.shortcut.length === 3 ? hotkey.shortcut.replace(/(.)(?=.)/g, '$1 + ') : hotkey.shortcut }}</b> — {{ hotkey.description }}
+            <b>{{ hotkey.shortcut }}</b> — {{ hotkey.description }}
           </div>
         </div>
       </section>
@@ -123,10 +123,10 @@
                         <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                       </div>
                       <a class="color-primary mb-5" role="link" :href="getOsNotifySettingsLink()" target="_blank">
-                        <span class="v-a-m"> {{ browser.i18n.getMessage('faq_notify_os_perm') }}  </span>
+                        <span class="v-a-m" v-if="getOsNotifySettingsLink().startsWith('x-apple')">{{ browser.i18n.getMessage('faq_notify_step_macos') }}  </span>
+                        <span class="v-a-m" v-else>{{ browser.i18n.getMessage('faq_notify_os_perm') }}  </span>
                         <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                       </a>
-                      <div>{{ browser.i18n.getMessage('faq_notify_step_macos') }}</div>
                     </div>
                   </div>
                 </template>
