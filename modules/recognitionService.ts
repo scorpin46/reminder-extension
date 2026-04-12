@@ -139,9 +139,6 @@ export class RecognitionService {
             console.log('onend');
 
             this.state.isRecording = false;
-            this.#currentAudioStream?.getTracks().forEach(track => {
-                track.stop(); //освобождение микрофона
-            });
             this.#clearSilenceTimer();
 
             this.state.streamRecordingText = this.#streamRecordingFinalText;
@@ -152,7 +149,7 @@ export class RecognitionService {
         // Остальные обработчики можно оставить как есть
         recognition.onaudioend = () => {
             console.log('onaudioend');
-            this.state.isRecording = false;
+            this.state.isRecording = false; //это для фейковой остановки, когда второй профиль почему-то не может корректно работать
         }
 
         recognition.onaudiostart = () => {console.log('onaudiostart')}
@@ -204,6 +201,11 @@ export class RecognitionService {
     }
 
     stop() {
+        this.#currentAudioStream?.getTracks().forEach(track => {
+            track.stop();
+        });
+        this.#currentAudioStream = undefined;
+        
         this.#recognition?.stop();
         this.#recognition?.abort();
         this.state.isRecording = false;
