@@ -16,8 +16,8 @@ import {useToast} from "vue-toastification";
 import {computed, onMounted, ref} from "vue";
 import {RecognitionService} from "@/modules/recognitionService.ts";
 import {browser} from 'wxt/browser';
-import {detectLocale} from "@/modules/utils/helpers.ts";
 import {ReminderService} from "@/modules/reminderService.ts";
+import {allowedDateParserLocales} from "@/modules/textParserProvider.ts";
 
 const props = defineProps({
   autostart: {
@@ -38,7 +38,7 @@ const supportsRecording = ref(recognitionService.isSupported())
 const permissionDenied = ref(false)
 const recognitionLocale = ref('')
 const defaultTitle = computed(() => {
-  const showExamples = props.isHeaderBtn && ['en', 'ru'].includes(recognitionLocale.value?.split('-')[0]) && reminderService.repository.state.allCount < 10;
+  const showExamples = props.isHeaderBtn && allowedDateParserLocales.includes(recognitionLocale.value?.split('-')[0]) && reminderService.repository.state.allCount < 10;
   let title = browser.i18n.getMessage('dictateNewReminder');
   
   return title + (showExamples ? `\n\n${browser.i18n.getMessage('dictateNewReminderExamples') }` : '')

@@ -31,7 +31,6 @@ describe('check dates', () => {
             "createdAt": new Date("2026-04-04T10:20:17.246Z"),
             "updatedAt": new Date("2026-04-05T18:43:00.030Z"),
             "id": 556,
-            "notificationId": "beca7693-11e0-48e9-99e1-311abf55cc13",
             "url": null,
             "googleSync": 1,
             "recurrence": "RRULE:FREQ=MINUTELY;INTERVAL=5",

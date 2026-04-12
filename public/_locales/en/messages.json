@@ -246,7 +246,7 @@
     "description": "Title \"Other settings\""
   },
   "fastModeRun": {
-    "message": "Quick launch mode"
+    "message": "Quick Launch Button Action"
   },
   "fastModeRunText": {
     "message": "Open text input"
@@ -358,14 +358,17 @@
   "faq_mobile_power_save_mode_off": {
     "message": "• Disable battery optimization and background restrictions for the Google Calendar app."
   },
-  "faq_mic_access_failed": {
-    "message": "No access to microphone"
+  "faq_mic_failed": {
+    "message": "Voice dictation problems"
   },
   "faq_mic_extension_perm": {
     "message": "• Check microphone permission for this extension"
   },
   "faq_mic_os_perm": {
     "message": "• Check your operating system for permission to use the microphone with your browser (Chrome, etc.)"
+  },
+  "faq_mic_selecting": {
+    "message": "• Make sure you select the correct microphone"
   },
   "reportIssue": {
     "description": "Text for feedback link",

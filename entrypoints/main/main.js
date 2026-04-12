@@ -13,7 +13,7 @@ import { plugin as VueTippy } from 'vue-tippy'
 document.title = browser.i18n.getMessage('mainTitle');
 
 const locale = detectLocale();
-if (!locale.startsWith('ru')) {    //todo если переводы по языкам добавятся в будущем , то убрать if-обертку
+if (locale.startsWith('ru')) {    //todo если переводы по языкам добавятся в будущем , то убрать if-обертку
     document.documentElement.lang = locale;
 }
 

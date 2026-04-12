@@ -1,6 +1,5 @@
 import * as chrono from "chrono-node";
 import * as Recognizers from '@microsoft/recognizers-text-date-time';
-import {browser} from "wxt/browser";
 
 export type TextParsedData = {
     sourceText: string;
@@ -23,29 +22,6 @@ const msLocaleMap: Record<string, string> = {
     'zh': Recognizers.Culture.Chinese,
     'it': Recognizers.Culture.Italian,
     'ja': Recognizers.Culture.Japanese,
-    'ko': 'ko-KR',  // исправлено: ko-kr → ko-KR
-
-    // Эти коды нужно проверить в документации Microsoft Recognizers
-    'tr': 'tr-TR',
-    'hi': 'hi-IN',
-    'ar': 'ar-AE',
-    'sv': 'sv-SE',
-    'th': 'th-TH',
-    'vi': 'vi-VN',
-    'he': 'he-IL',
-    'pl': 'pl-PL',
-    'cs': 'cs-CZ',
-    'hu': 'hu-HU',
-    'ro': 'ro-RO',
-    'bg': 'bg-BG',
-    'el': 'el-GR',
-    'uk': 'uk-UA',
-    'ca': 'ca-ES',
-    'id': 'id-ID',
-    'ms': 'ms-MY',
-    'da': 'da-DK',
-    'fi': 'fi-FI',
-    'no': 'nb-NO',
 };
 
 // ✅ Улучшенные триггеры с границами слов и безопасными паттернами
@@ -85,7 +61,7 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
     ],
 
     fr: [
-        'rappelle moi',
+        'rappelle-?moi',
         'rappel',
         '(?:crée|cree) rappel',
         'n\'?oublie pas',
@@ -113,15 +89,16 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
         'perfavore'
     ],
 
-    pt: [
-        'lembrete',
-        'lembrar me',
-        'criar lembrete',
-        'não esqueça',
-        'por favor',
-        'pf',
-        'pfv'
-    ],
+    //плохо парсится
+    // pt: [
+    //     'lembrete',
+    //     'lembrar me',
+    //     'criar lembrete',
+    //     'não esqueça',
+    //     'por favor',
+    //     'pf',
+    //     'pfv'
+    // ],
 
     nl: [
         'herinner me',
@@ -129,7 +106,9 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
         'maak herinnering',
         'vergeet niet',
         'alsjeblieft',
-        'alstublieft'
+        'alstublieft',
+        `\'s`,
+        'ochtends|middags|avonds|nachts'
     ],
 
     zh: [
@@ -149,39 +128,52 @@ const TRIGGER_PATTERNS: Record<string, string[]> = {
         'お願い'
     ],
 
-    ko: [
-        '알림',
-        '상기시켜 줘',
-        '설정',
-        '잊지 마',
-        '주세요'
-    ],
+    // ko: [
+    //     '알림',
+    //     '상기시켜 줘',
+    //     '설정',
+    //     '잊지 마',
+    //     '주세요'
+    // ],
 
-    tr: [
-        'hatırlat',
-        'hatırlatıcı',
-        'ayarla',
-        'unutma',
-        'lütfen'
-    ],
+    // tr: [
+    //     'hatırlat',
+    //     'hatırlatıcı',
+    //     'ayarla',
+    //     'unutma',
+    //     'lütfen'
+    // ],
 
-    pl: [
-        'przypomnij',
-        'przypomnienie',
-        'ustaw przypomnienie',
-        'nie zapomnij',
-        'proszę'
-    ],
+    // pl: [
+    //     'przypomnij',
+    //     'przypomnienie',
+    //     'ustaw przypomnienie',
+    //     'nie zapomnij',
+    //     'proszę'
+    // ],
 
-    hi: [
-        'याद दिलाओ',
-        'रिमाइंडर',
-        'सेट करें',
-        'भूलना नहीं',
-        'कृपया',
-        'प्लीज़'
+    // hi: [
+    //     'याद दिलाओ',
+    //     'रिमाइंडर',
+    //     'सेट करें',
+    //     'भूलना नहीं',
+    //     'कृपया',
+    //     'प्लीज़'
+    // ],
+    
+    uk: [
+        'нагадай мені',
+        'нагадування',
+        'створи нагадування',
+        'не забудь',
+        'треба нагадати',
+        'хочу нагадати',
+        'будь ласка',
+        'що'
     ]
 };
+
+export const allowedDateParserLocales = Object.keys(TRIGGER_PATTERNS);
 
 export class TextParserProvider {
     readonly #locale: string
@@ -193,9 +185,15 @@ export class TextParserProvider {
     get shortLocale() {
         return this.#locale.split('-')[0].toLowerCase();
     }
+    
+    // static isAllowedLocales(){
+    //     return !!this.#locale;
+    // }
 
     parse(text: string): TextParsedData {
-        if (!text || text.trim() === '') {
+        text = text.trim();
+        
+        if (!text) {
             return {
                 sourceText: text,
                 cleanText: '',
@@ -205,7 +203,15 @@ export class TextParserProvider {
             };
         }
 
-        let result = this.#tryChronoParse(text) ?? this.#tryMicrosoftParse(text);
+        let result;
+        
+        if (allowedDateParserLocales.some(locale => [this.#locale, this.shortLocale].includes(locale))) {
+            result = this.#tryChronoParse(text) ?? this.#tryMicrosoftParse(text);
+
+            if (result && result.parserSource !== 'microsoft' && !result.date && text === result?.cleanText) {
+                result = this.#tryMicrosoftParse(text);
+            }
+        }
 
         // Оставляем правильную фильтрацию прошлых дат (не используем т.к. создается ощущение тчо не работает, когда в сегодняшнем дне вызываешь дату на час раньше к примеру)
         // if (result?.date && result.date.getTime() < Date.now()) {
@@ -222,12 +228,16 @@ export class TextParserProvider {
 
     #tryChronoParse(text: string): TextParsedData | null {
         try {
-            const localeChrono: typeof chrono = chrono[this.shortLocale as keyof typeof chrono] as unknown as typeof chrono;
+            const sublocale = this.#locale.split('-')[1];
 
-            const results = localeChrono.parse(text, new Date, {forwardDate: true});
+            let localeChrono: typeof chrono = chrono[this.shortLocale as keyof typeof chrono] as unknown as typeof chrono;
+            // @ts-ignore
+            localeChrono = localeChrono[sublocale] ?? localeChrono;
+            
+            const results = localeChrono?.parse(text, new Date, {forwardDate: true});
+            console.log('chrono:', results);
 
             if (results?.length > 0) {
-                console.log(results);
                 const result = results[0];
                 const date = result?.start?.date();
 
@@ -254,7 +264,7 @@ export class TextParserProvider {
             const msCulture = msLocaleMap[this.shortLocale];
 
             const msResults = Recognizers.recognizeDateTime(text, msCulture);
-            console.log(msCulture, msResults);
+            console.log('microsoft:', msCulture, msResults);
 
             if (msResults?.length > 0) {
                 for (const msResult of msResults) {
@@ -331,17 +341,33 @@ export class TextParserProvider {
                 en: '(?:in|on|at|by|for|since|from|after|before|within|during|through|about|around|exactly)',
                 de: '(?:in|um|auf|bei|nach|vor|bis|ab|seit|innerhalb|während|gegen|ungefähr|genau)',
                 fr: '(?:dans|à|en|sur|pour|depuis|après|avant|pendant|vers|environ|exactement)',
-                es: '(?:en|a|para|por|desde|hasta|después|antes|durante|hacia|aproximadamente|exactamente)',
-                it: '(?:in|a|per|da|dopo|prima|durante|verso|circa|esattamente)',
+                es: '(?:en|el|a|para|por|desde|hasta|después|antes|durante|hacia|aproximadamente|exactamente)',
+                it: '(?:in|a|per|da|dopo|prima|durante|verso|circa|esattamente|tra|fra)',
                 pt: '(?:em|a|para|por|desde|até|depois|antes|durante|sobre|aproximadamente|exatamente)',
-                nl: '(?:in|op|aan|bij|na|voor|binnen|tijdens|ongeveer|precies)',
+                nl: `(?:in|om|op|aan|bij|na|voor|binnen|tijdens|ongeveer|precies)`,
                 zh: '(?:在|于|到|前|后|从|自|当|大约|正好)',
-                ja: '(?:に|で|から|まで|後|前|中|約|ちょうど)',
+                ja: '(?:次の|今度の|来週の|先週の|今月の|来月の)?',
                 ko: '(?:에|에서|부터|까지|후|전|중|약|정확히)'
             };
+            
+            const POST_PARTICLES: Record<string, string> = {
+                ja: '(?:に|で|から|まで|後|前|中|約|ちょうど|は|が|を|の|と|へ)',
+                es: '(?:\\s+el|\\s+la|\\s+los|\\s+las)?',
+                pt: '(?:\\s+o|\\s+a|\\s+os|\\s+as)?',
+            };
+            
             const prepPattern = TIME_PREPOSITIONS[locale] || TIME_PREPOSITIONS.en;
-            const dateWithPrepositionRegex = new RegExp(`\\s*${prepPattern}\\s+${escapedDate}\\s*|\\s*${escapedDate}\\s*`, 'gi');
-            cleaned = cleaned.replace(dateWithPrepositionRegex, ' ')
+            const postPattern = POST_PARTICLES[locale] || '';
+            let dateRegex;
+            
+            if (postPattern) {
+                // Для языков с частицами ПОСЛЕ даты 
+                dateRegex = new RegExp(`\\s*${prepPattern}\\s*${escapedDate}${postPattern}\\s*|\\s*${escapedDate}${postPattern}\\s*|\\s*${prepPattern}\\s*${escapedDate}\\s*|\\s*${escapedDate}\\s*`, 'gi');
+            } else {
+                dateRegex = new RegExp(`\\s*${prepPattern}\\s+${escapedDate}\\s*|\\s*${escapedDate}\\s*`, 'gi');
+            }
+            
+            cleaned = cleaned.replace(dateRegex, ' ')
                 .replace(/\s+/g, ' ').trim();
         }
 
@@ -391,10 +417,11 @@ export class TextParserProvider {
         // }
 
         // 4. Финальная очистка
-        cleaned = cleaned.replace(/\s+/g, ' ').trim()
+        cleaned = cleaned.replace(/[\s,-.:;]+/g, ' ')
+            .trim()
             .replace(/\S/, (char) => char.toLocaleUpperCase());
 
-        return cleaned || fullText;
+        return cleaned || fullText.trim();
     }
     
 }

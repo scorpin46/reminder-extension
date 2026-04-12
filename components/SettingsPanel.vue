@@ -88,7 +88,7 @@
         </header>
         <div>
           <div class="" v-for="hotkey in hotkeys">
-            <b>{{ hotkey.shortcut }}</b> — {{ hotkey.description }}
+            <b>{{ ! hotkey.shortcut.includes('+') && hotkey.shortcut.length === 3 ? hotkey.shortcut.replace(/(.)(?=.)/g, '$1 + ') : hotkey.shortcut }}</b> — {{ hotkey.description }}
           </div>
         </div>
       </section>
@@ -120,12 +120,12 @@
                     <div class="opacity-70">
                       <div class="color-primary mb-5" role="link" @click="openExtensionBrowserSettings">
                         <span class="v-a-m"> {{ browser.i18n.getMessage('faq_notify_extension_perm') }}  </span>
-                        <IconExternalOpen height="12" class="v-a-m"/>
+                        <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                       </div>
-                      <div class="color-primary mb-5" role="link" @click="openOsNotifySettings" title="Windows / macOS / Linux">
+                      <a class="color-primary mb-5" role="link" :href="getOsNotifySettingsLink()" target="_blank">
                         <span class="v-a-m"> {{ browser.i18n.getMessage('faq_notify_os_perm') }}  </span>
-                        <IconExternalOpen height="12" class="v-a-m"/>
-                      </div>
+                        <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
+                      </a>
                       <div>{{ browser.i18n.getMessage('faq_notify_step_macos') }}</div>
                     </div>
                   </div>
@@ -141,11 +141,15 @@
                   <div class="opacity-70">
                     <div class="color-primary mb-5" role="link" @click="openExtensionBrowserSettings">
                       <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_extension_perm') }}  </span>
-                      <IconExternalOpen height="12" class="v-a-m"/>
+                      <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                     </div>
-                    <div class="color-primary mb-5" role="link" @click="openOsMicSettings" title="Windows / macOS / Linux">
+                    <a class="color-primary mb-5" role="link" :href="getOsMicSettingsLink()" target="_blank">
                       <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_os_perm') }}  </span>
-                      <IconExternalOpen height="12" class="v-a-m"/>
+                      <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
+                    </a>
+                    <div class="color-primary mb-5" role="link" @click="openMicSelecting">
+                      <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_selecting') }}  </span>
+                      <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                     </div>
                   </div>
                 </template>
@@ -214,7 +218,7 @@ const faqItemOpenedId = ref();
 const faqItems = [
   {
     id: 'microphone',
-    title: browser.i18n.getMessage('faq_mic_access_failed') + " 🎙️",
+    title: browser.i18n.getMessage('faq_mic_failed') + " 🎙️",
   },
   {
     id: 'notifications',
@@ -282,15 +286,20 @@ const openExtensionBrowserSettings = () => {
   });
 }
 
-const openOsMicSettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {
+// const openOsMicSettings = () => {
+//   browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {
+//   });
+// }
+
+const openMicSelecting = () => {
+  browser.runtime.sendMessage({action: 'OPEN_LINK', url: 'chrome://settings/content/microphone'}, (response) => {
   });
 }
 
-const openOsNotifySettings = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {
-  });
-}
+// const openOsNotifySettings = () => {
+//   browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {
+//   });
+// }
 
 onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();

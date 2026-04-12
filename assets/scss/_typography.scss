@@ -16,6 +16,8 @@
 
 [role="link"]{
   cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
   
   &:hover{
     text-decoration: underline;
