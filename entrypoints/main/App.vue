@@ -269,8 +269,12 @@ const daysGroupsReminders = computed(() => {
 
   reminders.value.forEach((item) => {
     let groupKey = item.datetime.toLocaleDateString(reminderService.regionLocale);
-
-    if (filterQuery.value && !`${item.title} ${item.desc}`.includes(filterQuery.value) && groupKey !== filterQuery.value) {
+    const searchText = `${item.title} ${item.desc} ${item.url}`.toLocaleLowerCase();
+    
+    if (filterQuery.value 
+        && !searchText.includes(filterQuery.value.toLocaleLowerCase())
+        && groupKey !== filterQuery.value
+    ) {
       return true;
     }
 
