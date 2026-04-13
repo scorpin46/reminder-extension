@@ -64,6 +64,7 @@
                 '--completed': item.completed, 
                 '--soon': soon.includes(item.id),
                 '--paused': item.recurrence?.length && item.recurrencePause,
+                '--recurrence': !!item.recurrence?.length,
              }"
                :id="`reminder-${item.id}`"
                @mouseenter.once="$event.target.title = reminderService.getPreviewTitle(item, now)"
@@ -81,15 +82,15 @@
                   <span>{{ browser.i18n.getMessage('reminder_paused') }}</span>
                 </template> 
                 <template v-else>
-                  <IconTimer width="14" height="14"/>
-                  <span>{{ reminderService.getTimeUntil(item, now) }}</span>
                   <IconChecks v-if="item.completed" width="16" height="16"/>
+                  <IconTimer v-else width="14" height="14"/>
+                  <span>{{ reminderService.getTimeUntil(item, now) }}</span>
                 </template> 
               </div>
             </div>
 
             <div class="reminders-item__actions" @click="showEditPanel(item)">
-              <div class="reminders-item__actions-inner" @click.stop>
+              <div class="reminders-item__actions-inner" @click.stop title=" ">
                 <button class="reminders-item__action reminders-item__action--edit" :title="browser.i18n.getMessage('edit')" @click.stop="showEditPanel(item)">
                   <IconEdit/>
                 </button>
@@ -103,12 +104,13 @@
                   <IconPause v-else/>
                 </button>
                 <button
-                    v-if="!item.completed && (group.isToday || expired.includes(item.id))"
+                    v-if="!item.completed && (!item.recurrencePause && (group.isToday || expired.includes(item.id)))"
                     class="reminders-item__action reminders-item__action--complete"
                     :title="browser.i18n.getMessage('complete')"
                     @click.stop="complete(item)"
                 >
-                  <IconChecks/>
+                  <IconCheck v-if="item.recurrence?.length" height="20" width="20"/>
+                  <IconChecks v-else/>
                 </button>
                 <button v-else
                         class="reminders-item__action reminders-item__action--delete"
@@ -200,6 +202,7 @@ import IconEye from "@/components/icons/IconEye.vue";
 import {omitBy} from "es-toolkit";
 import IconPause from "@/components/icons/IconPause.vue";
 import IconPlay from "@/components/icons/IconPlay.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
 
 const props = defineProps({
   editingPanelVisible: {
@@ -356,12 +359,18 @@ const actualize = () => {
 }
 
 const complete = (item) => {
-  document.getElementById('reminder-' + item.id)?.classList.add('--moving');
+  const el = document.getElementById('reminder-' + item.id);
+  
+  if (item.recurrence?.length && ! item.recurrencePause) {
+    reminderService.toNextRecurrence(item);
+  } else {
+    el?.classList.add('--moving');
 
-  setTimeout(() => {
-    reminderService.complete(item);
-    now.value = new Date();
-  }, 300)
+    setTimeout(() => {
+      reminderService.complete(item);
+      now.value = new Date();
+    }, 300)
+  }
 }
 
 const deleteItem = (item) => {

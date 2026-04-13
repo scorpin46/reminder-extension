@@ -426,8 +426,8 @@ export default defineBackground({
 
                         case 'GOOGLE_DELETE_EVENT':
                             if (await GoogleCalendarService.instance().checkUser()){
-                                const reminder = await ReminderService.instance().repository.getById(request.reminderId)
-                                reminder && await GoogleCalendarService.instance().deleteEventByReminder(reminder);
+                                // УДАЛЯЕМ СРАЗУ ПО googleEventId, т.к. в БД ЕГО уже не будет!!!
+                                await GoogleCalendarService.instance().deleteEvent(request.googleEventId); 
                                 success = true;
                             }
 

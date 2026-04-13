@@ -740,14 +740,14 @@ export class GoogleCalendarService {
                 return;
             }
 
-            await this.#deleteEvent(reminder.googleEventId!, reminder.recurrencePause);
+            await this.deleteEvent(reminder.googleEventId!);
         } catch (error) {
             console.error('Error creating event from reminder:', error);
             // Не пробрасываем ошибку дальше
         }
     }
 
-    async #deleteEvent(eventId?: string, deleteRecurrences: boolean|0|1 = false): Promise<void> {
+    async deleteEvent(eventId?: string): Promise<void> {
         if (!eventId || !this.currentUser) return;
 
         try {
@@ -816,7 +816,7 @@ export class GoogleCalendarService {
             }
 
             for (let eventId of deletingEvents) {
-                await this.#deleteEvent(eventId!);
+                await this.deleteEvent(eventId!);
             }
 
             await this.#googleLastSyncTsStore.setValue(Date.now());

@@ -39,7 +39,7 @@ export default defineConfig({
             key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmg45dP9ZQdD+364Cb+PMdm2AqGbnlZ36y0CRSQtVZs2KI+wGNNGsLVzfrshLOX5pk4uzSPECVLB1W0KDdgQDxnvnUquwT5adfYYu/IbcNwQrACUbf7OKcalefXpBg07khXTT5o08ESBij07VITXVPsPmWE+UTnT0iMLCiHPnu7EHYRNH8RlkoSnudxqvi0qzuo19jaw/ioZKa1WyCTcWSKWvFXCKG5v3ZxmTotPCbmXncCceasD7yARtp0ZSMHy91fuX2K4NH1Pzc3F3vFVu8HuVyIlLLOmp2f8vQf25B6tfPiSO3mRyRNAEV7VRvNM6qqm2fETDDh1Q17YGjv+SYwIDAQAB',
         }),
         "oauth2": {
-            "client_id": import.meta.env.OAUTH_CLIENT_ID,
+            "client_id": process.env.OAUTH_CLIENT_ID,
             "scopes": [
                 "https://www.googleapis.com/auth/calendar",
                 "https://www.googleapis.com/auth/userinfo.email",

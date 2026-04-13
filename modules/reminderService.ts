@@ -75,18 +75,21 @@ export class ReminderService {
             id = await this.repository.add(reminderParams);
         }
 
-        reminderParams.completed = +reminderParams.datetime! >= Date.now() ? 0 : reminderParams.completed; //обязательно должно быть перед блоком ниже, иначе не сработает alert, если восстанавливаешь из завершенных
+        const reminder = await this.repository.getById(id) ?? reminderParams; //актуальная запись из бд должна быть, reminderParams оставил чисто для typescript
+        const isFuture = +reminder.datetime! >= Date.now();
+        
+        reminder.completed = isFuture ? 0 : reminder.completed; //для подстраховки, иначе не сработает alert, если восстанавливаешь из завершенных (а completed кешированный)
 
         try {
-            if (reminderParams.datetime && !reminderParams.completed){
-                await this.createAlarm(id, reminderParams.datetime)
+            if (isFuture && reminder.datetime && !reminder.completed){
+                await this.createAlarm(id, reminder.datetime)
             }
 
             if (shouldSendMessage) {
-                if (reminderParams.googleSync === 0 || reminderParams.recurrencePause){
+                if (reminder.googleEventId && (reminder.googleSync === 0 || reminder.recurrencePause)){
                     browser.runtime.sendMessage({
                         action : 'GOOGLE_DELETE_EVENT',
-                        reminderId: id
+                        googleEventId: reminder.googleEventId
                     })
                 } else {
                     browser.runtime.sendMessage({
@@ -124,9 +127,10 @@ export class ReminderService {
 
     async delete(reminder: Reminder, sendMessage: boolean = true) {
         try {
+            const googleEventId = reminder.googleEventId;
             await this.repository.delete(reminder.id!);
             browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-            sendMessage && browser.runtime.sendMessage({action: 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
+            sendMessage && browser.runtime.sendMessage({action: 'GOOGLE_DELETE_EVENT', googleEventId});
             await this.#updatedCallback();
         } catch (e) {
             console.error(e);
@@ -135,13 +139,27 @@ export class ReminderService {
 
     async complete(reminder: Reminder, sendMessage: boolean = true) {
         try {
+            const googleEventId = reminder.googleEventId;
             await this.repository.complete(reminder.id!);
             browser.alarms.clear(reminderIdToAlarmName(reminder.id!));
-            sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', reminderId: reminder.id});
+            sendMessage && browser.runtime.sendMessage({ action : 'GOOGLE_DELETE_EVENT', googleEventId});
             await this.#updatedCallback();
         } catch (e) {
             console.error(e);
         }
+    }
+
+    async toNextRecurrence(reminder: Reminder) {
+        const nextDatetime = await this.getNextOccurrence(reminder, reminder.datetime);
+        
+        if (nextDatetime){
+            return this.save({
+                ...reminder,
+                datetime: nextDatetime
+            });
+        }
+        
+        return this.complete(reminder);
     }
 
     async getAllGoogleEventsIds(){
