@@ -21,7 +21,7 @@ export default defineConfig({
             "identity",
             "identity.email",
             "offscreen",
-            "scripting"
+            // "scripting"
         ],
         "action": {
             default_title: '__MSG_appName__',
@@ -112,6 +112,18 @@ export default defineConfig({
 
                     return 'chunks/chunk-[hash].js';
                 },
+                plugins: [
+                    {
+                        name: 'remove-content-line',
+                        generateBundle(_, bundle) {
+                            for (const file of Object.values(bundle)) {
+                                if (file.type === 'chunk' && file.fileName.includes('content.js')) {
+                                    file.code = file.code.replace(/\s+content\s*;$/, '');
+                                }
+                            }
+                        }
+                    }
+                ]
             };
 
             config.build.chunkSizeWarningLimit = 2000;
@@ -145,7 +157,7 @@ export default defineConfig({
             config.optimizeDeps ??= {};
             config.optimizeDeps.exclude = ['node_modules/**/*'];
             
-        }
+        },
     },
     
 });
