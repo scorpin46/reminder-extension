@@ -211,7 +211,7 @@ export class GoogleCalendarService {
                             // Повторяем запрос
                             return this.#axiosInstance.request(config);
                         } else {
-                            // Не удалось получить токен - пользователь не авторизован
+                            console.log('Не удалось получить токен - пользователь не авторизован')
                             await this.#googleIsAuthenticatedStore.setValue(false);
                             throw new Error('Authentication failed');
                         }
@@ -256,11 +256,10 @@ export class GoogleCalendarService {
         console.log('Selected calendar - ' +await this.#getCalendarId());
 
         if (forceSyncDelay) {
-            setTimeout(() => {
-                this.#syncUpdates();
-            }, forceSyncDelay)
+            await delay(forceSyncDelay);
+            await this.#syncUpdates();
         } else {
-            this.checkUser(); //нужно чтобы инициализировать #googleIsAuthenticatedStore
+            await this.checkUser(); //нужно чтобы инициализировать #googleIsAuthenticatedStore
         }
     }
 
@@ -626,7 +625,7 @@ export class GoogleCalendarService {
         
         return {
             datetime: new Date(event.start?.dateTime!),
-            title: event.summary!,
+            title: event.summary?.length ? event.summary : '(No title)',
             desc: event.description,
             recurrence: recurrence instanceof Array ? recurrence.join('\n').trim() : recurrence,
             googleEventId: event.id,
@@ -919,7 +918,10 @@ export class GoogleCalendarService {
 
     async checkUser() {
         try {
+            this.currentUser ??= await this.#googleUserStore.getValue(); //обязательно здесь нужно еще раз получать, для защиты от бага асинхронности
+            
             if (!this.currentUser) {
+                console.log('Нет юзера, выключение авторизации...')
                 await this.#googleIsAuthenticatedStore.setValue(false);
                 return false;
             }
@@ -928,6 +930,7 @@ export class GoogleCalendarService {
             await this.#fetchToken(false);
             
             if (!this.#lastActiveToken) {
+                console.log('Нет токена, выключение авторизации...')
                 await this.#googleIsAuthenticatedStore.setValue(false);
                 return false;
             }
@@ -941,6 +944,7 @@ export class GoogleCalendarService {
             // Если получили 401 ошибку при запросе userinfo
             // if (userInfoRes.error?.response?.status === 401) {
             if (userInfoRes.error) {
+                console.log(userInfoRes.error, 'выключение авторизации...')
                 await this.#googleIsAuthenticatedStore.setValue(false);
                 return false;
             }
@@ -972,7 +976,7 @@ export class GoogleCalendarService {
             
             //в принципе можно импортировать всё
             if (!isExist && !isNaN(+datetime)/* && datetime.getTime() >= Date.now()*/) {
-                console.log(`Import google event #${event} - ${event.summary}`, datetime);
+                console.log(`Import google event #${event.id} - ${event.summary}`, datetime);
 
                 await this.#reminderService.save({
                     ...this.#googleEventToReminderFields(event),

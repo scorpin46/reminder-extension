@@ -115,46 +115,50 @@ export default defineBackground({
         };
         
         const initContextMenu = async () => {
-            await browser.contextMenus.removeAll();
+            try {
+                await browser.contextMenus.removeAll();
 
-            const documentUrlPatterns = ["http://*/*", "https://*/*"];
+                const documentUrlPatterns = ["http://*/*", "https://*/*"];
 
-            browser.contextMenus.create({
-                id: "set-a-reminder-selection",
-                title: browser.i18n.getMessage("contextmenu_setSelectionReminder"),
-                contexts: ["selection"],
-            });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-selection",
+                    title: browser.i18n.getMessage("contextmenu_setSelectionReminder"),
+                    contexts: ["selection"],
+                });
 
-            browser.contextMenus.create({
-                id: "set-a-reminder-link",
-                title: browser.i18n.getMessage("contextmenu_setLinkReminder"),
-                contexts: ["link"],
-                documentUrlPatterns,
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder-img",
-                title: browser.i18n.getMessage("contextmenu_setImgReminder"),
-                contexts: ["image"],
-                documentUrlPatterns,
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder-video",
-                title: browser.i18n.getMessage("contextmenu_setVideoReminder"),
-                contexts: ["video"],
-                documentUrlPatterns,
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder-audio",
-                title: browser.i18n.getMessage("contextmenu_setAudioReminder"),
-                contexts: ["audio"],
-                documentUrlPatterns,
-            });
-            browser.contextMenus.create({
-                id: "set-a-reminder",
-                title: browser.i18n.getMessage("contextmenu_reminderSite"),
-                contexts: ["page", "frame"],
-                documentUrlPatterns,
-            });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-link",
+                    title: browser.i18n.getMessage("contextmenu_setLinkReminder"),
+                    contexts: ["link"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-img",
+                    title: browser.i18n.getMessage("contextmenu_setImgReminder"),
+                    contexts: ["image"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-video",
+                    title: browser.i18n.getMessage("contextmenu_setVideoReminder"),
+                    contexts: ["video"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder-audio",
+                    title: browser.i18n.getMessage("contextmenu_setAudioReminder"),
+                    contexts: ["audio"],
+                    documentUrlPatterns,
+                });
+                browser.contextMenus.create({
+                    id: "set-a-reminder",
+                    title: browser.i18n.getMessage("contextmenu_reminderSite"),
+                    contexts: ["page", "frame"],
+                    documentUrlPatterns,
+                });
+            } catch (e) {
+                console.log(e);
+            }
         }
         
         // Обработчики событий с использованием Promise API
