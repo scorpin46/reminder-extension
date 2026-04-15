@@ -67,7 +67,7 @@
                 '--recurrence': !!item.recurrence?.length,
              }"
                :id="`reminder-${item.id}`"
-               @mouseenter.once="$event.target.title = reminderService.getPreviewTitle(item, now)"
+               @mouseenter="$event.target.title = $event.target.title || reminderService.getPreviewTitle(item, now)"
           >
             <div class="reminders-item__text-box">
               <div class="reminders-item__title notranslate">{{ item.title }}</div>
@@ -331,6 +331,7 @@ const closeEditPanel = async (data) => {
 
       reminderEl?.scrollIntoView({behavior: 'smooth', block: 'center'});
       reminderEl?.classList.add('--saved');
+      reminderEl?.removeAttribute('title');
 
       setTimeout(() => {
         reminderEl?.classList.remove('--saved');
