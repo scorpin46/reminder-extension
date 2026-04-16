@@ -439,5 +439,8 @@
   },
   "defaultShowExtraFields": {
     "message": "Show additional fields on creation"
+  },
+  "waitingVerification": {
+    "message": "We are waiting for verification from Google, this takes time. If you want to use synchronization now, then click here to view instructions for activating the functionality"
   }
 }

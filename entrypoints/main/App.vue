@@ -152,11 +152,17 @@
           v-if="!authenticatedEmail"
           class="google-auth-btn"
           @click="sendGoogleLoginMessage"
+          v-show="false"
       >
         <IconGoogle/>
         {{ browser.i18n.getMessage('signInWith', ['Google']) }}
       </button>
-      <button v-else class="footer__connected-btn" v-title="browser.i18n.getMessage('providerConnected', ['Google Calendar']) + ` - ${authenticatedEmail}`" @click="settingsPanelVisible = true">
+      <button 
+          v-else
+          class="footer__connected-btn"
+          v-title="browser.i18n.getMessage('providerConnected', ['Google Calendar']) + ` - ${authenticatedEmail}`" 
+          @click="settingsPanelVisible = true"
+      >
         <IconGoogleCalendar height="26"/> 
         <span>{{ browser.i18n.getMessage('providerConnected', ['']).trim() }}</span>
       </button>

@@ -20,14 +20,19 @@
           <IconExternalOpen height="14" class="ml-5" role="button" v-if="authenticatedEmail" v-title="browser.i18n.getMessage('open')" @click="openCalendar"/>
         </header>
         <div>
-          <button
-              v-if="!authenticatedEmail"
-              class="google-auth-btn mt-5"
-              @click="sendGoogleLoginMessage()"
-          >
-            <IconGoogle/>
-            {{ browser.i18n.getMessage('signInWith', ['Google']) }}
-          </button>
+          <div v-if="!authenticatedEmail">
+            <button
+                class="google-auth-btn mt-5"
+                @click="sendGoogleLoginMessage()"
+            >
+              <IconGoogle/>
+              {{ browser.i18n.getMessage('signInWith', ['Google']) }}
+            </button>
+            <div class="mt-5 d-block" role="link" @click="openActivationInstruction">
+              ⚠️ {{ browser.i18n.getMessage('waitingVerification') }}
+              <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
+            </div>
+          </div>
           <div v-else>
             <div class="panel-settings__auth-data">
               <div>Email:  <b>{{ authenticatedEmail }}</b></div>
@@ -187,7 +192,12 @@ import IconHelp from "@/components/icons/IconHelp.vue";
 import IconMessage from "@/components/icons/IconMessage.vue";
 import IconExternalOpen from "@/components/icons/IconExternalOpen.vue";
 import IconLogo from "@/components/icons/IconLogo.vue";
-import {getImproveExperienceFormLink, getOsMicSettingsLink, getOsNotifySettingsLink} from "@/modules/utils/helpers.ts";
+import {
+  detectLocale,
+  getImproveExperienceFormLink,
+  getOsMicSettingsLink,
+  getOsNotifySettingsLink
+} from "@/modules/utils/helpers.ts";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -268,6 +278,15 @@ const openCalendar = () => {
   browser.runtime.sendMessage({
     action: 'OPEN_LINK',
     url: `https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`
+  }, (response) => {
+  });
+}
+
+const openActivationInstruction = () => {
+  const url = detectLocale().startsWith('ru') ? `https://scorpin46.github.io/set-a-reminder.github.io/sync-ru.html` :  `https://scorpin46.github.io/set-a-reminder.github.io/sync.html`
+  browser.runtime.sendMessage({
+    action: 'OPEN_LINK',
+    url: url
   }, (response) => {
   });
 }

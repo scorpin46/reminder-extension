@@ -369,9 +369,23 @@ export default defineBackground({
                             }
                             return {success: false};
                         case 'OPEN_LINK':
-                            await browser.tabs.create({
+                            const tab = await browser.tabs.create({
                                 url: request.url,
                                 active: true,
+                            });
+
+                            // 2. Получаем окно, в котором открылась вкладка
+                            const window = await browser.windows.get(tab.windowId);
+
+                            // 3. Если окно свернуто - разворачиваем
+                            if (window.state === 'minimized') {
+                                await browser.windows.update(window.id!, { state: 'normal' });
+                            }
+
+                            // 4. Фокусируем окно + привлекаем внимание (комбо-метод)
+                            await browser.windows.update(window.id!, {
+                                focused: true,
+                                drawAttention: true
                             });
                             
                             return {success: true};
