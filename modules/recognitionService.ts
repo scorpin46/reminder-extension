@@ -201,14 +201,18 @@ export class RecognitionService {
     }
 
     stop() {
-        this.#currentAudioStream?.getTracks().forEach(track => {
-            track.stop();
-        });
-        this.#currentAudioStream = undefined;
-        
-        this.#recognition?.stop();
-        this.#recognition?.abort();
-        this.state.isRecording = false;
+        try{
+            this.#currentAudioStream?.getTracks().forEach(track => {
+                track.stop();
+            });
+            this.#currentAudioStream = undefined;
+
+            this.#recognition?.stop();
+            this.#recognition?.abort();
+            this.state.isRecording = false;
+        } catch(e) {
+            console.error(e);
+        }
     }
 
     isSupported() {

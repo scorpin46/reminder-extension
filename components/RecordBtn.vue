@@ -58,24 +58,24 @@ const recordClickHandler = () => {
           .catch((err) => {
             console.error(err);
             
-            if (err.message.includes('Permission denied')){
+            if (err.message.includes('recognition has already started')) {
+              recognitionService.start();
+            } else {
               recognitionService.stop();
-              
+
               let errCaption = browser.i18n.getMessage('noMicrophoneAccess') + '!';
               errCaption += `\n${browser.i18n.getMessage('clickForTroubleshooting')}`
-             
+
               toast.error(errCaption, {
-                timeout: 6000, 
+                timeout: 6000,
                 bodyClassName: 'cursor-pointer --smaller',
                 onClick: () => {
                   window.location.hash = 'troubleshooting-microphone';
                 }
               });
-              
+
               permissionDenied.value = true;
               recordBtnTitle.value = errCaption;
-            } else if (err.message.includes('recognition has already started')) {
-              recognitionService.start();
             }
           })
 }
