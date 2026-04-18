@@ -283,3 +283,7 @@ export const blockPageScaling = () => {
 export const isNumeric = (value: any): boolean => {
     return !isNaN(parseFloat(value)) && isFinite(value);
 }
+
+export const isYandexBrowser = (): boolean => {
+    return !!navigator?.userAgent?.includes('YaBrowser');
+}

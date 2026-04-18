@@ -135,17 +135,17 @@ export default defineConfig({
                 // === СЖАТИЕ (compress) ===
                 compress: {
                     toplevel: true,
-                    drop_console: true,
-                    drop_debugger: true,
+                    // drop_console: true,
+                    // drop_debugger: true,
                     module: true,
                     passes: 2,
-                    pure_funcs: [
-                        'console.log',
-                        'console.info',
-                        'console.debug',
-                        'console.warn',
-                        'console.error'
-                    ],
+                    // pure_funcs: [
+                    //     'console.log',
+                    //     'console.info',
+                    //     'console.debug',
+                    //     'console.warn',
+                    //     'console.error'
+                    // ],
                     pure_getters: 'strict',
                 },
                 format: {

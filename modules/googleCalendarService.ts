@@ -13,7 +13,7 @@ import type {Reminder} from "./reminderRepository";
 import type {calendar_v3} from "@googleapis/calendar";
 import axios, {AxiosInstance, AxiosError, InternalAxiosRequestConfig} from 'axios';
 import rateLimit from 'axios-rate-limit';
-import {delay} from "./utils/helpers";
+import {delay, isYandexBrowser} from "./utils/helpers";
 import RRuleService from "@/modules/rRuleService";
 import { merge } from 'es-toolkit';
 import {Frequencies} from "@martinhipp/rrule";
@@ -825,30 +825,52 @@ export class GoogleCalendarService {
     }
 
     async #fetchToken(interactive = false): Promise<string | null> {
-        const params: any = {
-            interactive,
-        };
-
         if (interactive) {
             await new Promise<void>((resolve) => {
                 browser.identity.clearAllCachedAuthTokens(resolve);
             });
         }
+        
+        if (isYandexBrowser()){
+            const token = await this.#fetchTokenExternal(interactive);
+            
+            if (token){
+                this.#lastActiveToken = token;
+                this.#needCalendarGrants = false;
+                
+                if (interactive){
+                    const response = await axios.get('https://www.googleapis.com/oauth2/v1/tokeninfo', {
+                        params: { access_token: token }
+                    });
+
+                    this.#needCalendarGrants = ! response.data.scope.includes('https://www.googleapis.com/auth/calendar');
+                    
+                    if (this.#needCalendarGrants){
+                        await this.login();
+                    }
+                }
+
+                return token;
+            }
+        }
+
+        const params: any = {interactive};
 
         if (this.currentUser?.id) {
             // Если есть сохраненный аккаунт - всегда запрашиваем токен для НЕГО
             params.account = {id: this.currentUser!.id};
         }
-
+  
         return new Promise((resolve) => {
             browser.identity.getAuthToken(params, async (token) => {
                 if (browser.runtime.lastError) {
-                    console.error('Auth error:', browser.runtime.lastError);
+                    const errorMsg = browser.runtime.lastError.message;
                     this.#lastActiveToken = null;
+                    console.error('Auth error:', errorMsg);
                     
-                    const isNotSigned = browser.runtime.lastError.message && browser.runtime.lastError.message.includes('The user is not signed in');
-                    const isNotGrants = browser.runtime.lastError.message && browser.runtime.lastError.message.includes('OAuth2 not granted or revoked');
-                    
+                    const isNotSigned = errorMsg && errorMsg.includes('The user is not signed in');
+                    const isNotGrants = errorMsg && errorMsg.includes('OAuth2 not granted or revoked');
+
                     if (isNotSigned){
                         await this.#googleIsAuthenticatedStore.setValue(false); 
                     } else if (isNotGrants && ! this.#needCalendarGrants){
@@ -866,19 +888,72 @@ export class GoogleCalendarService {
         });
     }
 
+    async #fetchTokenExternal(interactive: boolean): Promise<string | null> {
+        const manifest = browser.runtime.getManifest();
+        const redirectURL = browser.identity.getRedirectURL();
+        const scopes = manifest.oauth2?.scopes || [];
+        let clientId = manifest.oauth2?.client_id;
+        
+        if (isYandexBrowser()){
+            clientId = "677266487464-auj28kn5uifmd3boskrn9mmjtr9inaa9.apps.googleusercontent.com";
+        }
+        
+        const authURL = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        authURL.searchParams.set("client_id", clientId!);
+        authURL.searchParams.set("response_type", "token");
+        authURL.searchParams.set("redirect_uri", redirectURL);
+        authURL.searchParams.set("scope", 'openid ' + scopes.join(' '));
+
+        console.log("Testing URL:", authURL.href);
+
+        try {
+            const responseURL = await browser.identity.launchWebAuthFlow({
+                url: authURL.href,
+                interactive: interactive,
+            });
+            
+            const token = new URLSearchParams(
+                new URL(responseURL!).hash.substring(1)
+            ).get("access_token");
+
+            console.log({token});
+            return token;
+        } catch (err) {
+            console.error("Error:", err);
+        }
+
+        return null;
+    }
+
     async #fetchUserInfo(): Promise<{user: GoogleUser, error: string|null}> {
         return new Promise((resolve) => {
-            browser.identity.getProfileUserInfo({accountStatus: 'ANY'}, (userInfo) => {
-                // console.log(userInfo);
+            browser.identity.getProfileUserInfo({accountStatus: 'ANY'}, async (userInfo) => {
+                console.log('userInfo', userInfo);
+
                 if (browser.runtime.lastError) {
-                    console.error('Ошибка получения данных профиля:', browser.runtime.lastError);
-                    resolve({
-                        user: {
-                            email: '',
-                            id: '',
-                        },
-                        error: browser.runtime.lastError.toString()
-                    });
+                    const errorMsg = browser.runtime.lastError.message || '';
+
+                    console.error('Ошибка получения данных профиля:', errorMsg);
+                    
+                    if (errorMsg === 'canceled'){
+                        const {data} = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo');
+                        console.log(data);
+                        resolve({
+                            user: {
+                                email: data.email,
+                                id: data.id
+                            },
+                            error: null
+                        });
+                    } else {
+                        resolve({
+                            user: {
+                                email: '',
+                                id: '',
+                            },
+                            error: errorMsg
+                        });
+                    }
                 } else {
                     // В Chrome и Яндекс.Браузере возвращает email профиля
                     // Если email отсутствует, используем id
@@ -893,27 +968,6 @@ export class GoogleCalendarService {
                 }
             });
         });
-        // try {
-        //     const response = await this.#axiosInstance.get('https://www.googleapis.com/oauth2/v2/userinfo');
-        //
-        //     return {
-        //         user: {
-        //             email: response.data.email,
-        //             id: response.data.id
-        //         },
-        //         error: null
-        //     };
-        // } catch (error: any) {
-        //     console.error('Ошибка получения информации о пользователе:', error);
-        //
-        //     return {
-        //         user: {
-        //             email: '',
-        //             id: '',
-        //         },
-        //         error: error
-        //     };
-        // }
     }
 
     async checkUser() {
@@ -950,7 +1004,9 @@ export class GoogleCalendarService {
             }
 
             // Сравниваем по Google ID, а не по email (ID никогда не меняется)
-            const isValid = userInfoRes.user.id === this.currentUser.id;
+            const isValid = userInfoRes.user.id && this.currentUser.id && userInfoRes.user.id === this.currentUser.id
+                || userInfoRes.user.email === this.currentUser.email;
+            
             await this.#googleIsAuthenticatedStore.setValue(isValid);
 
             return isValid;
