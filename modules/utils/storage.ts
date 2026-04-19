@@ -73,3 +73,13 @@ export function getDefaultShowExtraFieldsStore() {
         fallback: false,
     });
 }
+
+export function getFeedbackDataStore() {
+    return storage.defineItem('local:feedbackData', { 
+        fallback: {
+            lastRating: null,
+            lastActionDate: null, 
+            lastSaveCount: null
+        },
+    });
+}

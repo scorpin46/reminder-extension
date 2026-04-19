@@ -87,7 +87,7 @@
       <section>
         <header>
           {{ browser.i18n.getMessage('hotkeys') }}
-          <button @click="editHotkeys" v-if="isChrome" class="v-a-m ml-10" v-title="browser.i18n.getMessage('edit')">
+          <button @click="openLink('chrome://extensions/shortcuts')" v-if="isChrome" class="v-a-m ml-10" v-title="browser.i18n.getMessage('edit')">
             <IconPen height="15"/>
           </button>
         </header>
@@ -152,7 +152,7 @@
                       <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_os_perm') }}  </span>
                       <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                     </a>
-                    <div class="color-primary mb-5" role="link" @click="openMicSelecting">
+                    <div class="color-primary mb-5" role="link" @click="openLink('chrome://settings/content/microphone')">
                       <span class="v-a-m"> {{ browser.i18n.getMessage('faq_mic_selecting') }}  </span>
                       <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
                     </div>
@@ -168,7 +168,7 @@
           <IconHelp height="15" :transparent="true"/> 
           <span>{{ browser.i18n.getMessage('help') }}</span>
         </header>
-        <div role="link" @click="openImproveExpForm">
+        <div role="link" @click="openLink(getImproveExperienceFormLink())">
           <IconMessage height="12" width="15" :transparent="true" class="v-a-m color-primary mr-5"/>
 
           <span class="v-a-m">{{ browser.i18n.getMessage('reportIssue') }}</span>
@@ -196,7 +196,7 @@ import {
   detectLocale,
   getImproveExperienceFormLink,
   getOsMicSettingsLink,
-  getOsNotifySettingsLink
+  getOsNotifySettingsLink, openLink
 } from "@/modules/utils/helpers.ts";
 
 const props = defineProps({
@@ -275,54 +275,17 @@ const logout = () => {
 }
 
 const openCalendar = () => {
-  browser.runtime.sendMessage({
-    action: 'OPEN_LINK',
-    url: `https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`
-  }, (response) => {
-  });
+  openLink(`https://calendar.google.com/calendar?authuser=${props.authenticatedEmail}`)
 }
 
 const openActivationInstruction = () => {
   const url = detectLocale().startsWith('ru') ? `https://scorpin46.github.io/set-a-reminder.github.io/sync-ru.html` :  `https://scorpin46.github.io/set-a-reminder.github.io/sync.html`
-  browser.runtime.sendMessage({
-    action: 'OPEN_LINK',
-    url: url
-  }, (response) => {
-  });
-}
-
-const openImproveExpForm = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: getImproveExperienceFormLink()}, (response) => {
-  });
-}
-
-const editHotkeys = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: "chrome://extensions/shortcuts"}, (response) => {
-  });
+  openLink(url)
 }
 
 const openExtensionBrowserSettings = () => {
-  browser.runtime.sendMessage({
-    action: 'OPEN_LINK',
-    url: `chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`
-  }, async (response) => {
-  });
+  openLink(`chrome://settings/content/siteDetails?site=chrome-extension://${browser.runtime.id}`)
 }
-
-// const openOsMicSettings = () => {
-//   browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsMicSettingsLink()}, (response) => {
-//   });
-// }
-
-const openMicSelecting = () => {
-  browser.runtime.sendMessage({action: 'OPEN_LINK', url: 'chrome://settings/content/microphone'}, (response) => {
-  });
-}
-
-// const openOsNotifySettings = () => {
-//   browser.runtime.sendMessage({action: 'OPEN_LINK', url: getOsNotifySettingsLink()}, (response) => {
-//   });
-// }
 
 onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();

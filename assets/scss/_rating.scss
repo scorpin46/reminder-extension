@@ -1,0 +1,77 @@
+.full-stars {
+  text-align: center;
+  background: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+  min-height: 42px;
+  padding: 0 35px 0 25px;
+}
+
+.full-stars:hover .full-stars__close{
+  opacity: 1;
+}
+
+.full-stars__title{
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 500;
+}
+.full-stars__close{
+  opacity: 0;
+  transition: opacity .3s ease;
+  position: absolute;
+  color: var(--color-light);
+  height: 24px;
+  width: 24px;
+  right: 7px;
+  padding: 2px;
+}
+.full-stars__close:hover{
+  color: var(--color-default);
+}
+.full-stars__close svg{
+  stroke-width: .25px;
+}
+.full-stars .rating-group {
+  display: inline-flex;
+}
+
+.full-stars input {
+  visibility: hidden;
+  position: absolute;
+  left: -9999px;
+}
+
+.full-stars label {
+  margin: 0;
+  cursor: pointer;
+}
+
+.full-stars label a svg {
+  margin: 3px;
+  height: 27px;
+  width: 27px;
+  fill: #ff9100;
+  transition: fill 0.3s;
+  filter: drop-shadow(0px 0px 1px var(--color-primary))
+}
+
+.full-stars input:checked ~ label a svg {
+  fill: #ffe6ac;
+}
+
+.full-stars .rating-group:hover label a svg {
+  fill: #ff9100;
+  filter: none;
+}
+
+.full-stars .rating-group input:hover ~ label a svg {
+  fill: #ffe6ac;
+}

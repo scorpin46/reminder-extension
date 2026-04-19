@@ -6,6 +6,12 @@ export const getImproveExperienceFormLink = () => {
         : 'https://docs.google.com/forms/d/e/1FAIpQLSetHCn34pZRZqb8bt0c4yX7II2AoNW7Q72qVquakqxTafNJJg/viewform'
 }
 
+export const openLink = (link: string, callback: any) => {
+    browser.runtime.sendMessage({action: 'OPEN_LINK', url: link}, (response) => {
+        typeof callback === 'function' ? callback(response) : null
+    });
+}
+
 export const getOsMicSettingsLink = () => {
     const ua = navigator.userAgent;
 

@@ -141,6 +141,8 @@
       @close="settingsPanelVisible = false"
   />
 
+  <Rating/>
+
   <footer class="footer" ref="footerRef" @mouseover="footerHover(true)" @mouseout="footerHover(false)">
     <button class="footer__settings-btn" @click="settingsPanelVisible = true">
       <IconSettings/>
@@ -209,6 +211,7 @@ import {omitBy} from "es-toolkit";
 import IconPause from "@/components/icons/IconPause.vue";
 import IconPlay from "@/components/icons/IconPlay.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
+import Rating from "@/components/Rating.vue";
 
 const props = defineProps({
   editingPanelVisible: {
