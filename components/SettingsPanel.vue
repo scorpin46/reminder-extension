@@ -279,7 +279,7 @@ const openCalendar = () => {
 }
 
 const openActivationInstruction = () => {
-  const url = detectLocale().startsWith('ru') ? `https://scorpin46.github.io/set-a-reminder.github.io/sync-ru.html` :  `https://scorpin46.github.io/set-a-reminder.github.io/sync.html`
+  const url = detectLocale().startsWith('ru') ? `https://set-a-reminder.github.io/sync-ru.html` : `https://set-a-reminder.github.io/sync.html`
   openLink(url)
 }
 
