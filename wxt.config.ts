@@ -5,7 +5,7 @@ import 'wxt-module-console-forward';
 
 export default defineConfig({
     manifest: ({browser}) => ({
-        "version": "1.0.3",
+        "version": "1.0.4",
         "name": "__MSG_appName__",
         "description": "__MSG_shortDesc__",
         "default_locale": "en",
@@ -59,7 +59,7 @@ export default defineConfig({
                     "mac": "Command+Shift+1"
                 },
                 "description": "__MSG_fastModeRunText__",
-                // "global": true //плохая идея навверн
+                "global": true 
             },
             "open_create_by_voice": {
                 "suggested_key": {
@@ -67,7 +67,7 @@ export default defineConfig({
                     "mac": "Command+Shift+2"
                 },
                 "description": "__MSG_fastModeRunVoice__",
-                // "global": true //плохая идея навверн
+                "global": true
             },
             "open_reminders_list": {
                 "suggested_key": {
@@ -75,7 +75,7 @@ export default defineConfig({
                     "mac": "Command+Shift+3"
                 },
                 "description": "__MSG_fastModeRunActiveReminders__",
-                // "global": true //плохая идея навверн
+                "global": true
             },
         }
     }),
