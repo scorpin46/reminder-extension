@@ -28,10 +28,6 @@
               <IconGoogle/>
               {{ browser.i18n.getMessage('signInWith', ['Google']) }}
             </button>
-            <div class="mt-5 d-block" role="link" @click="openActivationInstruction">
-              ⚠️ {{ browser.i18n.getMessage('waitingVerification') }}
-              <IconExternalOpen height="12" class="v-a-m" v-title="browser.i18n.getMessage('open')"/>
-            </div>
           </div>
           <div v-else>
             <div class="panel-settings__auth-data">

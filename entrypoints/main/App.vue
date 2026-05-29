@@ -154,7 +154,6 @@
           v-if="!authenticatedEmail"
           class="google-auth-btn"
           @click="sendGoogleLoginMessage"
-          v-show="false"
       >
         <IconGoogle/>
         {{ browser.i18n.getMessage('signInWith', ['Google']) }}
