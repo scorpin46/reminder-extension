@@ -36,8 +36,9 @@ export default defineBackground({
 
             pendingOpen = (async () => {
                 const pageUrl = browser.runtime.getURL('/main.html');
-                const url = pageUrl + (Object.keys(urlParams).length ? '?' + new URLSearchParams(urlParams).toString() : '');
-
+                let url = pageUrl + (Object.keys(urlParams).length ? '?' + new URLSearchParams(urlParams).toString() : '');
+                url = url.replace(/\?$/, '');
+                
                 // Ищем существующее окно
                 const popups = await browser.windows.getAll({
                     populate: true,
@@ -50,7 +51,8 @@ export default defineBackground({
 
                 if (existingWindow?.tabs) {
                     // Обновляем существующее окно
-                    const tab = existingWindow.tabs![0];
+                    const tab = existingWindow.tabs[0];
+                    
                     if (urlParams && Object.keys(urlParams).length){
                         await browser.tabs.update(tab.id!, { url });
                     }
@@ -314,6 +316,7 @@ export default defineBackground({
             console.log('onButtonClicked', notificationId);
             if (notificationId === authAlertId) {
                 await GoogleCalendarService.instance().login();
+                
                 return;
             }
 
@@ -348,6 +351,7 @@ export default defineBackground({
                         console.log('📨 Получено сообщение:', request.action, request);
                     }
 
+                    let result;
                     let success = false;
 
                     switch (request.action) {
@@ -417,7 +421,9 @@ export default defineBackground({
                             return {success: true};
 
                         case 'GOOGLE_LOGIN':
-                            return await GoogleCalendarService.instance().login()
+                            result = await GoogleCalendarService.instance().login();
+                            await openMainWindow();
+                            return result;
 
                         case 'IMPORT_FROM_GOOGLE':
                             return await GoogleCalendarService.instance().importFromGoogle();

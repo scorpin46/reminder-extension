@@ -259,6 +259,7 @@ googleIsAuthenticatedStore.watch(async (newValue, oldValue) => {
     }
   } else if (newValue && newValue !== oldValue) {
     checkAuth();
+    footerRef.value.classList.add('--hovered');
   }
 });
 
