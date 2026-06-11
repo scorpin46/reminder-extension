@@ -44,6 +44,11 @@ const fabStyles = `
     to { opacity: 1; }
   }
 
+  @media (display-mode: fullscreen) {
+    .fab-root:not(.mounted-welcome){
+        display:none;
+    }
+  }
   .fab-root {
     --fab-foreground: #C1DBED;
     --fab-primary: #1D5D8E;

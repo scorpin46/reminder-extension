@@ -87,8 +87,8 @@ watch(() => reminderService.repository.state.allCount, async (value, oldValue) =
     const allowCheckingVisible = ! feedbackData.lastActionDate //1. если не было действия (первый показ)
         //2. если было просто закрытие более недели назад
         || ! feedbackData.lastRating && Date.now() - feedbackData.lastActionDate > 7 * 24 * 3600 * 1000
-        //3. если была низкая оценка, но юзер активно пользуется дальше и прошел месяц
-        || feedbackData.lastRating && feedbackData.lastRating < 4 && value > feedbackData.lastSaveCount + 15 && Date.now() - feedbackData.lastActionDate > 30 * 24 * 3600 * 1000 
+        //3. если была низкая оценка, но юзер активно пользуется дальше и прошло 10дней
+        || feedbackData.lastRating && feedbackData.lastRating < 4 && value > feedbackData.lastSaveCount + 10 && Date.now() - feedbackData.lastActionDate > 10 * 24 * 3600 * 1000 
 
     if (allowCheckingVisible) {
       visible.value = true;
