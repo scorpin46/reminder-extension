@@ -329,12 +329,23 @@ main {
     align-items: center;
     justify-content: center;
     background: var(--foreground);
-    
+    position: relative;
     color: var(--color-primary);
     gap: 5px;
     
-    svg {
+    & > svg {
       max-height: 22px;
+    }
+
+    .theme-switcher{
+      cursor: pointer;
+      vertical-align: middle;
+      position: absolute;
+      right: 5px;
+    }
+    
+    &:has(.theme-switcher){
+      border-right: 15px solid transparent;
     }
   }
 

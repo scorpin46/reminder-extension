@@ -10,7 +10,7 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
-import {getExpiredCountStore, getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
+import {getExpiredCountStore, getInstallDateStore, getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
 import {Reminder} from "@/modules/reminderRepository";
 import NotificationCreateOptions = Browser.notifications.NotificationCreateOptions;
 import {OffscreenManager} from "@/modules/offscreenManager";
@@ -519,6 +519,8 @@ export default defineBackground({
                     if (details.reason === 'install') {
                         const welcomeUrl = browser.runtime.getURL('/welcome.html') + `?install_id=${installId}&version=${version}`;
                         browser.tabs.create({ url: welcomeUrl, active: true});
+
+                        await getInstallDateStore().setValue(Date.now());
                     }
                 } catch (err) {
                     console.error('Failed to register content script:', err);

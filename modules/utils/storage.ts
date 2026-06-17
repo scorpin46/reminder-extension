@@ -74,10 +74,13 @@ export function getDefaultShowExtraFieldsStore() {
     });
 }
 
+export function getInstallDateStore() {
+    return storage.defineItem<number>('local:installDate');
+}
+
 export function getDarkModeStore() {
     return storage.defineItem<boolean>('local:darkMode', {
         fallback: false,
-        // init: () => window.matchMedia('(prefers-color-scheme: dark)').matches,
     });
 }
 

@@ -33,6 +33,9 @@ import InputDatetime from "@/components/InputDatetime.vue";
 import {useNow} from "@vueuse/core";
 import {browser} from "wxt/browser";
 import IconCheck from "@/components/icons/IconCheck.vue";
+import {useDarkMode} from "@/modules/composables/useDarkMode.ts";
+
+useDarkMode();
 
 const now = useNow({interval: 1000});
 const inputDatetime = ref();

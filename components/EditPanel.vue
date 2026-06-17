@@ -5,6 +5,7 @@
       <template v-else>
         {{ browser.i18n.getMessage('editReminderTitle')}}
       </template>
+      <ColorThemeSwitcher/>
     </div>
     <div class="panel__body" ref="panelBodyRef">
       <div class="record-box">
@@ -128,6 +129,7 @@ import RepeatField from "@/components/RepeatField.vue";
 import IconSync from "@/components/icons/IconSync.vue";
 import {useDebounceFn, useEventListener} from "@vueuse/core";
 import {getDefaultShowExtraFieldsStore} from "@/modules/utils/storage.ts";
+import ColorThemeSwitcher from "@/components/ColorThemeSwitcher.vue";
 
 const props = defineProps({
   backToPanel: {

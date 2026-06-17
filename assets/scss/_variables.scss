@@ -21,8 +21,9 @@
 [data-theme="dark"]{
   --color-default: #d2d2d2;
   --color-default-deep: #d2d2d2;
-  --color-primary: #cacaca;
+  --color-primary: #d8d5d3;
   --color-red: #db5461;
+  //--color-green: #27695b;
   --color-green: #27695b;
   --color-light: #c6c6c6;
   --color-orange: #ff8500;
@@ -34,6 +35,3 @@
   --box-shadow-hovered: 0 2px 4px 1px rgb(0 0 0 / .25);
   --input-bg: #383c47;
 }
-
-//@media (prefers-color-scheme: dark){
-//}

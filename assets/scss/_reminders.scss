@@ -117,7 +117,7 @@
 
     &.--completed {
       #{$reminderItem}__day {
-        color: var(--color-green);
+        color: #67b279;
 
         .icon-checks {
           color: inherit;
@@ -307,6 +307,11 @@
         transform: scale(1.1);
       }
 
+      @at-root [data-theme="dark"] #{&}{
+        background: var(--color-primary);
+        box-shadow: none;
+      }
+
       &--complete {
         display: inline-flex;
         color: var(--color-green);
@@ -320,13 +325,17 @@
         color: var(--color-primary);
         aspect-ratio: 1;
 
+        @at-root [data-theme="dark"] #{&}{
+          color: var(--background);
+        }
+
         svg {
           width: 18px;
         }
       }
 
       &--delete {
-        background: var(--color-red);
+        background: var(--color-red) !important;
         color: #fff;
         aspect-ratio: 1;
         box-shadow: 0 0 0 1px var(--color-red);
@@ -340,6 +349,10 @@
         display: inline-flex;
         color: var(--color-default);
 
+        @at-root [data-theme="dark"] #{&}{
+          color: var(--background) !important;
+        }
+        
         svg {
           height: 20px;
         }
@@ -357,6 +370,10 @@
       &--resume {
         display: inline-flex;
         color: var(--color-default);
+
+        @at-root [data-theme="dark"] #{&}{
+          color: var(--background);
+        }
         
         svg {
           height: 18px;
@@ -366,7 +383,11 @@
         &:hover{
           color: var(--foreground-active);
           background: var(--color-green);
-          
+
+          @at-root [data-theme="dark"] #{&}{
+            color: #fff;
+          }
+
           svg {
             color: currentColor;
           }
