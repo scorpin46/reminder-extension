@@ -2,6 +2,21 @@
   padding-bottom: 15px;
   z-index: 1001;
   
+  .panel__title{
+    position: relative;
+
+    .theme-switcher{
+      cursor: pointer;
+      vertical-align: middle;
+      position: absolute;
+      right: 5px;
+    }
+    
+    &:has(.theme-switcher){
+      border-right: 15px solid transparent;
+    }
+  }
+  
   b {
     font-weight: 500;
   }

@@ -8,8 +8,8 @@
 
 .tippy-box {
   position: relative;
-  background-color: var(--color-primary);
-  color: #fff;
+  background-color: var(--tippy-background-color);
+  color: var(--tippy-text-color);
   border-radius: 4px;
   font-size: 12px;
   line-height: 1.4;
@@ -71,7 +71,7 @@
 .tippy-arrow {
   width: 16px;
   height: 16px;
-  color: var(--color-primary);
+  color: var(--tippy-background-color);
 }
 
 .tippy-arrow:before {

@@ -74,6 +74,13 @@ export function getDefaultShowExtraFieldsStore() {
     });
 }
 
+export function getDarkModeStore() {
+    return storage.defineItem<boolean>('local:darkMode', {
+        fallback: false,
+        // init: () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+    });
+}
+
 export function getFeedbackDataStore() {
     return storage.defineItem('local:feedbackData', { 
         fallback: {

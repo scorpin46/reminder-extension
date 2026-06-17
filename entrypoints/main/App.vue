@@ -185,14 +185,15 @@ import {browser} from 'wxt/browser';
 import {useToast} from "vue-toastification";
 import {
   getBroadcastErrorStore,
-  getFastModeStore, getShowExpiredItemsStore,
+  getFastModeStore,
+  getShowExpiredItemsStore,
   getStoredGoogleIsAuthenticated,
   getStoredGoogleUser
 } from "@/modules/utils/storage.ts";
 import IconChecks from "@/components/icons/IconChecks.vue";
 import IconTimer from "@/components/icons/IconTimer.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
-import {isNumeric, localDateFormat, reminderIdToAlarmName} from "@/modules/utils/helpers.ts";
+import {isNumeric, localDateFormat} from "@/modules/utils/helpers.ts";
 import {useIntervalFn} from "@vueuse/core";
 import {useDate} from "vuetify/framework";
 import Header from "@/components/Header.vue";

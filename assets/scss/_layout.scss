@@ -370,6 +370,10 @@ main {
       padding-bottom: 3px;
       display: flex;
       align-items: center;
+      
+      @at-root [data-theme="dark"] #{&}{
+        font-weight: 600;
+      }
     }
   }
 }

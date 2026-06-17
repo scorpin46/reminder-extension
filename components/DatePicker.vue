@@ -10,6 +10,7 @@
       ref="calendarFilterRef"
       format="datetime"
       show-adjacent-months
+      :dark="isDarkMode"
   >
     <template v-slot:controls="{ disabled, nextMonth, prevMonth, monthYearText, openYears, openMonth }">
       <v-btn :disabled="disabled.includes('prev-month')" color="primary" icon="$prev" @click="prevMonth "></v-btn>
@@ -31,6 +32,7 @@ import {VBtn} from "vuetify/components/VBtn";
 import {VDatePicker} from "vuetify/components/VDatePicker";
 import {computed, ref} from "vue";
 import {onClickOutside} from "@vueuse/core";
+import {useDarkMode} from "@/modules/composables/useDarkMode.ts";
 
 const props = defineProps({
   allowedDates: Array,
@@ -38,6 +40,7 @@ const props = defineProps({
   minFilterDate: String,
 })
 
+const { isDarkMode } = useDarkMode();
 const allowedDates = computed(() => props.allowedDates.length ? props.allowedDates : false)
 
 const emit = defineEmits(["close", "update:filterDate"]);

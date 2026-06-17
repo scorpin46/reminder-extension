@@ -445,5 +445,8 @@
   },
   "rateUs": {
     "message": "Rate us:"
+  },
+  "changeTheme": {
+    "message": "Change color theme"
   }
 }
