@@ -49,6 +49,7 @@ const fabStyles = `
         display:none;
     }
   }
+
   .fab-root {
     --fab-foreground: #C1DBED;
     --fab-primary: #1D5D8E;
@@ -1116,6 +1117,7 @@ export class FloatingFab {
         const settings = await this.storage.getAll();
         this.mountAt(settings.fabTopPercent);
         await this.initializeDragHandler(settings.fabSide);
+        await this.initPrintHandler();
 
         if (settings.fabCollapsed) {
             this.root.classList.add("collapsed");
@@ -1139,6 +1141,18 @@ export class FloatingFab {
         }
         
         await this.startOptionalFeatures();
+    }
+    
+    async initPrintHandler() {
+        const mediaQueryList = window.matchMedia('print');
+
+        mediaQueryList?.addEventListener('change', e => {
+            if (e.matches) {
+                this.hide();
+            } else {
+                this.show();
+            }
+        });
     }
 
     async initializeDragHandler(savedSide) {
