@@ -164,6 +164,9 @@
   "errorLangIsNotSupport": {
     "message": "Язык временно не поддерживается"
   },
+  "errorSpeechNetwork": {
+    "message": "Проблемы с сетью, возможно дело в ограничениях сети или VPN"
+  },
   "errorAuth": {
     "message": "Ошибка авторизации. Попробуйте снова."
   },

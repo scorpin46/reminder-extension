@@ -164,6 +164,9 @@
   "errorLangIsNotSupport": {
     "message": "Language is temporarily not supported"
   },
+  "errorSpeechNetwork": {
+    "message": "Problems with the network, it may be due to network or VPN restrictions"
+  },
   "errorAuth": {
     "message": "Authentication failed. Please try again."
   },

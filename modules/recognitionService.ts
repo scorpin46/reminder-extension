@@ -75,13 +75,12 @@ export class RecognitionService {
         }
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-            console.log('onerror');
-            this.state.streamRecordingText = '';
-            this.#streamRecordingFinalText = '';
-            this.state.isRecording = false;
+            console.log('onerror', event.error);
+            
             this.#clearSilenceTimer();
 
             let customError: string = event.error;
+            let clearText = true;
 
             if (event.error === 'no-speech') {
                 customError = browser.i18n.getMessage('errorNoSpeech');
@@ -93,8 +92,23 @@ export class RecognitionService {
                 customError = browser.i18n.getMessage('errorLangIsNotSupport');
             } else if (event.error === 'aborted') {
                 customError = '';
+            } else if (event.error === 'network') {
+                customError = browser.i18n.getMessage('errorSpeechNetwork');
+                console.log(customError);
+                
+                if (this.state.streamRecordingText){
+                    clearText = false;
+                    customError = '';
+                }
             }
 
+            if (clearText){
+                this.state.streamRecordingText = '';
+                this.#streamRecordingFinalText = '';
+            }
+            
+            this.state.isRecording = false;
+            
             this.state.error = customError;
 
             this.stop();
