@@ -46,6 +46,24 @@
       </section>
 
       <section>
+        <header>
+          <IconSound height="15"/> 
+          {{ browser.i18n.getMessage('sound') }}
+        </header>
+        <div class="mb-15">
+          <label class="form-label">
+              <span class="form-label__title">
+                {{ browser.i18n.getMessage('soundMode') }}
+              </span>
+            <select v-model="soundMode" class="form-control">
+              <option value="none">{{ browser.i18n.getMessage('soundModeNone') }}</option>
+              <option value="speech">{{ browser.i18n.getMessage('soundModeSpeech') }}</option>
+              <option value="default">{{ browser.i18n.getMessage('soundModeDefault') }}</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      <section>
         <header>{{ browser.i18n.getMessage('Other') }}</header>
         <div>
           <div class="mb-15">
@@ -67,7 +85,6 @@
               </select>
             </label>
           </div>
-         
           <!--          <div class="mb-15">-->
           <!--            <label class="form-check">-->
           <!--              <span>Автоматически включать(клик) голосовую запись при добавлении</span>-->
@@ -181,7 +198,12 @@ import IconXmark from "@/components/icons/IconXmark.vue";
 import {browser} from 'wxt/browser';
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {sendGoogleLoginMessage, sendGoogleLogoutMessage} from "@/modules/utils/auth.js";
-import {getDefaultShowExtraFieldsStore, getFastModeStore, getStoredGoogleLastSyncTs} from "@/modules/utils/storage.ts";
+import {
+  getDefaultShowExtraFieldsStore,
+  getFastModeStore,
+  getSoundModeStore,
+  getStoredGoogleLastSyncTs
+} from "@/modules/utils/storage.ts";
 import {onMounted, onUnmounted, ref, watch} from "vue";
 import IconGoogle from "@/components/icons/IconGoogle.vue";
 import IconOff from "@/components/icons/IconOff.vue";
@@ -198,6 +220,7 @@ import {
   getOsNotifySettingsLink, openLink
 } from "@/modules/utils/helpers.ts";
 import ColorThemeSwitcher from "@/components/ColorThemeSwitcher.vue";
+import IconSound from "@/components/icons/IconSound.vue";
 
 const props = defineProps({
   authenticatedEmail: {
@@ -217,7 +240,9 @@ googleLastSyncStore.watch((value) => {
 })
 
 const defaultShowExtraFields = ref();
+const soundMode = ref();
 const defaultShowExtraFieldsStore = getDefaultShowExtraFieldsStore()
+const soundModeStore = getSoundModeStore()
 
 const fastMode = ref();
 const fastModeStore = getFastModeStore();
@@ -291,6 +316,7 @@ onMounted(async () => {
   fastMode.value = await fastModeStore.getValue();
   lastGoogleSync.value = await googleLastSyncStore.getValue();
   defaultShowExtraFields.value = await defaultShowExtraFieldsStore.getValue();
+  soundMode.value = await soundModeStore.getValue();
 
   browser.commands.getAll((commands) => {
     commands.forEach((command) => {
@@ -324,6 +350,10 @@ watch(() => fastMode.value, async (value) => {
 
 watch(() => defaultShowExtraFields.value, async (value) => {
   await defaultShowExtraFieldsStore.setValue(value);
+})
+
+watch(() => soundMode.value, async (value) => {
+  await soundModeStore.setValue(value);
 })
 
 onUnmounted(() => {

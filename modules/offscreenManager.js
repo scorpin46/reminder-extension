@@ -1,4 +1,5 @@
 import {browser} from "wxt/browser";
+import {getSoundModeStore, getStoredLocale} from "@/modules/utils/storage.ts";
 
 /**
  * Класс для управления offscreen документом и воспроизведением звуков

@@ -138,7 +138,7 @@ class SoundManager {
     /**
      * Воспроизводит обычный звук (однократно)
      */
-    playRegularSound(volume = 0.5, src = "audio/notification.mp3") {
+    playRegularSound(volume = 0.8, src = "audio/notification.mp3") {
         // Не воспроизводим, если играет приоритетный звук
         if (this.#activePriorityReminderIds.size > 0) {
             console.debug("Priority sound is playing, skipping regular sound");

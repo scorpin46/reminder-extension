@@ -108,20 +108,28 @@ body {
   .reminder-datetime-wrapper{
     position: relative;
 
-    input:not(:focus) ~ .date-confirm-icon{
-      display: none;
-    }
-
+    //input:not(:focus) ~ .date-confirm-icon{
+    //  display: none;
+    //}
+    
     .date-confirm-icon{
       cursor: pointer;
       display: inline-block;
       height: 20px;
-      padding: 3px;
+      padding: 0;
       fill: var(--color-green);
-      position: absolute;
-      bottom: 6px;
-      right: 38px;
+      //position: absolute;
+      //bottom: 6px;
+      //right: 38px;
+      position: static !important;
       z-index: 1;
     }
+  }
+
+  .custom-time-input-wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
   }
 }

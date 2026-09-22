@@ -19,8 +19,10 @@
       <div class="form-label mt-10 reminder-datetime-wrapper">
         <span class="form-label__title reminder-datetime">{{ browser.i18n.getMessage('customDate') }}</span>
 
-        <InputDatetime v-model="inputDatetime" @change="changeCustomTime" class="form-control custom-time-input"/>
-        <IconCheck class="date-confirm-icon"/>
+        <div class="custom-time-input-wrapper">
+          <InputDatetime v-model="inputDatetime" @change="changeCustomTime" class="form-control custom-time-input" :ref="ref => inputRef = ref.inputRef"/>
+          <IconCheck class="date-confirm-icon" @click="changeCustomTime" v-if="inputDatetime"/>
+        </div>
       </div>
     </div>
   </div>
@@ -39,6 +41,7 @@ useDarkMode();
 
 const now = useNow({interval: 1000});
 const inputDatetime = ref();
+const inputRef = ref();
 const reminderItem = ref({});
 const notificationMode = ref();
 const minutes = ref([5, 10, 15, 30, 45, 60, 120, 240, 60 * 24]);
@@ -117,8 +120,8 @@ const sendNewTime = async (value) => {
   }
 }
 
-const changeCustomTime = async (event) => {
-  if (event.target.reportValidity()) {
+const changeCustomTime = async () => {
+  if (inputRef.value.reportValidity()) {
     sendNewTime(inputDatetime.value)
   }
 }

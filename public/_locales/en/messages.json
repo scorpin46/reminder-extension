@@ -443,6 +443,21 @@
   "defaultShowExtraFields": {
     "message": "Show additional fields on creation"
   },
+  "sound": {
+    "message": "Sound"
+  },
+  "soundMode": {
+    "message": "Reminder sound"
+  },
+  "soundModeNone": {
+    "message": "No sound"
+  },
+  "soundModeDefault": {
+    "message": "Notification sound"
+  },
+  "soundModeSpeech": {
+    "message": "Voice playback of the reminder title"
+  },
   "waitingVerification": {
     "message": "We are waiting for verification from Google, this takes time. If you want to use synchronization now, then click here to view instructions for activating the functionality"
   },

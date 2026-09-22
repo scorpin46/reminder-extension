@@ -10,7 +10,12 @@ import {ReminderService} from "@/modules/reminderService.js";
 type Alarm = Browser.alarms.Alarm;
 import {defineBackground} from "#imports";
 import {GoogleCalendarService} from "@/modules/googleCalendarService";
-import {getExpiredCountStore, getInstallDateStore, getStoredGoogleAuthAlertId} from "@/modules/utils/storage";
+import {
+    getExpiredCountStore,
+    getInstallDateStore, getSoundModeStore,
+    getStoredGoogleAuthAlertId,
+    getStoredLocale
+} from "@/modules/utils/storage";
 import {Reminder} from "@/modules/reminderRepository";
 import NotificationCreateOptions = Browser.notifications.NotificationCreateOptions;
 import {OffscreenManager} from "@/modules/offscreenManager";
@@ -186,7 +191,9 @@ export default defineBackground({
             const reminderId = getReminderIdFromAlarmName(alarm.name);
             const reminderService = ReminderService.instance();
             const reminder = reminderId ? await reminderService.repository.getById(reminderId) : null;
-
+            const soundMode = await getSoundModeStore().getValue();
+            const notifyIsSilent = soundMode === 'none';
+            
             if (reminder?.id && !reminder.completed) {
                 const notifyParams: NotificationCreateOptions = {
                     type: "basic",
@@ -196,6 +203,7 @@ export default defineBackground({
                     contextMessage: reminder.desc!,
                     requireInteraction: true,
                     priority: 2,
+                    silent: notifyIsSilent,
                     buttons: [
                         {title: browser.i18n.getMessage('alertPostponeBtn')},
                         {title: browser.i18n.getMessage('alertCompleteBtn')}
@@ -224,6 +232,33 @@ export default defineBackground({
                     ];
                 }
 
+                const playSound = async () => {
+                    const soundMode = await getSoundModeStore().getValue();
+                    
+                    if (soundMode === 'default'){
+                        //@ts-ignore
+                        if (reminder.priority) {
+                            await offscreenManager.playPriorityAlarmSound(reminder.id);
+                        } else {
+                            await offscreenManager.playAlarmSound();
+                        }
+                    } else if (soundMode === 'speech'){
+                        const locale = await getStoredLocale().getValue();
+                        
+                        const speechTitle = reminder.url
+                            ? browser.i18n.getMessage('linkIsOpened')
+                            : reminder.title;
+                        
+                        browser.tts.speak(speechTitle, {
+                            lang: locale,
+                            rate: 1,
+                            pitch: 1
+                        });
+                    } else if (soundMode === 'none'){
+                        return;
+                    }
+                }
+
                 const handler = async () => {
                     let notificationId = reminderIdToNotificationId(reminderId!);
 
@@ -231,13 +266,8 @@ export default defineBackground({
                         await browser.notifications.clear(notificationId);
                         notificationId = await browser.notifications.create(notificationId, notifyParams);
                         console.log({notificationId});
-
-                        //@ts-ignore
-                        if (reminder.priority) {
-                            await offscreenManager.playPriorityAlarmSound(reminder.id);
-                        } else {
-                            await offscreenManager.playAlarmSound();
-                        }
+                        
+                        await playSound();
 
                         const newReminderParams:Partial<Reminder> = {};
                         const nextOccurrenceDate = await reminderService.getNextOccurrence(reminder);
@@ -285,8 +315,9 @@ export default defineBackground({
                                 buttons: [
                                     {title: browser.i18n.getMessage('open')},
                                 ],
+                                silent: notifyIsSilent,
                             });
-                            await offscreenManager.playAlarmSound();
+                            await playSound();
                         } else {
                             for (const cb of startupCbNotifications) {
                                 await cb();

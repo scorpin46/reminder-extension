@@ -74,6 +74,13 @@ export function getDefaultShowExtraFieldsStore() {
     });
 }
 
+
+export function getSoundModeStore() {
+    return storage.defineItem<string>('local:soundMode', { 
+        fallback: 'default',
+    });
+}
+
 export function getInstallDateStore() {
     return storage.defineItem<number>('local:installDate');
 }

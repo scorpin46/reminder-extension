@@ -5,7 +5,7 @@ import 'wxt-module-console-forward';
 
 export default defineConfig({
     manifest: ({browser}) => ({
-        "version": "1.1.2",
+        "version": "1.1.3",
         "name": "__MSG_appName__",
         "description": "__MSG_shortDesc__",
         "default_locale": "en",
@@ -21,6 +21,7 @@ export default defineConfig({
             "identity",
             "identity.email",
             "offscreen",
+            "tts",
             // "scripting"
         ],
         "action": {
