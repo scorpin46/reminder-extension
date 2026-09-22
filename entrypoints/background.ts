@@ -2,7 +2,7 @@ import {watch} from "vue";
 import {
     delay,
     getImproveExperienceFormLink,
-    getReminderIdFromAlarmName, getReminderIdFromNotificationId, reminderIdToNotificationId,
+    getReminderIdFromAlarmName, getReminderIdFromNotificationId, isEdge, reminderIdToNotificationId,
 } from "@/modules/utils/helpers";
 import {browser, Browser} from 'wxt/browser';
 import {ReminderService} from "@/modules/reminderService.js";
@@ -221,6 +221,11 @@ export default defineBackground({
                     // notifyParams.requireInteraction = false;
                     isUrlNotify = true;
                 }
+                
+                if (isEdge()){
+                    notifyParams.title = notifyParams.message;
+                    notifyParams.message = notifyParams.contextMessage ?? '';
+                }
 
                 if (reminder.recurrence?.length) {
                     if (reminder.recurrencePause){
@@ -344,7 +349,10 @@ export default defineBackground({
             //Уведомление о необходимости авторизоваться
             const authAlertId = await getStoredGoogleAuthAlertId().getValue();
 
-            console.log('onButtonClicked', notificationId);
+            console.log('onButtonClicked notificationId:', notificationId);
+            console.log('buttonIndex:', buttonIndex);
+            console.log('authAlertId:', authAlertId);
+            
             if (notificationId === authAlertId) {
                 await GoogleCalendarService.instance().login();
                 
@@ -370,6 +378,8 @@ export default defineBackground({
             } else if (buttonIndex === 0) {
                 await openPostponeWindow(reminder.id!);
             }
+
+            await browser.notifications.clear(notificationId);
         });
 
         

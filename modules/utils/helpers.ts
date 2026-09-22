@@ -293,3 +293,7 @@ export const isNumeric = (value: any): boolean => {
 export const isYandexBrowser = (): boolean => {
     return !!navigator?.userAgent?.includes('YaBrowser');
 }
+
+export const isEdge = (): boolean => {
+    return /Edg/.test(navigator.userAgent);
+}
